@@ -15,8 +15,8 @@ const Index = () => {
   const [showTasks, setShowTasks] = useState(true);
 
   return (
-    <div className="h-screen bg-background">
-      <ResizablePanelGroup direction="horizontal">
+    <div className="h-screen w-screen bg-background">
+      <ResizablePanelGroup direction="horizontal" className="w-full">
         <ResizablePanel
           defaultSize={50}
           minSize={30}
