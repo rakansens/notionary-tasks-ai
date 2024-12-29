@@ -98,18 +98,20 @@ export const TaskItem = ({
         <TaskDropdownMenu onDelete={() => deleteTask(task.id)} />
       </div>
 
-      <SubtaskList
-        parentTask={task}
-        subtasks={task.subtasks || []}
-        editingTaskId={editingTaskId}
-        setEditingTaskId={setEditingTaskId}
-        toggleTask={toggleTask}
-        updateTaskTitle={updateTaskTitle}
-        deleteTask={deleteTask}
-        newTask={newTask}
-        setNewTask={setNewTask}
-        addTask={addTask}
-      />
+      {task.subtasks && task.subtasks.length > 0 && (
+        <SubtaskList
+          parentTask={task}
+          subtasks={task.subtasks}
+          editingTaskId={editingTaskId}
+          setEditingTaskId={setEditingTaskId}
+          toggleTask={toggleTask}
+          updateTaskTitle={updateTaskTitle}
+          deleteTask={deleteTask}
+          newTask={newTask}
+          setNewTask={setNewTask}
+          addTask={addTask}
+        />
+      )}
 
       {editingTaskId === task.id && (
         <div className="pl-6">
