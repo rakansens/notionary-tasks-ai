@@ -34,6 +34,16 @@ export const TaskItem = ({
   setNewTask,
   addTask,
 }: TaskItemProps) => {
+  const handleAddSubtask = () => {
+    // 新しいサブタスクを追加
+    addTask(task.groupId, task.id);
+    // 追加されたサブタスクの編集モードを有効にする
+    if (task.subtasks) {
+      const newSubtaskId = task.subtasks[task.subtasks.length - 1]?.id + 1 || task.id + 1;
+      setEditingTaskId(newSubtaskId);
+    }
+  };
+
   return (
     <div className="space-y-0.5">
       <div
@@ -79,10 +89,7 @@ export const TaskItem = ({
           variant="ghost"
           size="icon"
           className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          onClick={() => {
-            setEditingTaskId(task.id);
-            addTask(task.groupId, task.id);
-          }}
+          onClick={handleAddSubtask}
         >
           <Plus className="h-4 w-4" />
         </Button>
