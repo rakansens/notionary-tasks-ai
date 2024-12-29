@@ -35,12 +35,13 @@ export const TaskItem = ({
   addTask,
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
-    // 新しいサブタスクを追加
     addTask(task.groupId, task.id);
-    // 追加されたサブタスクの編集モードを有効にする
+    // 新しいサブタスクが追加された後に、最後のサブタスクを編集モードにする
     if (task.subtasks) {
-      const newSubtaskId = task.subtasks[task.subtasks.length - 1]?.id + 1 || task.id + 1;
-      setEditingTaskId(newSubtaskId);
+      const lastSubtask = task.subtasks[task.subtasks.length - 1];
+      if (lastSubtask) {
+        setEditingTaskId(lastSubtask.id);
+      }
     }
   };
 
