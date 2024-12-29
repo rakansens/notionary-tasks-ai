@@ -28,7 +28,8 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
         const task = {
           ...event.detail,
           status: 'new',
-          sessionId: currentSession.id
+          sessionId: currentSession.id,
+          addedAt: new Date(),
         };
         setNewTasks(prev => [...prev, task]);
       }
@@ -51,12 +52,6 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
 
   const isTaskFromCurrentSession = (task: any, session: PomodoroSession) => {
     return currentSession && session.id === currentSession.id;
-  };
-
-  const isTaskAddedInCurrentSession = (task: any) => {
-    return currentSession && task.addedAt && 
-           new Date(task.addedAt) >= currentSession.startTime &&
-           (!currentSession.endTime || new Date(task.addedAt) <= currentSession.endTime);
   };
 
   return (
@@ -84,93 +79,67 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                     </span>
                   </h3>
                   <div className="space-y-2">
-                    {currentSession?.id === session.id && newTasks.map((task, index) => (
-                      <div
-                        key={`new-${index}`}
-                        className="flex flex-col p-2 rounded-lg bg-green-50"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-green-700">{task.title}</span>
-                          <span className="text-sm text-notion-secondary">
-                            {format(new Date(task.addedAt), "HH:mm")}
-                          </span>
-                        </div>
-                        {task.groupId && (
-                          <div className="text-xs text-notion-secondary mt-1">
-                            <span className="flex items-center gap-1">
-                              <Folder className="h-3 w-3" />
-                              {task.groupName || 'グループ内'}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    {session.completedTasks.map((task, index) => (
-                      <div
-                        key={`${task.id}-${index}`}
-                        className={cn(
-                          "flex flex-col p-2 rounded-lg transition-colors duration-200",
-                          isTaskFromCurrentSession(task, session)
-                            ? "bg-blue-50 dark:bg-blue-900/20"
-                            : "bg-notion-hover"
-                        )}
-                      >
-                        <div className="flex items-center justify-between">
-                          {editingTaskId === task.id ? (
-                            <Input
-                              value={editingTitle}
-                              onChange={(e) => setEditingTitle(e.target.value)}
-                              onBlur={handleEditComplete}
-                              onKeyPress={(e) => e.key === "Enter" && handleEditComplete()}
-                              className="h-6 text-sm"
-                              autoFocus
-                            />
-                          ) : (
-                            <span 
+                    {currentSession?.id === session.id && 
+                      [...newTasks, ...session.completedTasks]
+                        .sort((a, b) => {
+                          const timeA = a.addedAt || a.completedAt;
+                          const timeB = b.addedAt || b.completedAt;
+                          return new Date(timeB).getTime() - new Date(timeA).getTime();
+                        })
+                        .map((task, index) => {
+                          const isNewTask = 'addedAt' in task;
+                          return (
+                            <div
+                              key={isNewTask ? `new-${index}` : `${task.id}-${index}`}
                               className={cn(
-                                "cursor-pointer hover:text-notion-primary",
-                                isTaskFromCurrentSession(task, session) && "font-medium"
+                                "flex flex-col p-2 rounded-lg",
+                                isNewTask ? "bg-green-50" : isTaskFromCurrentSession(task, session)
+                                  ? "bg-blue-50 dark:bg-blue-900/20"
+                                  : "bg-notion-hover"
                               )}
-                              onClick={() => handleEditStart(task.id, task.title)}
                             >
-                              {task.title}
-                              {isTaskFromCurrentSession(task, session) && (
-                                <span className="ml-2 text-xs text-blue-500 dark:text-blue-400">
-                                  (現在のセッション)
-                                </span>
-                              )}
-                            </span>
-                          )}
-                          <span className="text-sm text-notion-secondary">
-                            {format(task.completedAt, "HH:mm")}
-                          </span>
-                        </div>
-                        {(task.parentTaskTitle || task.groupName) && (
-                          <div className="text-xs text-notion-secondary mt-1 flex items-center gap-2 flex-wrap">
-                            {task.parentTaskTitle && (
-                              <div className="flex items-center gap-1">
-                                <Paperclip className="h-3 w-3" />
-                                <span className="flex items-center gap-1">
-                                  {task.parentTaskTitle}
-                                  {task.grandParentTaskTitle && (
-                                    <>
-                                      <ArrowRight className="h-3 w-3" />
-                                      {task.grandParentTaskTitle}
-                                    </>
+                              <div className="flex items-center justify-between">
+                                <span className={isNewTask ? "text-green-700" : ""}>
+                                  {task.title}
+                                  {!isNewTask && isTaskFromCurrentSession(task, session) && (
+                                    <span className="ml-2 text-xs text-blue-500 dark:text-blue-400">
+                                      (現在のセッション)
+                                    </span>
                                   )}
                                 </span>
+                                <span className="text-sm text-notion-secondary">
+                                  {format(new Date(isNewTask ? task.addedAt : task.completedAt), "HH:mm")}
+                                </span>
                               </div>
-                            )}
-                            {task.groupName && (
-                              <span className="flex items-center gap-1">
-                                <Folder className="h-3 w-3" />
-                                {task.groupName}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                              {task.groupId && (
+                                <div className="text-xs text-notion-secondary mt-1">
+                                  <span className="flex items-center gap-1">
+                                    <Folder className="h-3 w-3" />
+                                    {task.groupName || 'グループ内'}
+                                  </span>
+                                </div>
+                              )}
+                              {!isNewTask && (task.parentTaskTitle || task.groupName) && (
+                                <div className="text-xs text-notion-secondary mt-1 flex items-center gap-2 flex-wrap">
+                                  {task.parentTaskTitle && (
+                                    <div className="flex items-center gap-1">
+                                      <Paperclip className="h-3 w-3" />
+                                      <span className="flex items-center gap-1">
+                                        {task.parentTaskTitle}
+                                        {task.grandParentTaskTitle && (
+                                          <>
+                                            <ArrowRight className="h-3 w-3" />
+                                            {task.grandParentTaskTitle}
+                                          </>
+                                        )}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                   </div>
                 </>
               )}
