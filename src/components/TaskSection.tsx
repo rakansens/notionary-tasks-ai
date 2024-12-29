@@ -1,4 +1,4 @@
-import { Plus, MoreHorizontal, Check, FolderPlus, Folder } from "lucide-react";
+import { Plus, MoreHorizontal, Check, FolderPlus, Folder, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { useTaskManager } from "@/hooks/useTaskManager";
+import type { Task } from "@/hooks/useTaskManager";
 
 export const TaskSection = () => {
   const {
@@ -113,10 +114,10 @@ export const TaskSection = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6"
+                  className="h-6 w-6 hover:text-destructive"
                   onClick={() => deleteGroup(group.id)}
                 >
-                  <MoreHorizontal className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
               <div className="pl-4 space-y-0.5">
