@@ -35,14 +35,18 @@ export const TaskItem = ({
   addTask,
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
+    // まず新しいサブタスクを追加
     addTask(task.groupId, task.id);
-    // 新しいサブタスクが追加された後に、最後のサブタスクを編集モードにする
-    if (task.subtasks) {
-      const lastSubtask = task.subtasks[task.subtasks.length - 1];
-      if (lastSubtask) {
-        setEditingTaskId(lastSubtask.id);
+    
+    // 少し遅延を入れて、状態が更新された後に最後のサブタスクを編集モードにする
+    setTimeout(() => {
+      if (task.subtasks && task.subtasks.length > 0) {
+        const lastSubtask = task.subtasks[task.subtasks.length - 1];
+        if (lastSubtask) {
+          setEditingTaskId(lastSubtask.id);
+        }
       }
-    }
+    }, 0);
   };
 
   return (
