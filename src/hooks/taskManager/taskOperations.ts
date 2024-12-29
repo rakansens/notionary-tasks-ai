@@ -1,18 +1,48 @@
 import { Task } from './types';
 
+const findTaskAndUpdate = (
+  tasks: Task[],
+  taskId: number,
+  updateFn: (task: Task) => Task
+): Task[] => {
+  return tasks.map(task => {
+    if (task.id === taskId) {
+      return updateFn(task);
+    }
+    if (task.subtasks && task.subtasks.length > 0) {
+      return {
+        ...task,
+        subtasks: findTaskAndUpdate(task.subtasks, taskId, updateFn),
+      };
+    }
+    return task;
+  });
+};
+
 export const addTaskToState = (
   prevTasks: Task[],
   newTask: Task,
   parentId?: number
 ): Task[] => {
-  if (parentId) {
-    return prevTasks.map(t => 
-      t.id === parentId 
-        ? { ...t, subtasks: [...(t.subtasks || []), newTask] }
-        : t
-    );
+  if (!parentId) {
+    return [...prevTasks, newTask];
   }
-  return [...prevTasks, newTask];
+
+  return prevTasks.map(task => {
+    if (task.id === parentId) {
+      return {
+        ...task,
+        subtasks: [...(task.subtasks || []), newTask],
+      };
+    }
+    if (task.subtasks && task.subtasks.length > 0) {
+      return {
+        ...task,
+        subtasks: addTaskToState(task.subtasks, newTask, parentId),
+      };
+    }
+    return task;
+  });
 };
 
 export const toggleTaskInState = (
@@ -20,24 +50,10 @@ export const toggleTaskInState = (
   id: number,
   parentId?: number
 ): Task[] => {
-  if (parentId) {
-    return prevTasks.map(task => {
-      if (task.id === parentId) {
-        return {
-          ...task,
-          subtasks: task.subtasks?.map(subtask =>
-            subtask.id === id
-              ? { ...subtask, completed: !subtask.completed }
-              : subtask
-          ),
-        };
-      }
-      return task;
-    });
-  }
-  return prevTasks.map(task =>
-    task.id === id ? { ...task, completed: !task.completed } : task
-  );
+  return findTaskAndUpdate(prevTasks, id, task => ({
+    ...task,
+    completed: !task.completed,
+  }));
 };
 
 export const updateTaskTitleInState = (
@@ -46,52 +62,8 @@ export const updateTaskTitleInState = (
   title: string,
   parentId?: number
 ): Task[] => {
-  if (parentId) {
-    return prevTasks.map(task => {
-      if (task.id === parentId) {
-        return {
-          ...task,
-          subtasks: task.subtasks?.map(subtask =>
-            subtask.id === id ? { ...subtask, title } : subtask
-          ),
-        };
-      }
-      return task;
-    });
-  }
-  return prevTasks.map(task =>
-    task.id === id ? { ...task, title } : task
-  );
-};
-
-export const updateTaskOrderInState = (
-  prevTasks: Task[],
-  taskId: number,
-  newGroupId?: number,
-  newIndex?: number
-): Task[] => {
-  const taskToMove = prevTasks.find(t => t.id === taskId);
-  if (!taskToMove) return prevTasks;
-
-  const remainingTasks = prevTasks.filter(t => t.id !== taskId);
-  
-  const updatedTask = {
-    ...taskToMove,
-    groupId: newGroupId ?? taskToMove.groupId,
-  };
-
-  if (typeof newIndex === 'number') {
-    const tasksInTargetGroup = remainingTasks.filter(t => t.groupId === newGroupId);
-    const beforeTasks = tasksInTargetGroup.slice(0, newIndex);
-    const afterTasks = tasksInTargetGroup.slice(newIndex);
-    
-    return [
-      ...remainingTasks.filter(t => t.groupId !== newGroupId),
-      ...beforeTasks,
-      updatedTask,
-      ...afterTasks,
-    ];
-  }
-
-  return [...remainingTasks, updatedTask];
+  return findTaskAndUpdate(prevTasks, id, task => ({
+    ...task,
+    title,
+  }));
 };

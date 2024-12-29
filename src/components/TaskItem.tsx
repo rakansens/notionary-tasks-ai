@@ -50,11 +50,11 @@ export const TaskItem = ({
   };
 
   const handleDelete = () => {
-    deleteTask(task.id);
+    deleteTask(task.id, task.parentId);
   };
 
   const handleDropdownDelete = () => {
-    deleteTask(task.id);
+    deleteTask(task.id, task.parentId);
   };
 
   const handleTitleClick = () => {
@@ -84,7 +84,7 @@ export const TaskItem = ({
         {editingTaskId === task.id ? (
           <Input
             value={task.title}
-            onChange={(e) => updateTaskTitle(task.id, e.target.value)}
+            onChange={(e) => updateTaskTitle(task.id, e.target.value, task.parentId)}
             onBlur={() => setEditingTaskId(null)}
             onKeyPress={(e) => e.key === "Enter" && setEditingTaskId(null)}
             className="flex-1 h-6 py-0 px-1 bg-transparent border-none focus:ring-0 text-sm"
