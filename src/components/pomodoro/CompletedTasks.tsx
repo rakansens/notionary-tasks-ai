@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import type { PomodoroSession } from "@/types/pomodoro";
 import { useState } from "react";
 
@@ -29,6 +30,10 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
     setEditingTaskId(null);
     // Here you would typically update the task title in your state management system
     // For now, we'll just clear the editing state
+  };
+
+  const isTaskFromCurrentSession = (task: any, session: PomodoroSession) => {
+    return currentSession && session.id === currentSession.id;
   };
 
   return (
@@ -59,7 +64,12 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                     {session.completedTasks.map((task, index) => (
                       <div
                         key={`${task.id}-${index}`}
-                        className="flex flex-col p-2 rounded-lg bg-notion-hover"
+                        className={cn(
+                          "flex flex-col p-2 rounded-lg transition-colors duration-200",
+                          isTaskFromCurrentSession(task, session)
+                            ? "bg-blue-50 dark:bg-blue-900/20"
+                            : "bg-notion-hover"
+                        )}
                       >
                         <div className="flex items-center justify-between">
                           {editingTaskId === task.id ? (
@@ -73,10 +83,18 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                             />
                           ) : (
                             <span 
-                              className="cursor-pointer hover:text-notion-primary"
+                              className={cn(
+                                "cursor-pointer hover:text-notion-primary",
+                                isTaskFromCurrentSession(task, session) && "font-medium"
+                              )}
                               onClick={() => handleEditStart(task.id, task.title)}
                             >
                               {task.title}
+                              {isTaskFromCurrentSession(task, session) && (
+                                <span className="ml-2 text-xs text-blue-500 dark:text-blue-400">
+                                  (現在のセッション)
+                                </span>
+                              )}
                             </span>
                           )}
                           <span className="text-sm text-notion-secondary">
