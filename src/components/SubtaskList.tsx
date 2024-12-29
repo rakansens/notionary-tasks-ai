@@ -28,7 +28,7 @@ export const SubtaskList = ({
   addTask,
 }: SubtaskListProps) => {
   return (
-    <div className="pl-6 space-y-0.5">
+    <div className="pl-6 space-y-0.5 relative before:absolute before:left-2.5 before:top-0 before:bottom-0 before:w-px before:bg-border">
       {subtasks.map(subtask => (
         <TaskItem
           key={subtask.id}

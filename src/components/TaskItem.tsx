@@ -51,7 +51,7 @@ export const TaskItem = ({
           size="icon"
           className={cn(
             "h-5 w-5 rounded-md border transition-colors duration-200",
-            task.completed ? "bg-primary border-primary" : "border-input"
+            task.completed ? "bg-primary border-primary" : "border-input hover:border-primary/50"
           )}
           onClick={() => toggleTask(task.id)}
         >
@@ -64,13 +64,13 @@ export const TaskItem = ({
             onChange={(e) => updateTaskTitle(task.id, e.target.value)}
             onBlur={() => setEditingTaskId(null)}
             onKeyPress={(e) => e.key === "Enter" && setEditingTaskId(null)}
-            className="flex-1 h-6 py-0"
+            className="flex-1 h-6 py-0 bg-background"
             autoFocus
           />
         ) : (
           <span
             className={cn(
-              "flex-1 transition-all duration-200 cursor-pointer",
+              "flex-1 transition-all duration-200 cursor-pointer text-sm",
               task.completed && "line-through text-muted-foreground"
             )}
             onClick={() => setEditingTaskId(task.id)}
@@ -79,25 +79,27 @@ export const TaskItem = ({
           </span>
         )}
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          onClick={handleAddSubtask}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          onClick={() => deleteTask(task.id)}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-        
-        <TaskDropdownMenu onDelete={() => deleteTask(task.id)} />
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 hover:bg-muted"
+            onClick={handleAddSubtask}
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 hover:bg-muted text-muted-foreground hover:text-destructive"
+            onClick={() => deleteTask(task.id)}
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+          
+          <TaskDropdownMenu onDelete={() => deleteTask(task.id)} />
+        </div>
       </div>
 
       <SubtaskList
