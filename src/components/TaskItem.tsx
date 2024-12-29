@@ -80,8 +80,11 @@ export const TaskItem = ({
           size="icon"
           className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           onClick={() => {
-            setEditingTaskId(task.id);
             addTask(task.groupId, task.id);
+            if (task.subtasks) {
+              const newSubtaskId = Date.now();
+              setEditingTaskId(newSubtaskId);
+            }
           }}
         >
           <Plus className="h-4 w-4" />
