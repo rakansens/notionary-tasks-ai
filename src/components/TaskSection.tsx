@@ -1,18 +1,12 @@
-import { Plus, MoreHorizontal, Check, FolderPlus } from "lucide-react";
+import { FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { useTaskManager } from "@/hooks/useTaskManager";
-import { GroupHeader } from "./GroupHeader";
-import type { Task } from "@/hooks/useTaskManager";
+import { TaskItem } from "./TaskItem";
+import { TaskInput } from "./TaskInput";
+import { GroupList } from "./GroupList";
 
 export const TaskSection = () => {
   const {
@@ -40,66 +34,6 @@ export const TaskSection = () => {
     cancelDelete,
   } = useTaskManager();
 
-  const renderTask = (task: Task) => (
-    <div
-      key={task.id}
-      className={cn(
-        "flex items-center gap-1 p-1.5 rounded-lg transition-all duration-200",
-        "hover:bg-muted/50 group"
-      )}
-    >
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn(
-          "h-5 w-5 rounded-md border transition-colors duration-200",
-          task.completed ? "bg-primary border-primary" : "border-input"
-        )}
-        onClick={() => toggleTask(task.id)}
-      >
-        {task.completed && <Check className="h-3 w-3 text-primary-foreground" />}
-      </Button>
-      
-      {editingTaskId === task.id ? (
-        <Input
-          value={task.title}
-          onChange={(e) => updateTaskTitle(task.id, e.target.value)}
-          onBlur={() => setEditingTaskId(null)}
-          onKeyPress={(e) => e.key === "Enter" && setEditingTaskId(null)}
-          className="flex-1 h-6 py-0"
-          autoFocus
-        />
-      ) : (
-        <span
-          className={cn(
-            "flex-1 transition-all duration-200 cursor-pointer",
-            task.completed && "line-through text-muted-foreground"
-          )}
-          onClick={() => setEditingTaskId(task.id)}
-        >
-          {task.title}
-        </span>
-      )}
-      
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => deleteTask(task.id)}>
-            削除
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
-
   return (
     <div className="flex flex-col h-full bg-background">
       <div className="p-2 border-b">
@@ -108,39 +42,36 @@ export const TaskSection = () => {
       
       <ScrollArea className="flex-1 p-1">
         <div className="space-y-0.5">
-          {tasks.filter(task => !task.groupId).map(renderTask)}
-
-          {groups.map(group => (
-            <div key={group.id} className="mt-2">
-              <GroupHeader
-                group={group}
-                editingGroupId={editingGroupId}
-                setEditingGroupId={setEditingGroupId}
-                updateGroupName={updateGroupName}
-                deleteGroup={deleteGroup}
+          {tasks
+            .filter(task => !task.groupId)
+            .map(task => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                editingTaskId={editingTaskId}
+                setEditingTaskId={setEditingTaskId}
+                toggleTask={toggleTask}
+                updateTaskTitle={updateTaskTitle}
+                deleteTask={deleteTask}
               />
-              <div className="pl-4 space-y-0.5">
-                {tasks.filter(task => task.groupId === group.id).map(renderTask)}
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 rounded-md border border-input"
-                    onClick={() => addTask(group.id)}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                  <Input
-                    value={newTask}
-                    onChange={(e) => setNewTask(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && addTask(group.id)}
-                    placeholder="新しいタスクを追加..."
-                    className="flex-1 h-7 py-0"
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
+            ))}
+          
+          <GroupList
+            groups={groups}
+            tasks={tasks}
+            newTask={newTask}
+            editingTaskId={editingTaskId}
+            editingGroupId={editingGroupId}
+            setNewTask={setNewTask}
+            setEditingTaskId={setEditingTaskId}
+            setEditingGroupId={setEditingGroupId}
+            addTask={addTask}
+            toggleTask={toggleTask}
+            updateTaskTitle={updateTaskTitle}
+            updateGroupName={updateGroupName}
+            deleteTask={deleteTask}
+            deleteGroup={deleteGroup}
+          />
         </div>
       </ScrollArea>
       
@@ -175,23 +106,11 @@ export const TaskSection = () => {
           </Button>
         )}
 
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-5 w-5 rounded-md border border-input"
-            onClick={() => addTask()}
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
-          <Input
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && addTask()}
-            placeholder="新しいタスクを追加..."
-            className="flex-1"
-          />
-        </div>
+        <TaskInput
+          value={newTask}
+          onChange={setNewTask}
+          onSubmit={() => addTask()}
+        />
       </div>
 
       <DeleteConfirmDialog
