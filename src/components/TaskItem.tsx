@@ -35,7 +35,8 @@ export const TaskItem = ({
   addTask,
 }: TaskItemProps) => {
   const handleAddSubtask = (e: React.MouseEvent) => {
-    e.stopPropagation();  // Prevent event from bubbling up to DnD handlers
+    e.preventDefault();
+    e.stopPropagation();
     setAddingSubtaskId(task.id);
   };
 
@@ -47,24 +48,24 @@ export const TaskItem = ({
   };
 
   const handleToggleTask = (e: React.MouseEvent) => {
-    e.stopPropagation();  // Prevent event from bubbling up to DnD handlers
-    if (toggleTask) {
-      toggleTask(task.id, task.parentId);
-    }
+    e.preventDefault();
+    e.stopPropagation();
+    toggleTask(task.id, task.parentId);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();  // Prevent event from bubbling up to DnD handlers
+    e.preventDefault();
+    e.stopPropagation();
     deleteTask(task.id);
   };
 
-  // Create a wrapper function that doesn't require the event parameter
   const handleDropdownDelete = () => {
     deleteTask(task.id);
   };
 
   const handleTitleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();  // Prevent event from bubbling up to DnD handlers
+    e.preventDefault();
+    e.stopPropagation();
     setEditingTaskId(task.id);
   };
 
@@ -111,7 +112,10 @@ export const TaskItem = ({
 
         <div 
           className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          onClick={(e) => e.stopPropagation()} // Prevent DnD from triggering on button clicks
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
         >
           <Button
             variant="ghost"
