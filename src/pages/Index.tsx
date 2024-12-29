@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { ChatSection } from "@/components/ChatSection";
 import { TaskSection } from "@/components/TaskSection";
-import { Button } from "@/components/ui/button";
-import { PanelLeftClose } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   ResizablePanelGroup,
@@ -11,8 +9,8 @@ import {
 } from "@/components/ui/resizable";
 
 const Index = () => {
-  const [showChat, setShowChat] = useState(true);
-  const [showTasks, setShowTasks] = useState(true);
+  const [showChat] = useState(true);
+  const [showTasks] = useState(true);
 
   return (
     <div className="h-screen w-screen bg-background">
@@ -27,14 +25,6 @@ const Index = () => {
           )}
         >
           <div className="h-full relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 z-10"
-              onClick={() => setShowChat(!showChat)}
-            >
-              <PanelLeftClose className="h-4 w-4" />
-            </Button>
             <div
               className={cn(
                 "h-full transition-opacity duration-300",
