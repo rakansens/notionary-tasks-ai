@@ -17,12 +17,14 @@ export const TaskSection = () => {
     isAddingGroup,
     editingTaskId,
     editingGroupId,
+    addingSubtaskId,
     deleteTarget,
     setNewTask,
     setNewGroup,
     setIsAddingGroup,
     setEditingTaskId,
     setEditingGroupId,
+    setAddingSubtaskId,
     addTask,
     addGroup,
     toggleTask,
@@ -49,7 +51,9 @@ export const TaskSection = () => {
                 key={task.id}
                 task={task}
                 editingTaskId={editingTaskId}
+                addingSubtaskId={addingSubtaskId}
                 setEditingTaskId={setEditingTaskId}
+                setAddingSubtaskId={setAddingSubtaskId}
                 toggleTask={toggleTask}
                 updateTaskTitle={updateTaskTitle}
                 deleteTask={deleteTask}
@@ -65,9 +69,11 @@ export const TaskSection = () => {
             newTask={newTask}
             editingTaskId={editingTaskId}
             editingGroupId={editingGroupId}
+            addingSubtaskId={addingSubtaskId}
             setNewTask={setNewTask}
             setEditingTaskId={setEditingTaskId}
             setEditingGroupId={setEditingGroupId}
+            setAddingSubtaskId={setAddingSubtaskId}
             addTask={addTask}
             toggleTask={toggleTask}
             updateTaskTitle={updateTaskTitle}

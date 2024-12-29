@@ -5,7 +5,9 @@ interface SubtaskListProps {
   parentTask: Task;
   subtasks: Task[];
   editingTaskId: number | null;
+  addingSubtaskId: number | null;
   setEditingTaskId: (id: number | null) => void;
+  setAddingSubtaskId: (id: number | null) => void;
   toggleTask: (id: number, parentId?: number) => void;
   updateTaskTitle: (id: number, title: string, parentId?: number) => void;
   deleteTask: (id: number, parentId?: number) => void;
@@ -18,7 +20,9 @@ export const SubtaskList = ({
   parentTask,
   subtasks,
   editingTaskId,
+  addingSubtaskId,
   setEditingTaskId,
+  setAddingSubtaskId,
   toggleTask,
   updateTaskTitle,
   deleteTask,
@@ -35,7 +39,9 @@ export const SubtaskList = ({
           key={subtask.id}
           task={subtask}
           editingTaskId={editingTaskId}
+          addingSubtaskId={addingSubtaskId}
           setEditingTaskId={setEditingTaskId}
+          setAddingSubtaskId={setAddingSubtaskId}
           toggleTask={(id) => toggleTask(id, parentTask.id)}
           updateTaskTitle={(id, title) => updateTaskTitle(id, title, parentTask.id)}
           deleteTask={(id) => deleteTask(id, parentTask.id)}

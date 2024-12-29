@@ -7,10 +7,33 @@ interface TaskInputProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit: () => void;
+  onCancel?: () => void;
   groupId?: number;
+  autoFocus?: boolean;
 }
 
-export const TaskInput = ({ value, onChange, onSubmit, groupId }: TaskInputProps) => {
+export const TaskInput = ({ 
+  value, 
+  onChange, 
+  onSubmit, 
+  onCancel,
+  groupId,
+  autoFocus 
+}: TaskInputProps) => {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      onSubmit();
+    } else if (e.key === "Escape" && onCancel) {
+      onCancel();
+    }
+  };
+
+  const handleBlur = () => {
+    if (!value.trim() && onCancel) {
+      onCancel();
+    }
+  };
+
   return (
     <div className="flex items-center gap-1">
       <Button
@@ -24,9 +47,11 @@ export const TaskInput = ({ value, onChange, onSubmit, groupId }: TaskInputProps
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onKeyPress={(e) => e.key === "Enter" && onSubmit()}
+        onKeyDown={handleKeyPress}
+        onBlur={handleBlur}
         placeholder="新しいタスクを追加..."
         className={cn("flex-1", !groupId && "h-7 py-0")}
+        autoFocus={autoFocus}
       />
     </div>
   );

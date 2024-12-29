@@ -10,7 +10,9 @@ import type { Task } from "@/hooks/useTaskManager";
 interface TaskItemProps {
   task: Task;
   editingTaskId: number | null;
+  addingSubtaskId: number | null;
   setEditingTaskId: (id: number | null) => void;
+  setAddingSubtaskId: (id: number | null) => void;
   toggleTask: (id: number, parentId?: number) => void;
   updateTaskTitle: (id: number, title: string, parentId?: number) => void;
   deleteTask: (id: number, parentId?: number) => void;
@@ -22,7 +24,9 @@ interface TaskItemProps {
 export const TaskItem = ({
   task,
   editingTaskId,
+  addingSubtaskId,
   setEditingTaskId,
+  setAddingSubtaskId,
   toggleTask,
   updateTaskTitle,
   deleteTask,
@@ -31,16 +35,14 @@ export const TaskItem = ({
   addTask,
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
-    addTask(task.groupId, task.id);
-    
-    setTimeout(() => {
-      if (task.subtasks && task.subtasks.length > 0) {
-        const lastSubtask = task.subtasks[task.subtasks.length - 1];
-        if (lastSubtask) {
-          setEditingTaskId(lastSubtask.id);
-        }
-      }
-    }, 0);
+    setAddingSubtaskId(task.id);
+  };
+
+  const handleSubmitSubtask = () => {
+    if (newTask.trim()) {
+      addTask(task.groupId, task.id);
+      setAddingSubtaskId(null);
+    }
   };
 
   return (
@@ -109,7 +111,9 @@ export const TaskItem = ({
         parentTask={task}
         subtasks={task.subtasks || []}
         editingTaskId={editingTaskId}
+        addingSubtaskId={addingSubtaskId}
         setEditingTaskId={setEditingTaskId}
+        setAddingSubtaskId={setAddingSubtaskId}
         toggleTask={toggleTask}
         updateTaskTitle={updateTaskTitle}
         deleteTask={deleteTask}
@@ -118,12 +122,14 @@ export const TaskItem = ({
         addTask={addTask}
       />
 
-      {editingTaskId === task.id && (
+      {addingSubtaskId === task.id && (
         <div className="pl-6">
           <TaskInput
             value={newTask}
             onChange={setNewTask}
-            onSubmit={() => addTask(task.groupId, task.id)}
+            onSubmit={handleSubmitSubtask}
+            onCancel={() => setAddingSubtaskId(null)}
+            autoFocus
           />
         </div>
       )}

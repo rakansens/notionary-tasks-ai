@@ -22,6 +22,7 @@ export const useTaskManager = () => {
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
+  const [addingSubtaskId, setAddingSubtaskId] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
     type: "task" | "group";
     id: number;
@@ -168,12 +169,14 @@ export const useTaskManager = () => {
     isAddingGroup,
     editingTaskId,
     editingGroupId,
+    addingSubtaskId,
     deleteTarget,
     setNewTask,
     setNewGroup,
     setIsAddingGroup,
     setEditingTaskId,
     setEditingGroupId,
+    setAddingSubtaskId,
     addTask,
     addGroup,
     toggleTask,
