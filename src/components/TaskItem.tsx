@@ -52,14 +52,23 @@ export const TaskItem = ({
   };
 
   const handleToggleTask = () => {
+    console.log('Task before toggle:', {
+      id: task.id,
+      title: task.title,
+      addedAt: task.addedAt,
+      completed: task.completed
+    });
+
     toggleTask(task.id, task.parentId);
+
     if (!task.completed) {
-      console.log('Task completed:', {
+      console.log('Task completed event details:', {
         id: task.id,
         title: task.title,
         parentTask: parentTask?.title,
         groupName: groupName,
-        addedAt: task.addedAt
+        addedAt: task.addedAt,
+        currentTime: new Date().toISOString()
       });
       
       const completedTask = {
@@ -73,6 +82,8 @@ export const TaskItem = ({
           null,
         groupName: groupName || null,
       };
+      
+      console.log('Dispatching completedTask event with:', completedTask);
       
       window.dispatchEvent(new CustomEvent('taskCompleted', { 
         detail: completedTask,
