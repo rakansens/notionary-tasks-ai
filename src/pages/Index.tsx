@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChatSection } from "@/components/ChatSection";
 import { TaskSection } from "@/components/TaskSection";
 import { Button } from "@/components/ui/button";
-import { PanelLeftClose, PanelRightClose } from "lucide-react";
+import { PanelLeftClose } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   ResizablePanelGroup,
@@ -58,14 +58,6 @@ const Index = () => {
           )}
         >
           <div className="h-full relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 left-4 z-10"
-              onClick={() => setShowTasks(!showTasks)}
-            >
-              <PanelRightClose className="h-4 w-4" />
-            </Button>
             <div
               className={cn(
                 "h-full transition-opacity duration-300",
