@@ -34,6 +34,8 @@ export const DraggableTask = ({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    position: 'relative',
+    zIndex: isDragging ? 999 : 'auto',
   };
 
   return (
@@ -42,7 +44,9 @@ export const DraggableTask = ({
       style={style}
       {...attributes}
       {...listeners}
-      className="touch-none"
+      className={`touch-none transition-shadow duration-200 ${
+        isDragging ? 'shadow-lg rounded-md bg-white' : ''
+      }`}
     >
       <TaskItem task={task} {...props} />
     </div>

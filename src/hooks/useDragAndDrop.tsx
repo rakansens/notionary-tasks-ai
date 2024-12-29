@@ -16,31 +16,40 @@ export const useDragAndDrop = (
   });
 
   const handleDragStart = (event: DragStartEvent) => {
-    setState({ activeId: event.active.id.toString() });
+    setState({ activeId: String(event.active.id) });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (!over) return;
+    if (!over) {
+      setState({ activeId: null });
+      return;
+    }
 
     const activeId = Number(active.id);
     const overId = Number(over.id);
     
-    if (activeId === overId) return;
+    if (activeId === overId) {
+      setState({ activeId: null });
+      return;
+    }
 
     const activeTask = tasks.find(task => task.id === activeId);
     const overTask = tasks.find(task => task.id === overId);
     
-    if (!activeTask) return;
-
-    // If dropping over a task
-    if (overTask) {
-      const activeIndex = tasks.findIndex(task => task.id === activeId);
-      const overIndex = tasks.findIndex(task => task.id === overId);
-      updateTaskOrder(activeId, overTask.groupId, overIndex);
+    if (!activeTask) {
+      setState({ activeId: null });
+      return;
     }
 
+    // Calculate new index and group
+    const newGroupId = overTask?.groupId;
+    const tasksInTargetGroup = tasks.filter(task => task.groupId === newGroupId);
+    const overIndex = tasksInTargetGroup.findIndex(task => task.id === overId);
+    
+    // Update task order
+    updateTaskOrder(activeId, newGroupId, overIndex);
     setState({ activeId: null });
   };
 

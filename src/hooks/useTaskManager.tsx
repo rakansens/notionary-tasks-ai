@@ -29,61 +29,7 @@ export const useTaskManager = () => {
     id: number;
   } | null>(null);
 
-  const findTaskById = (taskList: Task[], id: number): Task | undefined => {
-    for (const task of taskList) {
-      if (task.id === id) return task;
-      if (task.subtasks) {
-        const found = findTaskById(task.subtasks, id);
-        if (found) return found;
-      }
-    }
-    return undefined;
-  };
-
-  const updateTaskInTree = (taskList: Task[], updatedTask: Task): Task[] => {
-    return taskList.map(task => {
-      if (task.id === updatedTask.id) {
-        return updatedTask;
-      }
-      if (task.subtasks) {
-        return {
-          ...task,
-          subtasks: updateTaskInTree(task.subtasks, updatedTask)
-        };
-      }
-      return task;
-    });
-  };
-
-  const updateTaskOrder = (taskId: number, newGroupId?: number, newIndex?: number) => {
-    setTasks(prevTasks => {
-      const taskToMove = prevTasks.find(t => t.id === taskId);
-      if (!taskToMove) return prevTasks;
-
-      const newTasks = prevTasks.filter(t => t.id !== taskId);
-      
-      if (typeof newIndex === 'number') {
-        newTasks.splice(newIndex, 0, {
-          ...taskToMove,
-          groupId: newGroupId ?? taskToMove.groupId,
-        });
-      } else {
-        newTasks.push({
-          ...taskToMove,
-          groupId: newGroupId ?? taskToMove.groupId,
-        });
-      }
-
-      return newTasks;
-    });
-  };
-
-  const updateGroupName = (id: number, newName: string) => {
-    setGroups(groups.map(group =>
-      group.id === id ? { ...group, name: newName } : group
-    ));
-  };
-
+  // Task management functions
   const addTask = (groupId?: number, parentId?: number) => {
     if (!newTask.trim()) return;
     
@@ -94,26 +40,16 @@ export const useTaskManager = () => {
       groupId,
       parentId,
       subtasks: [],
+      order: tasks.length,
     };
     
     setTasks(prevTasks => {
       if (parentId) {
-        const updatedTasks = [...prevTasks];
-        const findAndAddSubtask = (tasks: Task[]): boolean => {
-          for (let i = 0; i < tasks.length; i++) {
-            if (tasks[i].id === parentId) {
-              tasks[i].subtasks = [...(tasks[i].subtasks || []), task];
-              return true;
-            }
-            if (tasks[i].subtasks && findAndAddSubtask(tasks[i].subtasks)) {
-              return true;
-            }
-          }
-          return false;
-        };
-        
-        findAndAddSubtask(updatedTasks);
-        return updatedTasks;
+        return prevTasks.map(t => 
+          t.id === parentId 
+            ? { ...t, subtasks: [...(t.subtasks || []), task] }
+            : t
+        );
       }
       return [...prevTasks, task];
     });
@@ -121,60 +57,42 @@ export const useTaskManager = () => {
     setNewTask("");
   };
 
-  const addGroup = () => {
-    if (!newGroup.trim()) return;
-    
-    const group: Group = {
-      id: Date.now(),
-      name: newGroup,
-    };
-    
-    setGroups([...groups, group]);
-    setNewGroup("");
-    setIsAddingGroup(false);
-  };
-
-  const toggleTask = (id: number, parentId?: number) => {
+  const updateTaskOrder = (taskId: number, newGroupId?: number, newIndex?: number) => {
     setTasks(prevTasks => {
-      if (parentId) {
-        return prevTasks.map(task => {
-          if (task.id === parentId) {
-            return {
-              ...task,
-              subtasks: task.subtasks?.map(subtask =>
-                subtask.id === id ? { ...subtask, completed: !subtask.completed } : subtask
-              ),
-            };
-          }
-          return task;
-        });
+      const taskToMove = prevTasks.find(t => t.id === taskId);
+      if (!taskToMove) return prevTasks;
+
+      // Remove task from current position
+      const remainingTasks = prevTasks.filter(t => t.id !== taskId);
+      
+      // Prepare updated task
+      const updatedTask = {
+        ...taskToMove,
+        groupId: newGroupId ?? taskToMove.groupId,
+      };
+
+      // Insert task at new position
+      if (typeof newIndex === 'number') {
+        const tasksInTargetGroup = remainingTasks.filter(t => t.groupId === newGroupId);
+        const beforeTasks = tasksInTargetGroup.slice(0, newIndex);
+        const afterTasks = tasksInTargetGroup.slice(newIndex);
+        
+        return [
+          ...remainingTasks.filter(t => t.groupId !== newGroupId),
+          ...beforeTasks,
+          updatedTask,
+          ...afterTasks,
+        ];
       }
-      return prevTasks.map(task =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      );
+
+      return [...remainingTasks, updatedTask];
     });
   };
 
-  const updateTaskTitle = (id: number, newTitle: string, parentId?: number) => {
-    setTasks(prevTasks => {
-      if (parentId) {
-        return prevTasks.map(task => {
-          if (task.id === parentId) {
-            return {
-              ...task,
-              subtasks: task.subtasks?.map(subtask =>
-                subtask.id === id ? { ...subtask, title: newTitle } : subtask
-              ),
-            };
-          }
-          return task;
-        });
-      }
-      return prevTasks.map(task =>
-        task.id === id ? { ...task, title: newTitle } : task
-      );
-    });
-    setEditingTaskId(null);
+  const updateGroupName = (id: number, newName: string) => {
+    setGroups(groups.map(group =>
+      group.id === id ? { ...group, name: newName } : group
+    ));
   };
 
   const deleteTask = (id: number, parentId?: number) => {
@@ -233,14 +151,11 @@ export const useTaskManager = () => {
     setEditingGroupId,
     setAddingSubtaskId,
     addTask,
-    addGroup,
-    toggleTask,
-    updateTaskTitle,
+    updateTaskOrder,
     updateGroupName,
     deleteTask,
     deleteGroup,
     confirmDelete,
     cancelDelete,
-    updateTaskOrder,
   };
 };
