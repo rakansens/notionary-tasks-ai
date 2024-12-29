@@ -5,6 +5,8 @@ export interface Task {
   title: string;
   completed: boolean;
   groupId?: number;
+  parentId?: number;
+  subtasks?: Task[];
 }
 
 export interface Group {
@@ -31,7 +33,7 @@ export const useTaskManager = () => {
     ));
   };
 
-  const addTask = (groupId?: number) => {
+  const addTask = (groupId?: number, parentId?: number) => {
     if (!newTask.trim()) return;
     
     const task: Task = {
@@ -39,9 +41,24 @@ export const useTaskManager = () => {
       title: newTask,
       completed: false,
       groupId,
+      parentId,
+      subtasks: [],
     };
     
-    setTasks([...tasks, task]);
+    setTasks(prevTasks => {
+      if (parentId) {
+        return prevTasks.map(t => {
+          if (t.id === parentId) {
+            return {
+              ...t,
+              subtasks: [...(t.subtasks || []), task],
+            };
+          }
+          return t;
+        });
+      }
+      return [...prevTasks, task];
+    });
     setNewTask("");
   };
 
@@ -58,21 +75,65 @@ export const useTaskManager = () => {
     setIsAddingGroup(false);
   };
 
-  const toggleTask = (id: number) => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+  const toggleTask = (id: number, parentId?: number) => {
+    setTasks(prevTasks => {
+      if (parentId) {
+        return prevTasks.map(task => {
+          if (task.id === parentId) {
+            return {
+              ...task,
+              subtasks: task.subtasks?.map(subtask =>
+                subtask.id === id ? { ...subtask, completed: !subtask.completed } : subtask
+              ),
+            };
+          }
+          return task;
+        });
+      }
+      return prevTasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      );
+    });
   };
 
-  const updateTaskTitle = (id: number, newTitle: string) => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, title: newTitle } : task
-    ));
+  const updateTaskTitle = (id: number, newTitle: string, parentId?: number) => {
+    setTasks(prevTasks => {
+      if (parentId) {
+        return prevTasks.map(task => {
+          if (task.id === parentId) {
+            return {
+              ...task,
+              subtasks: task.subtasks?.map(subtask =>
+                subtask.id === id ? { ...subtask, title: newTitle } : subtask
+              ),
+            };
+          }
+          return task;
+        });
+      }
+      return prevTasks.map(task =>
+        task.id === id ? { ...task, title: newTitle } : task
+      );
+    });
     setEditingTaskId(null);
   };
 
-  const deleteTask = (id: number) => {
-    setDeleteTarget({ type: "task", id });
+  const deleteTask = (id: number, parentId?: number) => {
+    if (parentId) {
+      setTasks(prevTasks =>
+        prevTasks.map(task => {
+          if (task.id === parentId) {
+            return {
+              ...task,
+              subtasks: task.subtasks?.filter(subtask => subtask.id !== id),
+            };
+          }
+          return task;
+        })
+      );
+    } else {
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+    }
   };
 
   const deleteGroup = (id: number) => {
