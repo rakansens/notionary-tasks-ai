@@ -40,20 +40,27 @@ export const TaskItem = ({
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
     setAddingSubtaskId(task.id);
-    setNewTask(''); // Reset newTask when opening the input
+    setNewTask('');
   };
 
   const handleSubmitSubtask = () => {
     if (newTask.trim()) {
       addTask(task.groupId, task.id);
       setAddingSubtaskId(null);
-      setNewTask(''); // Reset newTask after adding
+      setNewTask('');
     }
   };
 
   const handleToggleTask = () => {
     toggleTask(task.id, task.parentId);
     if (!task.completed) {
+      console.log('Task completed:', {
+        id: task.id,
+        title: task.title,
+        parentTask: parentTask?.title,
+        groupName: groupName
+      });
+      
       const completedTask = {
         id: task.id,
         title: task.title,
@@ -61,7 +68,12 @@ export const TaskItem = ({
         parentTaskTitle: parentTask?.title,
         groupName: groupName,
       };
-      window.dispatchEvent(new CustomEvent('taskCompleted', { detail: completedTask }));
+      
+      window.dispatchEvent(new CustomEvent('taskCompleted', { 
+        detail: completedTask,
+        bubbles: true,  // イベントをバブリングさせる
+        composed: true  // Shadow DOMの境界を越えてイベントを伝播させる
+      }));
     }
   };
 
