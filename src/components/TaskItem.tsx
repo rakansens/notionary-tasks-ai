@@ -65,14 +65,14 @@ export const TaskItem = ({
         id: task.id,
         title: task.title,
         completedAt: new Date(),
-        parentTaskTitle: parentTask?.title,
-        groupName: groupName,
+        parentTaskTitle: parentTask?.title || null,
+        groupName: groupName || null,
       };
       
       window.dispatchEvent(new CustomEvent('taskCompleted', { 
         detail: completedTask,
-        bubbles: true,  // イベントをバブリングさせる
-        composed: true  // Shadow DOMの境界を越えてイベントを伝播させる
+        bubbles: true,
+        composed: true
       }));
     }
   };

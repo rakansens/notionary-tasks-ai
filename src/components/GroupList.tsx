@@ -120,6 +120,7 @@ export const GroupList = ({
                       newTask={newTask}
                       setNewTask={setNewTask}
                       addTask={addTask}
+                      groupName={group.name}
                     />
                   ))}
               </SortableContext>

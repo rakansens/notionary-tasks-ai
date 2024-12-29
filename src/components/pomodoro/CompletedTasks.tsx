@@ -1,4 +1,4 @@
-import { CheckSquare } from "lucide-react";
+import { CheckSquare, Paperclip, Folder } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -45,9 +45,9 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                       </span>
                     </h3>
                     <div className="space-y-2">
-                      {session.completedTasks.map(task => (
+                      {session.completedTasks.map((task, index) => (
                         <div
-                          key={task.id}
+                          key={`${task.id}-${index}`}
                           className="flex flex-col p-2 rounded-lg bg-notion-hover"
                         >
                           <div className="flex items-center justify-between">
@@ -57,12 +57,18 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                             </span>
                           </div>
                           {(task.parentTaskTitle || task.groupName) && (
-                            <div className="text-xs text-notion-secondary mt-1">
+                            <div className="text-xs text-notion-secondary mt-1 flex items-center gap-2">
                               {task.parentTaskTitle && (
-                                <span className="mr-2">📎 {task.parentTaskTitle}</span>
+                                <span className="flex items-center gap-1">
+                                  <Paperclip className="h-3 w-3" />
+                                  {task.parentTaskTitle}
+                                </span>
                               )}
                               {task.groupName && (
-                                <span>📁 {task.groupName}</span>
+                                <span className="flex items-center gap-1">
+                                  <Folder className="h-3 w-3" />
+                                  {task.groupName}
+                                </span>
                               )}
                             </div>
                           )}
