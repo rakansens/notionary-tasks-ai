@@ -50,10 +50,22 @@ export const toggleTaskInState = (
   id: number,
   parentId?: number
 ): Task[] => {
-  return findTaskAndUpdate(prevTasks, id, task => ({
-    ...task,
-    completed: !task.completed,
-  }));
+  const toggleTask = (tasks: Task[]): Task[] => {
+    return tasks.map(task => {
+      if (task.id === id) {
+        return { ...task, completed: !task.completed };
+      }
+      if (task.subtasks && task.subtasks.length > 0) {
+        return {
+          ...task,
+          subtasks: toggleTask(task.subtasks),
+        };
+      }
+      return task;
+    });
+  };
+
+  return toggleTask(prevTasks);
 };
 
 export const updateTaskTitleInState = (
@@ -62,8 +74,20 @@ export const updateTaskTitleInState = (
   title: string,
   parentId?: number
 ): Task[] => {
-  return findTaskAndUpdate(prevTasks, id, task => ({
-    ...task,
-    title,
-  }));
+  const updateTitle = (tasks: Task[]): Task[] => {
+    return tasks.map(task => {
+      if (task.id === id) {
+        return { ...task, title };
+      }
+      if (task.subtasks && task.subtasks.length > 0) {
+        return {
+          ...task,
+          subtasks: updateTitle(task.subtasks),
+        };
+      }
+      return task;
+    });
+  };
+
+  return updateTitle(prevTasks);
 };
