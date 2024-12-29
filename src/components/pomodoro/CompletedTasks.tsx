@@ -36,6 +36,12 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
     return currentSession && session.id === currentSession.id;
   };
 
+  const isTaskAddedInCurrentSession = (task: any) => {
+    return currentSession && task.addedAt && 
+           new Date(task.addedAt) >= currentSession.startTime &&
+           (!currentSession.endTime || new Date(task.addedAt) <= currentSession.endTime);
+  };
+
   return (
     <Collapsible>
       <CollapsibleTrigger asChild>
@@ -93,6 +99,11 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                               {isTaskFromCurrentSession(task, session) && (
                                 <span className="ml-2 text-xs text-blue-500 dark:text-blue-400">
                                   (現在のセッション)
+                                </span>
+                              )}
+                              {isTaskAddedInCurrentSession(task) && (
+                                <span className="ml-2 text-xs text-green-500 dark:text-green-400">
+                                  (新規追加)
                                 </span>
                               )}
                             </span>
