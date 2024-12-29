@@ -57,6 +57,11 @@ export const TaskItem = ({
     deleteTask(task.id);
   };
 
+  // Create a wrapper function that doesn't require the event parameter
+  const handleDropdownDelete = () => {
+    deleteTask(task.id);
+  };
+
   return (
     <div className="space-y-0.5">
       <div
@@ -120,7 +125,7 @@ export const TaskItem = ({
             <X className="h-3.5 w-3.5 text-notion-secondary" />
           </Button>
           
-          <TaskDropdownMenu onDelete={handleDelete} />
+          <TaskDropdownMenu onDelete={handleDropdownDelete} />
         </div>
       </div>
 
