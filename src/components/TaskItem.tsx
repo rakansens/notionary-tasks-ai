@@ -34,12 +34,6 @@ export const TaskItem = ({
   setNewTask,
   addTask,
 }: TaskItemProps) => {
-  const handleAddSubtask = () => {
-    const newSubtaskId = Date.now();
-    setEditingTaskId(newSubtaskId);
-    addTask(task.groupId, task.id);
-  };
-
   return (
     <div className="space-y-0.5">
       <div
@@ -85,7 +79,10 @@ export const TaskItem = ({
           variant="ghost"
           size="icon"
           className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          onClick={handleAddSubtask}
+          onClick={() => {
+            setEditingTaskId(task.id);
+            addTask(task.groupId, task.id);
+          }}
         >
           <Plus className="h-4 w-4" />
         </Button>
