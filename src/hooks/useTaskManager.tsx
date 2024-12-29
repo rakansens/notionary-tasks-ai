@@ -62,7 +62,7 @@ export const useTaskManager = () => {
       const taskToMove = prevTasks.find(t => t.id === taskId);
       if (!taskToMove) return prevTasks;
 
-      // サブタスクの場合は親タスク内での並び替えのみを許可
+      // サブタスクの場合は親タスク内での並び替えのみ
       if (taskToMove.parentId) {
         const parentTask = prevTasks.find(t => t.id === taskToMove.parentId);
         if (!parentTask || !parentTask.subtasks) return prevTasks;
@@ -83,18 +83,17 @@ export const useTaskManager = () => {
       }
 
       // メインタスクの移動
-      const remainingTasks = prevTasks.filter(t => t.id !== taskId);
       const updatedTask = {
         ...taskToMove,
         groupId: newGroupId ?? taskToMove.groupId,
       };
 
       // グループ内のタスクとグループ外のタスクを分離
-      const tasksInTargetGroup = remainingTasks.filter(t => 
-        t.groupId === updatedTask.groupId && !t.parentId
+      const tasksInTargetGroup = prevTasks.filter(t => 
+        t.groupId === updatedTask.groupId && !t.parentId && t.id !== taskId
       );
-      const tasksOutsideGroup = remainingTasks.filter(t => 
-        t.groupId !== updatedTask.groupId || t.parentId
+      const tasksOutsideGroup = prevTasks.filter(t => 
+        t.groupId !== updatedTask.groupId || t.parentId || t.id === taskId
       );
 
       // 指定された位置にタスクを挿入
@@ -102,12 +101,15 @@ export const useTaskManager = () => {
       const beforeTasks = tasksInTargetGroup.slice(0, targetIndex);
       const afterTasks = tasksInTargetGroup.slice(targetIndex);
 
-      return [
-        ...tasksOutsideGroup,
+      const updatedTasks = [
+        ...tasksOutsideGroup.filter(t => t.id !== taskId),
         ...beforeTasks,
         updatedTask,
         ...afterTasks,
       ];
+
+      console.log('Updated tasks:', updatedTasks);
+      return updatedTasks;
     });
   };
 
