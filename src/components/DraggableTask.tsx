@@ -1,5 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
 import { TaskItem } from "./TaskItem";
 import type { Task } from "@/hooks/useTaskManager";
 import type { CSSProperties } from "react";
@@ -43,13 +44,20 @@ export const DraggableTask = ({
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className={`touch-none transition-shadow duration-200 ${
+      className={`flex items-center gap-2 transition-shadow duration-200 ${
         isDragging ? 'shadow-lg rounded-md bg-white' : ''
       }`}
     >
-      <TaskItem task={task} {...props} />
+      <div
+        {...attributes}
+        {...listeners}
+        className="touch-none cursor-grab p-2 hover:bg-notion-hover rounded"
+      >
+        <GripVertical className="h-4 w-4 text-notion-secondary" />
+      </div>
+      <div className="flex-1">
+        <TaskItem task={task} {...props} />
+      </div>
     </div>
   );
 };
