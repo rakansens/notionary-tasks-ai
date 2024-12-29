@@ -1,19 +1,13 @@
 import { useState } from "react";
+import { Task, Group, DeleteTarget } from './taskManager/types';
+import {
+  addTaskToState,
+  toggleTaskInState,
+  updateTaskTitleInState,
+  updateTaskOrderInState,
+} from './taskManager/taskOperations';
 
-export interface Task {
-  id: number;
-  title: string;
-  completed: boolean;
-  groupId?: number;
-  parentId?: number;
-  subtasks?: Task[];
-  order?: number;
-}
-
-export interface Group {
-  id: number;
-  name: string;
-}
+export type { Task, Group };
 
 export const useTaskManager = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -24,10 +18,7 @@ export const useTaskManager = () => {
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
   const [addingSubtaskId, setAddingSubtaskId] = useState<number | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{
-    type: "task" | "group";
-    id: number;
-  } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
   const addTask = (groupId?: number, parentId?: number) => {
     if (!newTask.trim()) return;
@@ -42,94 +33,33 @@ export const useTaskManager = () => {
       order: tasks.length,
     };
     
-    setTasks(prevTasks => {
-      if (parentId) {
-        return prevTasks.map(t => 
-          t.id === parentId 
-            ? { ...t, subtasks: [...(t.subtasks || []), task] }
-            : t
-        );
-      }
-      return [...prevTasks, task];
-    });
-    
+    setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
     setNewTask("");
   };
 
+  const addGroup = () => {
+    if (!newGroup.trim()) return;
+    
+    const group: Group = {
+      id: Date.now(),
+      name: newGroup,
+    };
+    
+    setGroups(prevGroups => [...prevGroups, group]);
+    setNewGroup("");
+    setIsAddingGroup(false);
+  };
+
   const toggleTask = (id: number, parentId?: number) => {
-    setTasks(prevTasks => {
-      if (parentId) {
-        return prevTasks.map(task => {
-          if (task.id === parentId) {
-            return {
-              ...task,
-              subtasks: task.subtasks?.map(subtask =>
-                subtask.id === id
-                  ? { ...subtask, completed: !subtask.completed }
-                  : subtask
-              ),
-            };
-          }
-          return task;
-        });
-      }
-      return prevTasks.map(task =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      );
-    });
+    setTasks(prevTasks => toggleTaskInState(prevTasks, id, parentId));
   };
 
   const updateTaskTitle = (id: number, title: string, parentId?: number) => {
-    setTasks(prevTasks => {
-      if (parentId) {
-        return prevTasks.map(task => {
-          if (task.id === parentId) {
-            return {
-              ...task,
-              subtasks: task.subtasks?.map(subtask =>
-                subtask.id === id ? { ...subtask, title } : subtask
-              ),
-            };
-          }
-          return task;
-        });
-      }
-      return prevTasks.map(task =>
-        task.id === id ? { ...task, title } : task
-      );
-    });
+    setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
   };
 
   const updateTaskOrder = (taskId: number, newGroupId?: number, newIndex?: number) => {
-    setTasks(prevTasks => {
-      const taskToMove = prevTasks.find(t => t.id === taskId);
-      if (!taskToMove) return prevTasks;
-
-      // Remove task from current position
-      const remainingTasks = prevTasks.filter(t => t.id !== taskId);
-      
-      // Prepare updated task
-      const updatedTask = {
-        ...taskToMove,
-        groupId: newGroupId ?? taskToMove.groupId,
-      };
-
-      // Insert task at new position
-      if (typeof newIndex === 'number') {
-        const tasksInTargetGroup = remainingTasks.filter(t => t.groupId === newGroupId);
-        const beforeTasks = tasksInTargetGroup.slice(0, newIndex);
-        const afterTasks = tasksInTargetGroup.slice(newIndex);
-        
-        return [
-          ...remainingTasks.filter(t => t.groupId !== newGroupId),
-          ...beforeTasks,
-          updatedTask,
-          ...afterTasks,
-        ];
-      }
-
-      return [...remainingTasks, updatedTask];
-    });
+    setTasks(prevTasks => updateTaskOrderInState(prevTasks, taskId, newGroupId, newIndex));
   };
 
   const updateGroupName = (id: number, newName: string) => {
