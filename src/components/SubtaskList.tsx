@@ -1,5 +1,6 @@
 import { Task } from "@/hooks/useTaskManager";
 import { TaskItem } from "./TaskItem";
+import { TaskInput } from "./TaskInput";
 
 interface SubtaskListProps {
   parentTask: Task;
@@ -26,8 +27,6 @@ export const SubtaskList = ({
   setNewTask,
   addTask,
 }: SubtaskListProps) => {
-  if (!subtasks || subtasks.length === 0) return null;
-
   return (
     <div className="pl-6 space-y-0.5">
       {subtasks.map(subtask => (
@@ -44,6 +43,11 @@ export const SubtaskList = ({
           addTask={addTask}
         />
       ))}
+      <TaskInput
+        value={newTask}
+        onChange={setNewTask}
+        onSubmit={() => addTask(parentTask.groupId, parentTask.id)}
+      />
     </div>
   );
 };

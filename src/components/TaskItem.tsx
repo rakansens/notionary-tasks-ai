@@ -31,8 +31,10 @@ export const TaskItem = ({
   addTask,
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
-    if (task.id) {
+    if (newTask.trim() && task.id) {
       addTask(task.groupId, task.id);
+    } else {
+      setEditingTaskId(task.id);
     }
   };
 
@@ -98,30 +100,18 @@ export const TaskItem = ({
         <TaskDropdownMenu onDelete={() => deleteTask(task.id)} />
       </div>
 
-      {task.subtasks && task.subtasks.length > 0 && (
-        <SubtaskList
-          parentTask={task}
-          subtasks={task.subtasks}
-          editingTaskId={editingTaskId}
-          setEditingTaskId={setEditingTaskId}
-          toggleTask={toggleTask}
-          updateTaskTitle={updateTaskTitle}
-          deleteTask={deleteTask}
-          newTask={newTask}
-          setNewTask={setNewTask}
-          addTask={addTask}
-        />
-      )}
-
-      {editingTaskId === task.id && (
-        <div className="pl-6">
-          <TaskInput
-            value={newTask}
-            onChange={setNewTask}
-            onSubmit={() => addTask(task.groupId, task.id)}
-          />
-        </div>
-      )}
+      <SubtaskList
+        parentTask={task}
+        subtasks={task.subtasks || []}
+        editingTaskId={editingTaskId}
+        setEditingTaskId={setEditingTaskId}
+        toggleTask={toggleTask}
+        updateTaskTitle={updateTaskTitle}
+        deleteTask={deleteTask}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        addTask={addTask}
+      />
     </div>
   );
 };
