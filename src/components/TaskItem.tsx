@@ -1,14 +1,10 @@
-import { Check, MoreHorizontal, Plus, X } from "lucide-react";
+import { Check, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { TaskInput } from "./TaskInput";
+import { TaskDropdownMenu } from "./TaskDropdownMenu";
+import { SubtaskList } from "./SubtaskList";
 import type { Task } from "@/hooks/useTaskManager";
 
 interface TaskItemProps {
@@ -35,10 +31,8 @@ export const TaskItem = ({
   addTask,
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
-    // まず新しいサブタスクを追加
     addTask(task.groupId, task.id);
     
-    // 少し遅延を入れて、状態が更新された後に最後のサブタスクを編集モードにする
     setTimeout(() => {
       if (task.subtasks && task.subtasks.length > 0) {
         const lastSubtask = task.subtasks[task.subtasks.length - 1];
@@ -108,42 +102,21 @@ export const TaskItem = ({
           <X className="h-4 w-4" />
         </Button>
         
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => deleteTask(task.id)}>
-              削除
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <TaskDropdownMenu onDelete={() => deleteTask(task.id)} />
       </div>
 
-      {task.subtasks && task.subtasks.length > 0 && (
-        <div className="pl-6 space-y-0.5">
-          {task.subtasks.map(subtask => (
-            <TaskItem
-              key={subtask.id}
-              task={subtask}
-              editingTaskId={editingTaskId}
-              setEditingTaskId={setEditingTaskId}
-              toggleTask={(id) => toggleTask(id, task.id)}
-              updateTaskTitle={(id, title) => updateTaskTitle(id, title, task.id)}
-              deleteTask={(id) => deleteTask(id, task.id)}
-              newTask={newTask}
-              setNewTask={setNewTask}
-              addTask={addTask}
-            />
-          ))}
-        </div>
-      )}
+      <SubtaskList
+        parentTask={task}
+        subtasks={task.subtasks || []}
+        editingTaskId={editingTaskId}
+        setEditingTaskId={setEditingTaskId}
+        toggleTask={toggleTask}
+        updateTaskTitle={updateTaskTitle}
+        deleteTask={deleteTask}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        addTask={addTask}
+      />
 
       {editingTaskId === task.id && (
         <div className="pl-6">
