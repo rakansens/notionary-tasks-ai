@@ -1,4 +1,4 @@
-import { Plus, MoreHorizontal, Check, FolderPlus, Folder, Trash2 } from "lucide-react";
+import { Plus, MoreHorizontal, Check, FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { useTaskManager } from "@/hooks/useTaskManager";
+import { GroupHeader } from "./GroupHeader";
 import type { Task } from "@/hooks/useTaskManager";
 
 export const TaskSection = () => {
@@ -64,7 +65,7 @@ export const TaskSection = () => {
           value={task.title}
           onChange={(e) => updateTaskTitle(task.id, e.target.value)}
           onBlur={() => setEditingTaskId(null)}
-          onKeyPress={(e) => e.key === "Enter" && updateTaskTitle(task.id, (e.target as HTMLInputElement).value)}
+          onKeyPress={(e) => e.key === "Enter" && setEditingTaskId(null)}
           className="flex-1 h-6 py-0"
           autoFocus
         />
@@ -111,46 +112,13 @@ export const TaskSection = () => {
 
           {groups.map(group => (
             <div key={group.id} className="mt-2">
-              <div className="flex items-center gap-1 p-1 text-sm font-medium text-muted-foreground">
-                <Folder className="h-4 w-4" />
-                {editingGroupId === group.id ? (
-                  <Input
-                    value={group.name}
-                    onChange={(e) => updateGroupName(group.id, e.target.value)}
-                    onBlur={() => {
-                      if (group.name.trim()) {
-                        setEditingGroupId(null);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        if (group.name.trim()) {
-                          setEditingGroupId(null);
-                        }
-                      } else if (e.key === "Escape") {
-                        setEditingGroupId(null);
-                      }
-                    }}
-                    className="flex-1 h-6 py-0"
-                    autoFocus
-                  />
-                ) : (
-                  <span
-                    className="flex-1 cursor-pointer hover:text-foreground transition-colors duration-200"
-                    onClick={() => setEditingGroupId(group.id)}
-                  >
-                    {group.name}
-                  </span>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 hover:text-destructive"
-                  onClick={() => deleteGroup(group.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              <GroupHeader
+                group={group}
+                editingGroupId={editingGroupId}
+                setEditingGroupId={setEditingGroupId}
+                updateGroupName={updateGroupName}
+                deleteGroup={deleteGroup}
+              />
               <div className="pl-4 space-y-0.5">
                 {tasks.filter(task => task.groupId === group.id).map(renderTask)}
                 <div className="flex items-center gap-1">
@@ -179,7 +147,6 @@ export const TaskSection = () => {
       <div className="p-2 border-t space-y-2">
         {isAddingGroup ? (
           <div className="flex items-center gap-1">
-            <Folder className="h-4 w-4 text-muted-foreground" />
             <Input
               value={newGroup}
               onChange={(e) => setNewGroup(e.target.value)}

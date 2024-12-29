@@ -25,6 +25,12 @@ export const useTaskManager = () => {
     id: number;
   } | null>(null);
 
+  const updateGroupName = (id: number, newName: string) => {
+    setGroups(groups.map(group =>
+      group.id === id ? { ...group, name: newName } : group
+    ));
+  };
+
   const addTask = (groupId?: number) => {
     if (!newTask.trim()) return;
     
@@ -88,15 +94,6 @@ export const useTaskManager = () => {
 
   const cancelDelete = () => {
     setDeleteTarget(null);
-  };
-
-  const updateGroupName = (id: number, newName: string) => {
-    if (!newName.trim()) return;
-    
-    setGroups(groups.map(group =>
-      group.id === id ? { ...group, name: newName } : group
-    ));
-    setEditingGroupId(null);
   };
 
   return {
