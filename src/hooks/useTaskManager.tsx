@@ -19,6 +19,7 @@ export const useTaskManager = () => {
   const [newGroup, setNewGroup] = useState("");
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+  const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
     type: "task" | "group";
     id: number;
@@ -89,6 +90,15 @@ export const useTaskManager = () => {
     setDeleteTarget(null);
   };
 
+  const updateGroupName = (id: number, newName: string) => {
+    if (!newName.trim()) return;
+    
+    setGroups(groups.map(group =>
+      group.id === id ? { ...group, name: newName } : group
+    ));
+    setEditingGroupId(null);
+  };
+
   return {
     tasks,
     groups,
@@ -96,15 +106,18 @@ export const useTaskManager = () => {
     newGroup,
     isAddingGroup,
     editingTaskId,
+    editingGroupId,
     deleteTarget,
     setNewTask,
     setNewGroup,
     setIsAddingGroup,
     setEditingTaskId,
+    setEditingGroupId,
     addTask,
     addGroup,
     toggleTask,
     updateTaskTitle,
+    updateGroupName,
     deleteTask,
     deleteGroup,
     confirmDelete,

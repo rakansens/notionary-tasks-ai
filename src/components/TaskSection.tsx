@@ -21,15 +21,18 @@ export const TaskSection = () => {
     newGroup,
     isAddingGroup,
     editingTaskId,
+    editingGroupId,
     deleteTarget,
     setNewTask,
     setNewGroup,
     setIsAddingGroup,
     setEditingTaskId,
+    setEditingGroupId,
     addTask,
     addGroup,
     toggleTask,
     updateTaskTitle,
+    updateGroupName,
     deleteTask,
     deleteGroup,
     confirmDelete,
@@ -110,7 +113,23 @@ export const TaskSection = () => {
             <div key={group.id} className="mt-2">
               <div className="flex items-center gap-1 p-1 text-sm font-medium text-muted-foreground">
                 <Folder className="h-4 w-4" />
-                <span className="flex-1">{group.name}</span>
+                {editingGroupId === group.id ? (
+                  <Input
+                    value={group.name}
+                    onChange={(e) => updateGroupName(group.id, e.target.value)}
+                    onBlur={() => setEditingGroupId(null)}
+                    onKeyPress={(e) => e.key === "Enter" && updateGroupName(group.id, (e.target as HTMLInputElement).value)}
+                    className="flex-1 h-6 py-0"
+                    autoFocus
+                  />
+                ) : (
+                  <span
+                    className="flex-1 cursor-pointer"
+                    onClick={() => setEditingGroupId(group.id)}
+                  >
+                    {group.name}
+                  </span>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
