@@ -12,9 +12,11 @@ interface GroupListProps {
   newTask: string;
   editingTaskId: number | null;
   editingGroupId: number | null;
+  addingSubtaskId: number | null;
   setNewTask: (value: string) => void;
   setEditingTaskId: (id: number | null) => void;
   setEditingGroupId: (id: number | null) => void;
+  setAddingSubtaskId: (id: number | null) => void;
   addTask: (groupId?: number) => void;
   toggleTask: (id: number) => void;
   updateTaskTitle: (id: number, title: string) => void;
@@ -29,9 +31,11 @@ export const GroupList = ({
   newTask,
   editingTaskId,
   editingGroupId,
+  addingSubtaskId,
   setNewTask,
   setEditingTaskId,
   setEditingGroupId,
+  setAddingSubtaskId,
   addTask,
   toggleTask,
   updateTaskTitle,
@@ -58,7 +62,9 @@ export const GroupList = ({
                   key={task.id}
                   task={task}
                   editingTaskId={editingTaskId}
+                  addingSubtaskId={addingSubtaskId}
                   setEditingTaskId={setEditingTaskId}
+                  setAddingSubtaskId={setAddingSubtaskId}
                   toggleTask={toggleTask}
                   updateTaskTitle={updateTaskTitle}
                   deleteTask={deleteTask}
