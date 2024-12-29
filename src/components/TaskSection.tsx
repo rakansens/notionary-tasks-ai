@@ -53,6 +53,9 @@ export const TaskSection = () => {
                 toggleTask={toggleTask}
                 updateTaskTitle={updateTaskTitle}
                 deleteTask={deleteTask}
+                newTask={newTask}
+                setNewTask={setNewTask}
+                addTask={addTask}
               />
             ))}
           
