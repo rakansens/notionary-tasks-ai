@@ -54,6 +54,12 @@ export const useTaskManager = () => {
     });
   };
 
+  const updateGroupName = (id: number, newName: string) => {
+    setGroups(groups.map(group =>
+      group.id === id ? { ...group, name: newName } : group
+    ));
+  };
+
   const addTask = (groupId?: number, parentId?: number) => {
     if (!newTask.trim()) return;
     
