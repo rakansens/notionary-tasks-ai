@@ -30,6 +30,7 @@ export const useTaskManager = () => {
       parentId,
       subtasks: [],
       order: tasks.length,
+      addedAt: new Date(), // Add this line to include the timestamp
     };
     
     setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));

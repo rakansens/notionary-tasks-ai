@@ -5,7 +5,8 @@ export interface Task {
   groupId?: number;
   parentId?: number;
   subtasks?: Task[];
-  order?: number;
+  order: number;
+  addedAt: Date; // Add this line
 }
 
 export interface Group {
