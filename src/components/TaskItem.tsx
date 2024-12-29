@@ -46,7 +46,8 @@ export const TaskItem = ({
     }
   };
 
-  const handleToggleTask = () => {
+  const handleToggleTask = (e: React.MouseEvent) => {
+    e.stopPropagation();  // Prevent event from bubbling up to DnD handlers
     if (toggleTask) {
       toggleTask(task.id, task.parentId);
     }
@@ -60,6 +61,11 @@ export const TaskItem = ({
   // Create a wrapper function that doesn't require the event parameter
   const handleDropdownDelete = () => {
     deleteTask(task.id);
+  };
+
+  const handleTitleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();  // Prevent event from bubbling up to DnD handlers
+    setEditingTaskId(task.id);
   };
 
   return (
@@ -97,7 +103,7 @@ export const TaskItem = ({
               "flex-1 text-sm transition-all duration-200 cursor-pointer",
               task.completed && "line-through text-notion-secondary"
             )}
-            onClick={() => setEditingTaskId(task.id)}
+            onClick={handleTitleClick}
           >
             {task.title}
           </span>
