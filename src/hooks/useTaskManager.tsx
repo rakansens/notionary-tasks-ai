@@ -29,7 +29,6 @@ export const useTaskManager = () => {
     id: number;
   } | null>(null);
 
-  // Task management functions
   const addTask = (groupId?: number, parentId?: number) => {
     if (!newTask.trim()) return;
     
@@ -55,6 +54,35 @@ export const useTaskManager = () => {
     });
     
     setNewTask("");
+  };
+
+  const addGroup = () => {
+    if (!newGroup.trim()) return;
+    
+    const group: Group = {
+      id: Date.now(),
+      name: newGroup,
+    };
+    
+    setGroups(prevGroups => [...prevGroups, group]);
+    setNewGroup("");
+    setIsAddingGroup(false);
+  };
+
+  const toggleTask = (id: number) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  const updateTaskTitle = (id: number, title: string) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        task.id === id ? { ...task, title } : task
+      )
+    );
   };
 
   const updateTaskOrder = (taskId: number, newGroupId?: number, newIndex?: number) => {
@@ -151,11 +179,14 @@ export const useTaskManager = () => {
     setEditingGroupId,
     setAddingSubtaskId,
     addTask,
-    updateTaskOrder,
+    addGroup,
+    toggleTask,
+    updateTaskTitle,
     updateGroupName,
     deleteTask,
     deleteGroup,
     confirmDelete,
     cancelDelete,
+    updateTaskOrder,
   };
 };

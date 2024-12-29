@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TaskItem } from "./TaskItem";
 import type { Task } from "@/hooks/useTaskManager";
+import type { CSSProperties } from "react";
 
 interface DraggableTaskProps {
   task: Task;
@@ -30,12 +31,12 @@ export const DraggableTask = ({
     isDragging,
   } = useSortable({ id: task.id.toString() });
 
-  const style = {
+  const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    position: 'relative',
-    zIndex: isDragging ? 999 : 'auto',
+    position: "relative" as const,
+    zIndex: isDragging ? 999 : "auto",
   };
 
   return (
