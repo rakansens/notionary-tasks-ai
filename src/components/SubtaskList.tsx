@@ -46,6 +46,7 @@ export const SubtaskList = ({
           <DraggableTask
             key={subtask.id}
             task={subtask}
+            parentTask={parentTask}
             editingTaskId={editingTaskId}
             addingSubtaskId={addingSubtaskId}
             setEditingTaskId={setEditingTaskId}
