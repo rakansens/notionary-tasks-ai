@@ -4,7 +4,6 @@ import {
   addTaskToState,
   toggleTaskInState,
   updateTaskTitleInState,
-  updateTaskOrderInState,
 } from './taskManager/taskOperations';
 
 export type { Task, Group };
@@ -83,7 +82,7 @@ export const useTaskManager = () => {
         );
       }
 
-      // メインタスクの場合
+      // メインタスクの移動
       const remainingTasks = prevTasks.filter(t => t.id !== taskId);
       const updatedTask = {
         ...taskToMove,
@@ -98,24 +97,16 @@ export const useTaskManager = () => {
         t.groupId !== updatedTask.groupId || t.parentId
       );
 
-      if (typeof newIndex === 'number') {
-        // 指定された位置にタスクを挿入
-        const beforeTasks = tasksInTargetGroup.slice(0, newIndex);
-        const afterTasks = tasksInTargetGroup.slice(newIndex);
-        
-        return [
-          ...tasksOutsideGroup,
-          ...beforeTasks,
-          updatedTask,
-          ...afterTasks,
-        ];
-      }
+      // 指定された位置にタスクを挿入
+      const targetIndex = typeof newIndex === 'number' ? newIndex : tasksInTargetGroup.length;
+      const beforeTasks = tasksInTargetGroup.slice(0, targetIndex);
+      const afterTasks = tasksInTargetGroup.slice(targetIndex);
 
-      // インデックスが指定されていない場合は末尾に追加
       return [
         ...tasksOutsideGroup,
-        ...tasksInTargetGroup,
+        ...beforeTasks,
         updatedTask,
+        ...afterTasks,
       ];
     });
   };
