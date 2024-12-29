@@ -20,6 +20,19 @@ export const PomodoroHeader = () => {
   const [sessionName, setSessionName] = useState("");
   const { toast } = useToast();
 
+  const addCompletedTask = (task: CompletedTask) => {
+    if (currentSession) {
+      const updatedSession = {
+        ...currentSession,
+        completedTasks: [...currentSession.completedTasks, task],
+      };
+      setCurrentSession(updatedSession);
+      setSessions(prev => prev.map(s => 
+        s.id === currentSession.id ? updatedSession : s
+      ));
+    }
+  };
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -117,6 +130,20 @@ export const PomodoroHeader = () => {
     }
   };
 
+  useEffect(() => {
+    const handleTaskCompleted = (event: CustomEvent<CompletedTask>) => {
+      if (currentSession) {
+        addCompletedTask(event.detail);
+      }
+    };
+
+    window.addEventListener('taskCompleted', handleTaskCompleted as EventListener);
+    
+    return () => {
+      window.removeEventListener('taskCompleted', handleTaskCompleted as EventListener);
+    };
+  }, [currentSession]);
+
   return (
     <div className="flex items-center gap-3 ml-auto relative">
       {currentSession && (
@@ -156,7 +183,11 @@ export const PomodoroHeader = () => {
         resetTimer={resetTimer}
       />
 
-      <CompletedTasks sessions={sessions} />
+      <CompletedTasks 
+        sessions={sessions}
+        currentSession={currentSession}
+        onAddCompletedTask={addCompletedTask}
+      />
       <PomodoroStats
         pomodoroCount={pomodoroCount}
         totalMinutes={totalMinutes}

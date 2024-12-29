@@ -49,6 +49,16 @@ export const TaskItem = ({
 
   const handleToggleTask = () => {
     toggleTask(task.id, task.parentId);
+    if (!task.completed) {
+      // タスクが完了状態になる時のみイベントを発火
+      const completedTask = {
+        id: task.id,
+        title: task.title,
+        completedAt: new Date(),
+      };
+      // カスタムイベントを発火してPomodoroHeaderに通知
+      window.dispatchEvent(new CustomEvent('taskCompleted', { detail: completedTask }));
+    }
   };
 
   const handleDelete = () => {

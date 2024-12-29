@@ -10,9 +10,11 @@ import type { PomodoroSession } from "@/types/pomodoro";
 
 interface CompletedTasksProps {
   sessions: PomodoroSession[];
+  currentSession: PomodoroSession | null;
+  onAddCompletedTask: (task: any) => void;
 }
 
-export const CompletedTasks = ({ sessions }: CompletedTasksProps) => {
+export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }: CompletedTasksProps) => {
   return (
     <Collapsible>
       <CollapsibleTrigger asChild>
@@ -34,6 +36,7 @@ export const CompletedTasks = ({ sessions }: CompletedTasksProps) => {
                     <span>{session.name}</span>
                     <span className="text-notion-secondary">
                       {format(session.startTime, "M/d HH:mm")}
+                      {session.endTime && ` - ${format(session.endTime, "HH:mm")}`}
                     </span>
                   </h3>
                   <div className="space-y-2">

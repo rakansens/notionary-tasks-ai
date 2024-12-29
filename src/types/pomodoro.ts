@@ -10,5 +10,5 @@ export interface CompletedTask {
   id: number;
   title: string;
   completedAt: Date;
-  pomodoroSessionId: number;
+  pomodoroSessionId?: number;
 }
