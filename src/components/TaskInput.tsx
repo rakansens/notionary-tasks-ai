@@ -10,9 +10,6 @@ interface TaskInputProps {
   onCancel?: () => void;
   groupId?: number;
   autoFocus?: boolean;
-  groupName?: string;
-  parentTaskTitle?: string;
-  grandParentTaskTitle?: string;
 }
 
 export const TaskInput = ({ 
@@ -21,22 +18,16 @@ export const TaskInput = ({
   onSubmit,
   onCancel,
   groupId,
-  autoFocus,
-  groupName,
-  parentTaskTitle,
-  grandParentTaskTitle
+  autoFocus 
 }: TaskInputProps) => {
   const handleSubmit = () => {
     if (value.trim()) {
-      // Dispatch new task added event with additional context
+      // Dispatch new task added event
       window.dispatchEvent(new CustomEvent('taskAdded', {
         detail: {
           title: value,
           addedAt: new Date(),
-          groupId: groupId || null,
-          groupName: groupName || null,
-          parentTaskTitle: parentTaskTitle || null,
-          grandParentTaskTitle: grandParentTaskTitle || null
+          groupId: groupId || null
         },
         bubbles: true,
         composed: true
