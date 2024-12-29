@@ -66,6 +66,9 @@ export const TaskItem = ({
         title: task.title,
         completedAt: new Date(),
         parentTaskTitle: parentTask?.title || null,
+        grandParentTaskTitle: parentTask?.parentId ? 
+          task.parentId ? parentTask?.title : null : 
+          null,
         groupName: groupName || null,
       };
       
