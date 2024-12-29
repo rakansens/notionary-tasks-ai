@@ -35,7 +35,6 @@ export const TaskItem = ({
   addTask,
 }: TaskItemProps) => {
   const handleAddSubtask = (e: React.MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
     setAddingSubtaskId(task.id);
   };
@@ -48,13 +47,11 @@ export const TaskItem = ({
   };
 
   const handleToggleTask = (e: React.MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
     toggleTask(task.id, task.parentId);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
     deleteTask(task.id);
   };
@@ -64,7 +61,6 @@ export const TaskItem = ({
   };
 
   const handleTitleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
     setEditingTaskId(task.id);
   };
@@ -112,10 +108,7 @@ export const TaskItem = ({
 
         <div 
           className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
+          onClick={e => e.stopPropagation()}
         >
           <Button
             variant="ghost"
