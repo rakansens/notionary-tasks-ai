@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { PomodoroSession } from "@/types/pomodoro";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface CompletedTasksProps {
   sessions: PomodoroSession[];
@@ -20,6 +20,25 @@ interface CompletedTasksProps {
 export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }: CompletedTasksProps) => {
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const [newTasks, setNewTasks] = useState<any[]>([]);
+
+  useEffect(() => {
+    const handleNewTask = (event: CustomEvent) => {
+      if (currentSession) {
+        const task = {
+          ...event.detail,
+          status: 'new',
+          sessionId: currentSession.id
+        };
+        setNewTasks(prev => [...prev, task]);
+      }
+    };
+
+    window.addEventListener('taskAdded', handleNewTask as EventListener);
+    return () => {
+      window.removeEventListener('taskAdded', handleNewTask as EventListener);
+    };
+  }, [currentSession]);
 
   const handleEditStart = (taskId: number, currentTitle: string) => {
     setEditingTaskId(taskId);
@@ -28,8 +47,6 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
 
   const handleEditComplete = () => {
     setEditingTaskId(null);
-    // Here you would typically update the task title in your state management system
-    // For now, we'll just clear the editing state
   };
 
   const isTaskFromCurrentSession = (task: any, session: PomodoroSession) => {
@@ -55,6 +72,33 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
       </CollapsibleTrigger>
       <CollapsibleContent className="absolute right-0 mt-2 w-96 p-4 bg-white rounded-lg shadow-lg border border-notion-border z-50">
         <div className="space-y-4 max-h-96 overflow-y-auto">
+          {currentSession && newTasks.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-green-600">新規追加タスク</h3>
+              {newTasks.map((task, index) => (
+                <div
+                  key={`new-${index}`}
+                  className="flex flex-col p-2 rounded-lg bg-green-50"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-green-700">{task.title}</span>
+                    <span className="text-sm text-notion-secondary">
+                      {format(new Date(task.addedAt), "HH:mm")}
+                    </span>
+                  </div>
+                  {task.groupId && (
+                    <div className="text-xs text-notion-secondary mt-1">
+                      <span className="flex items-center gap-1">
+                        <Folder className="h-3 w-3" />
+                        {task.groupName || 'グループ内'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
           {sessions.map(session => (
             <div key={session.id} className="space-y-2">
               {session.completedTasks.length > 0 && (

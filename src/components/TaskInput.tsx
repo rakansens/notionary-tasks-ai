@@ -15,14 +15,30 @@ interface TaskInputProps {
 export const TaskInput = ({ 
   value, 
   onChange, 
-  onSubmit, 
+  onSubmit,
   onCancel,
   groupId,
   autoFocus 
 }: TaskInputProps) => {
+  const handleSubmit = () => {
+    if (value.trim()) {
+      // Dispatch new task added event
+      window.dispatchEvent(new CustomEvent('taskAdded', {
+        detail: {
+          title: value,
+          addedAt: new Date(),
+          groupId: groupId || null
+        },
+        bubbles: true,
+        composed: true
+      }));
+    }
+    onSubmit();
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      onSubmit();
+      handleSubmit();
     } else if (e.key === "Escape" && onCancel) {
       onCancel();
     }
@@ -40,7 +56,7 @@ export const TaskInput = ({
         variant="ghost"
         size="icon"
         className="h-4 w-4 rounded-sm border border-notion-border"
-        onClick={() => onSubmit()}
+        onClick={handleSubmit}
       >
         <Plus className="h-3 w-3 text-notion-secondary" />
       </Button>
