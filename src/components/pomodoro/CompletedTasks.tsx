@@ -43,12 +43,24 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                     {session.completedTasks.map(task => (
                       <div
                         key={task.id}
-                        className="flex items-center justify-between p-2 rounded-lg bg-notion-hover"
+                        className="flex flex-col p-2 rounded-lg bg-notion-hover"
                       >
-                        <span>{task.title}</span>
-                        <span className="text-sm text-notion-secondary">
-                          {format(task.completedAt, "HH:mm")}
-                        </span>
+                        <div className="flex items-center justify-between">
+                          <span>{task.title}</span>
+                          <span className="text-sm text-notion-secondary">
+                            {format(task.completedAt, "HH:mm")}
+                          </span>
+                        </div>
+                        {(task.parentTaskTitle || task.groupName) && (
+                          <div className="text-xs text-notion-secondary mt-1">
+                            {task.parentTaskTitle && (
+                              <span className="mr-2">📎 {task.parentTaskTitle}</span>
+                            )}
+                            {task.groupName && (
+                              <span>📁 {task.groupName}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

@@ -11,4 +11,6 @@ export interface CompletedTask {
   title: string;
   completedAt: Date;
   pomodoroSessionId?: number;
+  parentTaskTitle?: string;
+  groupName?: string;
 }

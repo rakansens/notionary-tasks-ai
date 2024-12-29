@@ -19,6 +19,8 @@ interface TaskItemProps {
   newTask: string;
   setNewTask: (value: string) => void;
   addTask: (groupId?: number, parentId?: number) => void;
+  parentTask?: Task;
+  groupName?: string;
 }
 
 export const TaskItem = ({
@@ -33,6 +35,8 @@ export const TaskItem = ({
   newTask,
   setNewTask,
   addTask,
+  parentTask,
+  groupName,
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
     setAddingSubtaskId(task.id);
@@ -50,13 +54,13 @@ export const TaskItem = ({
   const handleToggleTask = () => {
     toggleTask(task.id, task.parentId);
     if (!task.completed) {
-      // タスクが完了状態になる時のみイベントを発火
       const completedTask = {
         id: task.id,
         title: task.title,
         completedAt: new Date(),
+        parentTaskTitle: parentTask?.title,
+        groupName: groupName,
       };
-      // カスタムイベントを発火してPomodoroHeaderに通知
       window.dispatchEvent(new CustomEvent('taskCompleted', { detail: completedTask }));
     }
   };

@@ -17,10 +17,14 @@ interface DraggableTaskProps {
   newTask: string;
   setNewTask: (value: string) => void;
   addTask: (groupId?: number) => void;
+  parentTask?: Task;
+  groupName?: string;
 }
 
 export const DraggableTask = ({
   task,
+  parentTask,
+  groupName,
   ...props
 }: DraggableTaskProps) => {
   const {
@@ -56,7 +60,12 @@ export const DraggableTask = ({
         <GripVertical className="h-4 w-4 text-notion-secondary" />
       </div>
       <div className="flex-1">
-        <TaskItem task={task} {...props} />
+        <TaskItem 
+          task={task} 
+          {...props} 
+          parentTask={parentTask}
+          groupName={groupName}
+        />
       </div>
     </div>
   );
