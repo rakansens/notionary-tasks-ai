@@ -90,24 +90,33 @@ export const useTaskManager = () => {
         groupId: newGroupId ?? taskToMove.groupId,
       };
 
-      // 同じグループ内でのタスクのみをフィルタリング
+      // グループ内のタスクとグループ外のタスクを分離
       const tasksInTargetGroup = remainingTasks.filter(t => 
         t.groupId === updatedTask.groupId && !t.parentId
       );
+      const tasksOutsideGroup = remainingTasks.filter(t => 
+        t.groupId !== updatedTask.groupId || t.parentId
+      );
 
       if (typeof newIndex === 'number') {
+        // 指定された位置にタスクを挿入
         const beforeTasks = tasksInTargetGroup.slice(0, newIndex);
         const afterTasks = tasksInTargetGroup.slice(newIndex);
         
         return [
-          ...remainingTasks.filter(t => t.groupId !== updatedTask.groupId),
+          ...tasksOutsideGroup,
           ...beforeTasks,
           updatedTask,
           ...afterTasks,
         ];
       }
 
-      return [...remainingTasks, updatedTask];
+      // インデックスが指定されていない場合は末尾に追加
+      return [
+        ...tasksOutsideGroup,
+        ...tasksInTargetGroup,
+        updatedTask,
+      ];
     });
   };
 
