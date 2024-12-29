@@ -5,8 +5,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import type { PomodoroSession } from "@/types/pomodoro";
+import { useState } from "react";
 
 interface CompletedTasksProps {
   sessions: PomodoroSession[];
@@ -15,6 +17,20 @@ interface CompletedTasksProps {
 }
 
 export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }: CompletedTasksProps) => {
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+
+  const handleEditStart = (taskId: number, currentTitle: string) => {
+    setEditingTaskId(taskId);
+    setEditingTitle(currentTitle);
+  };
+
+  const handleEditComplete = () => {
+    setEditingTaskId(null);
+    // Here you would typically update the task title in your state management system
+    // For now, we'll just clear the editing state
+  };
+
   return (
     <Collapsible>
       <CollapsibleTrigger asChild>
@@ -46,7 +62,23 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                         className="flex flex-col p-2 rounded-lg bg-notion-hover"
                       >
                         <div className="flex items-center justify-between">
-                          <span>{task.title}</span>
+                          {editingTaskId === task.id ? (
+                            <Input
+                              value={editingTitle}
+                              onChange={(e) => setEditingTitle(e.target.value)}
+                              onBlur={handleEditComplete}
+                              onKeyPress={(e) => e.key === "Enter" && handleEditComplete()}
+                              className="h-6 text-sm"
+                              autoFocus
+                            />
+                          ) : (
+                            <span 
+                              className="cursor-pointer hover:text-notion-primary"
+                              onClick={() => handleEditStart(task.id, task.title)}
+                            >
+                              {task.title}
+                            </span>
+                          )}
                           <span className="text-sm text-notion-secondary">
                             {format(task.completedAt, "HH:mm")}
                           </span>
