@@ -36,9 +36,8 @@ export const useTaskManager = () => {
   const addTask = (groupId?: number, parentId?: number) => {
     if (!newTask.trim()) return;
     
-    const newTaskId = Date.now();
     const task: Task = {
-      id: newTaskId,
+      id: Date.now(),
       title: newTask,
       completed: false,
       groupId,
@@ -47,8 +46,8 @@ export const useTaskManager = () => {
     };
     
     setTasks(prevTasks => {
+      // If this is a subtask
       if (parentId) {
-        // サブタスクを追加する場合
         return prevTasks.map(t => {
           if (t.id === parentId) {
             return {
@@ -59,13 +58,11 @@ export const useTaskManager = () => {
           return t;
         });
       }
-      // メインタスクを追加する場合
+      // If this is a main task
       return [...prevTasks, task];
     });
     
     setNewTask("");
-    // 新しいタスクを追加した後、そのタスクを編集モードにする
-    setEditingTaskId(newTaskId);
   };
 
   const addGroup = () => {
