@@ -125,20 +125,22 @@ export const TaskItem = ({
         </div>
       </div>
 
-      <SubtaskList
-        parentTask={task}
-        subtasks={task.subtasks || []}
-        editingTaskId={editingTaskId}
-        addingSubtaskId={addingSubtaskId}
-        setEditingTaskId={setEditingTaskId}
-        setAddingSubtaskId={setAddingSubtaskId}
-        toggleTask={toggleTask}
-        updateTaskTitle={updateTaskTitle}
-        deleteTask={deleteTask}
-        newTask={newTask}
-        setNewTask={setNewTask}
-        addTask={addTask}
-      />
+      {task.subtasks && task.subtasks.length > 0 && (
+        <SubtaskList
+          parentTask={task}
+          subtasks={task.subtasks}
+          editingTaskId={editingTaskId}
+          addingSubtaskId={addingSubtaskId}
+          setEditingTaskId={setEditingTaskId}
+          setAddingSubtaskId={setAddingSubtaskId}
+          toggleTask={toggleTask}
+          updateTaskTitle={updateTaskTitle}
+          deleteTask={deleteTask}
+          newTask={newTask}
+          setNewTask={setNewTask}
+          addTask={addTask}
+        />
+      )}
 
       {addingSubtaskId === task.id && (
         <div className="pl-6">

@@ -7,6 +7,21 @@ import { useTaskManager } from "@/hooks/useTaskManager";
 import { TaskItem } from "./TaskItem";
 import { TaskInput } from "./TaskInput";
 import { GroupList } from "./GroupList";
+import { DraggableTask } from "./DraggableTask";
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 export const TaskSection = () => {
   const {
@@ -37,6 +52,16 @@ export const TaskSection = () => {
     updateTaskOrder,
   } = useTaskManager();
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const nonGroupTasks = tasks.filter(task => !task.groupId && !task.parentId);
+  const activeTask = tasks.find(task => task.id === editingTaskId);
+
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="p-4 border-b border-notion-border">
@@ -45,24 +70,55 @@ export const TaskSection = () => {
       
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-1">
-          {tasks
-            .filter(task => !task.groupId)
-            .map(task => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                editingTaskId={editingTaskId}
-                addingSubtaskId={addingSubtaskId}
-                setEditingTaskId={setEditingTaskId}
-                setAddingSubtaskId={setAddingSubtaskId}
-                toggleTask={toggleTask}
-                updateTaskTitle={updateTaskTitle}
-                deleteTask={deleteTask}
-                newTask={newTask}
-                setNewTask={setNewTask}
-                addTask={addTask}
-              />
-            ))}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={({ active, over }) => {
+              if (over && active.id !== over.id) {
+                updateTaskOrder(Number(active.id), undefined, Number(over.id));
+              }
+            }}
+          >
+            <SortableContext
+              items={nonGroupTasks.map(task => task.id.toString())}
+              strategy={verticalListSortingStrategy}
+            >
+              {nonGroupTasks.map(task => (
+                <DraggableTask
+                  key={task.id}
+                  task={task}
+                  editingTaskId={editingTaskId}
+                  addingSubtaskId={addingSubtaskId}
+                  setEditingTaskId={setEditingTaskId}
+                  setAddingSubtaskId={setAddingSubtaskId}
+                  toggleTask={toggleTask}
+                  updateTaskTitle={updateTaskTitle}
+                  deleteTask={deleteTask}
+                  newTask={newTask}
+                  setNewTask={setNewTask}
+                  addTask={addTask}
+                />
+              ))}
+            </SortableContext>
+            
+            <DragOverlay>
+              {activeTask ? (
+                <TaskItem
+                  task={activeTask}
+                  editingTaskId={editingTaskId}
+                  addingSubtaskId={addingSubtaskId}
+                  setEditingTaskId={setEditingTaskId}
+                  setAddingSubtaskId={setAddingSubtaskId}
+                  toggleTask={toggleTask}
+                  updateTaskTitle={updateTaskTitle}
+                  deleteTask={deleteTask}
+                  newTask={newTask}
+                  setNewTask={setNewTask}
+                  addTask={addTask}
+                />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
           
           <GroupList
             groups={groups}
