@@ -56,33 +56,48 @@ export const useTaskManager = () => {
     setNewTask("");
   };
 
-  const addGroup = () => {
-    if (!newGroup.trim()) return;
-    
-    const group: Group = {
-      id: Date.now(),
-      name: newGroup,
-    };
-    
-    setGroups(prevGroups => [...prevGroups, group]);
-    setNewGroup("");
-    setIsAddingGroup(false);
-  };
-
-  const toggleTask = (id: number) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
+  const toggleTask = (id: number, parentId?: number) => {
+    setTasks(prevTasks => {
+      if (parentId) {
+        return prevTasks.map(task => {
+          if (task.id === parentId) {
+            return {
+              ...task,
+              subtasks: task.subtasks?.map(subtask =>
+                subtask.id === id
+                  ? { ...subtask, completed: !subtask.completed }
+                  : subtask
+              ),
+            };
+          }
+          return task;
+        });
+      }
+      return prevTasks.map(task =>
         task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+      );
+    });
   };
 
-  const updateTaskTitle = (id: number, title: string) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
+  const updateTaskTitle = (id: number, title: string, parentId?: number) => {
+    setTasks(prevTasks => {
+      if (parentId) {
+        return prevTasks.map(task => {
+          if (task.id === parentId) {
+            return {
+              ...task,
+              subtasks: task.subtasks?.map(subtask =>
+                subtask.id === id ? { ...subtask, title } : subtask
+              ),
+            };
+          }
+          return task;
+        });
+      }
+      return prevTasks.map(task =>
         task.id === id ? { ...task, title } : task
-      )
-    );
+      );
+    });
   };
 
   const updateTaskOrder = (taskId: number, newGroupId?: number, newIndex?: number) => {
