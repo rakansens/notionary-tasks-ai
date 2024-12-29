@@ -59,7 +59,56 @@ export const useTaskManager = () => {
   };
 
   const updateTaskOrder = (taskId: number, newGroupId?: number, newIndex?: number) => {
-    setTasks(prevTasks => updateTaskOrderInState(prevTasks, taskId, newGroupId, newIndex));
+    setTasks(prevTasks => {
+      const taskToMove = prevTasks.find(t => t.id === taskId);
+      if (!taskToMove) return prevTasks;
+
+      // サブタスクの場合は親タスク内での並び替えのみを許可
+      if (taskToMove.parentId) {
+        const parentTask = prevTasks.find(t => t.id === taskToMove.parentId);
+        if (!parentTask || !parentTask.subtasks) return prevTasks;
+
+        const updatedSubtasks = [...parentTask.subtasks];
+        const oldIndex = updatedSubtasks.findIndex(t => t.id === taskId);
+        if (oldIndex === -1) return prevTasks;
+
+        const [removed] = updatedSubtasks.splice(oldIndex, 1);
+        const targetIndex = typeof newIndex === 'number' ? newIndex : updatedSubtasks.length;
+        updatedSubtasks.splice(targetIndex, 0, removed);
+
+        return prevTasks.map(task =>
+          task.id === parentTask.id
+            ? { ...task, subtasks: updatedSubtasks }
+            : task
+        );
+      }
+
+      // メインタスクの場合
+      const remainingTasks = prevTasks.filter(t => t.id !== taskId);
+      const updatedTask = {
+        ...taskToMove,
+        groupId: newGroupId ?? taskToMove.groupId,
+      };
+
+      // 同じグループ内でのタスクのみをフィルタリング
+      const tasksInTargetGroup = remainingTasks.filter(t => 
+        t.groupId === updatedTask.groupId && !t.parentId
+      );
+
+      if (typeof newIndex === 'number') {
+        const beforeTasks = tasksInTargetGroup.slice(0, newIndex);
+        const afterTasks = tasksInTargetGroup.slice(newIndex);
+        
+        return [
+          ...remainingTasks.filter(t => t.groupId !== updatedTask.groupId),
+          ...beforeTasks,
+          updatedTask,
+          ...afterTasks,
+        ];
+      }
+
+      return [...remainingTasks, updatedTask];
+    });
   };
 
   const updateGroupName = (id: number, newName: string) => {

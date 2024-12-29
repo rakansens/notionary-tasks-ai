@@ -1,5 +1,9 @@
 import { Task } from "@/hooks/useTaskManager";
-import { TaskItem } from "./TaskItem";
+import { DraggableTask } from "./DraggableTask";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface SubtaskListProps {
   parentTask: Task;
@@ -34,22 +38,27 @@ export const SubtaskList = ({
 
   return (
     <div className="pl-6 space-y-0.5">
-      {subtasks.map(subtask => (
-        <TaskItem
-          key={subtask.id}
-          task={subtask}
-          editingTaskId={editingTaskId}
-          addingSubtaskId={addingSubtaskId}
-          setEditingTaskId={setEditingTaskId}
-          setAddingSubtaskId={setAddingSubtaskId}
-          toggleTask={(id) => toggleTask(id, parentTask.id)}
-          updateTaskTitle={(id, title) => updateTaskTitle(id, title, parentTask.id)}
-          deleteTask={(id) => deleteTask(id, parentTask.id)}
-          newTask={newTask}
-          setNewTask={setNewTask}
-          addTask={addTask}
-        />
-      ))}
+      <SortableContext
+        items={subtasks.map(task => task.id.toString())}
+        strategy={verticalListSortingStrategy}
+      >
+        {subtasks.map(subtask => (
+          <DraggableTask
+            key={subtask.id}
+            task={subtask}
+            editingTaskId={editingTaskId}
+            addingSubtaskId={addingSubtaskId}
+            setEditingTaskId={setEditingTaskId}
+            setAddingSubtaskId={setAddingSubtaskId}
+            toggleTask={(id) => toggleTask(id, parentTask.id)}
+            updateTaskTitle={(id, title) => updateTaskTitle(id, title, parentTask.id)}
+            deleteTask={(id) => deleteTask(id, parentTask.id)}
+            newTask={newTask}
+            setNewTask={setNewTask}
+            addTask={addTask}
+          />
+        ))}
+      </SortableContext>
     </div>
   );
 };
