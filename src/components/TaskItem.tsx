@@ -36,12 +36,14 @@ export const TaskItem = ({
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
     setAddingSubtaskId(task.id);
+    setNewTask(''); // Reset newTask when opening the input
   };
 
   const handleSubmitSubtask = () => {
     if (newTask.trim()) {
       addTask(task.groupId, task.id);
       setAddingSubtaskId(null);
+      setNewTask(''); // Reset newTask after adding
     }
   };
 
@@ -148,7 +150,10 @@ export const TaskItem = ({
             value={newTask}
             onChange={setNewTask}
             onSubmit={handleSubmitSubtask}
-            onCancel={() => setAddingSubtaskId(null)}
+            onCancel={() => {
+              setAddingSubtaskId(null);
+              setNewTask('');
+            }}
             autoFocus
           />
         </div>
