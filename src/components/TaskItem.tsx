@@ -31,16 +31,9 @@ export const TaskItem = ({
   addTask,
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
-    addTask(task.groupId, task.id);
-    
-    setTimeout(() => {
-      if (task.subtasks && task.subtasks.length > 0) {
-        const lastSubtask = task.subtasks[task.subtasks.length - 1];
-        if (lastSubtask) {
-          setEditingTaskId(lastSubtask.id);
-        }
-      }
-    }, 0);
+    if (task.id) {
+      addTask(task.groupId, task.id);
+    }
   };
 
   return (
