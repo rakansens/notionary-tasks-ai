@@ -35,14 +35,14 @@ export const TaskInput = ({
   };
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-2">
       <Button
         variant="ghost"
         size="icon"
-        className="h-5 w-5 rounded-md border border-input"
+        className="h-4 w-4 rounded-sm border border-notion-border"
         onClick={() => onSubmit()}
       >
-        <Plus className="h-3 w-3" />
+        <Plus className="h-3 w-3 text-notion-secondary" />
       </Button>
       <Input
         value={value}
@@ -50,7 +50,10 @@ export const TaskInput = ({
         onKeyDown={handleKeyPress}
         onBlur={handleBlur}
         placeholder="新しいタスクを追加..."
-        className={cn("flex-1", !groupId && "h-7 py-0")}
+        className={cn(
+          "flex-1 h-8 text-sm bg-transparent border-none focus:ring-0",
+          "placeholder:text-notion-secondary"
+        )}
         autoFocus={autoFocus}
       />
     </div>

@@ -18,13 +18,16 @@ export const TaskDropdownMenu = ({ onDelete }: TaskDropdownMenuProps) => {
         <Button
           variant="ghost"
           size="icon"
-          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          className="h-6 w-6 hover:bg-notion-hover"
         >
-          <MoreHorizontal className="h-4 w-4" />
+          <MoreHorizontal className="h-3.5 w-3.5 text-notion-secondary" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={onDelete}>
+      <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuItem
+          onClick={onDelete}
+          className="text-sm cursor-pointer focus:bg-notion-hover"
+        >
           削除
         </DropdownMenuItem>
       </DropdownMenuContent>

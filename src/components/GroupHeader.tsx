@@ -29,7 +29,7 @@ export const GroupHeader = ({
   };
 
   return (
-    <div className="flex items-center gap-1 p-1 text-sm font-medium text-muted-foreground">
+    <div className="flex items-center gap-2 p-1 text-sm font-medium text-notion-secondary group">
       <Folder className="h-4 w-4" />
       {editingGroupId === group.id ? (
         <Input
@@ -41,12 +41,12 @@ export const GroupHeader = ({
             }
           }}
           onKeyDown={handleKeyDown}
-          className="flex-1 h-6 py-0"
+          className="flex-1 h-6 py-0 px-1 bg-transparent border-none focus:ring-0"
           autoFocus
         />
       ) : (
         <span
-          className="flex-1 cursor-pointer hover:text-foreground transition-colors duration-200"
+          className="flex-1 cursor-pointer hover:text-notion-primary transition-colors duration-200"
           onClick={() => setEditingGroupId(group.id)}
         >
           {group.name}
@@ -55,10 +55,10 @@ export const GroupHeader = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-6 w-6 hover:text-destructive"
+        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-notion-hover"
         onClick={() => deleteGroup(group.id)}
       >
-        <Trash2 className="h-4 w-4" />
+        <Trash2 className="h-3.5 w-3.5" />
       </Button>
     </div>
   );

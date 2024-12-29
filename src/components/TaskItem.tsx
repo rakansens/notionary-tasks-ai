@@ -49,20 +49,20 @@ export const TaskItem = ({
     <div className="space-y-0.5">
       <div
         className={cn(
-          "flex items-center gap-1 p-1.5 rounded-lg transition-all duration-200",
-          "hover:bg-muted/50 group"
+          "flex items-center gap-2 py-1 px-2 -mx-2 rounded transition-all duration-200",
+          "hover:bg-notion-hover group"
         )}
       >
         <Button
           variant="ghost"
           size="icon"
           className={cn(
-            "h-5 w-5 rounded-md border transition-colors duration-200",
-            task.completed ? "bg-primary border-primary" : "border-input"
+            "h-4 w-4 rounded-sm border transition-colors duration-200",
+            task.completed ? "bg-notion-primary border-notion-primary" : "border-notion-border"
           )}
           onClick={() => toggleTask(task.id)}
         >
-          {task.completed && <Check className="h-3 w-3 text-primary-foreground" />}
+          {task.completed && <Check className="h-3 w-3 text-white" />}
         </Button>
         
         {editingTaskId === task.id ? (
@@ -71,14 +71,14 @@ export const TaskItem = ({
             onChange={(e) => updateTaskTitle(task.id, e.target.value)}
             onBlur={() => setEditingTaskId(null)}
             onKeyPress={(e) => e.key === "Enter" && setEditingTaskId(null)}
-            className="flex-1 h-6 py-0"
+            className="flex-1 h-6 py-0 px-1 bg-transparent border-none focus:ring-0 text-sm"
             autoFocus
           />
         ) : (
           <span
             className={cn(
-              "flex-1 transition-all duration-200 cursor-pointer",
-              task.completed && "line-through text-muted-foreground"
+              "flex-1 text-sm transition-all duration-200 cursor-pointer",
+              task.completed && "line-through text-notion-secondary"
             )}
             onClick={() => setEditingTaskId(task.id)}
           >
@@ -86,25 +86,27 @@ export const TaskItem = ({
           </span>
         )}
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          onClick={handleAddSubtask}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          onClick={() => deleteTask(task.id)}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-        
-        <TaskDropdownMenu onDelete={() => deleteTask(task.id)} />
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 hover:bg-notion-hover"
+            onClick={handleAddSubtask}
+          >
+            <Plus className="h-3.5 w-3.5 text-notion-secondary" />
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 hover:bg-notion-hover"
+            onClick={() => deleteTask(task.id)}
+          >
+            <X className="h-3.5 w-3.5 text-notion-secondary" />
+          </Button>
+          
+          <TaskDropdownMenu onDelete={() => deleteTask(task.id)} />
+        </div>
       </div>
 
       <SubtaskList

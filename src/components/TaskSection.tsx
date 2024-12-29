@@ -37,13 +37,13 @@ export const TaskSection = () => {
   } = useTaskManager();
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      <div className="p-2 border-b">
-        <h2 className="text-xl font-semibold text-foreground">タスク管理</h2>
+    <div className="flex flex-col h-full bg-white">
+      <div className="p-4 border-b border-notion-border">
+        <h2 className="text-xl font-medium text-notion-primary">タスク管理</h2>
       </div>
       
-      <ScrollArea className="flex-1 p-1">
-        <div className="space-y-0.5">
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-1">
           {tasks
             .filter(task => !task.groupId)
             .map(task => (
@@ -84,9 +84,9 @@ export const TaskSection = () => {
         </div>
       </ScrollArea>
       
-      <div className="p-2 border-t space-y-2">
+      <div className="p-4 border-t border-notion-border space-y-3">
         {isAddingGroup ? (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <Input
               value={newGroup}
               onChange={(e) => setNewGroup(e.target.value)}
@@ -99,7 +99,7 @@ export const TaskSection = () => {
                 }
               }}
               placeholder="新しいグループ名..."
-              className="flex-1 h-7 py-0"
+              className="h-8 text-sm bg-transparent border-notion-border focus:border-notion-primary focus:ring-0"
               autoFocus
             />
           </div>
@@ -107,7 +107,7 @@ export const TaskSection = () => {
           <Button
             variant="ghost"
             size="sm"
-            className="w-full flex items-center gap-2 text-muted-foreground"
+            className="w-full flex items-center gap-2 text-notion-secondary hover:bg-notion-hover"
             onClick={() => setIsAddingGroup(true)}
           >
             <FolderPlus className="h-4 w-4" />
