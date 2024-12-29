@@ -46,6 +46,7 @@ export const useTaskManager = () => {
     };
     
     setTasks(prevTasks => {
+      // If this is a subtask
       if (parentId) {
         return prevTasks.map(t => {
           if (t.id === parentId) {
@@ -57,8 +58,10 @@ export const useTaskManager = () => {
           return t;
         });
       }
+      // If this is a main task
       return [...prevTasks, task];
     });
+    
     setNewTask("");
   };
 
