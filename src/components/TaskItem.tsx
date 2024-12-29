@@ -45,6 +45,12 @@ export const TaskItem = ({
     }
   };
 
+  const handleToggleTask = () => {
+    if (toggleTask) {
+      toggleTask(task.id, task.parentId);
+    }
+  };
+
   return (
     <div className="space-y-0.5">
       <div
@@ -60,7 +66,7 @@ export const TaskItem = ({
             "h-4 w-4 rounded-sm border transition-colors duration-200",
             task.completed ? "bg-notion-primary border-notion-primary" : "border-notion-border"
           )}
-          onClick={() => toggleTask(task.id)}
+          onClick={handleToggleTask}
         >
           {task.completed && <Check className="h-3 w-3 text-white" />}
         </Button>
