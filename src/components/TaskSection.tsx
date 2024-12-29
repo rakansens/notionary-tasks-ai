@@ -117,14 +117,26 @@ export const TaskSection = () => {
                   <Input
                     value={group.name}
                     onChange={(e) => updateGroupName(group.id, e.target.value)}
-                    onBlur={() => setEditingGroupId(null)}
-                    onKeyPress={(e) => e.key === "Enter" && updateGroupName(group.id, (e.target as HTMLInputElement).value)}
+                    onBlur={() => {
+                      if (group.name.trim()) {
+                        setEditingGroupId(null);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        if (group.name.trim()) {
+                          setEditingGroupId(null);
+                        }
+                      } else if (e.key === "Escape") {
+                        setEditingGroupId(null);
+                      }
+                    }}
                     className="flex-1 h-6 py-0"
                     autoFocus
                   />
                 ) : (
                   <span
-                    className="flex-1 cursor-pointer"
+                    className="flex-1 cursor-pointer hover:text-foreground transition-colors duration-200"
                     onClick={() => setEditingGroupId(group.id)}
                   >
                     {group.name}
