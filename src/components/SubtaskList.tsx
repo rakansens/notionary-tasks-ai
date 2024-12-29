@@ -47,7 +47,7 @@ export const SubtaskList = ({
           deleteTask={(id) => deleteTask(id, parentTask.id)}
           newTask={newTask}
           setNewTask={setNewTask}
-          addTask={addTask}
+          addTask={(groupId) => addTask(groupId, subtask.id)}
         />
       ))}
     </div>
