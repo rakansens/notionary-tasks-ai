@@ -1,13 +1,13 @@
 import { useState } from "react";
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   completed: boolean;
   groupId?: number;
 }
 
-interface Group {
+export interface Group {
   id: number;
   name: string;
 }
