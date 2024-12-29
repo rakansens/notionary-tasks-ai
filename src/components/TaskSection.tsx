@@ -46,17 +46,17 @@ export const TaskSection = () => {
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="p-6 border-b">
+      <div className="p-3 border-b">
         <h2 className="text-2xl font-semibold text-foreground">タスク管理</h2>
       </div>
       
-      <ScrollArea className="flex-1 p-6">
-        <div className="space-y-3">
+      <ScrollArea className="flex-1 p-2">
+        <div className="space-y-1">
           {tasks.map((task) => (
             <div
               key={task.id}
               className={cn(
-                "flex items-center gap-3 p-4 rounded-lg transition-all duration-200",
+                "flex items-center gap-2 p-2 rounded-lg transition-all duration-200",
                 "hover:bg-muted/50 group"
               )}
             >
@@ -102,8 +102,8 @@ export const TaskSection = () => {
         </div>
       </ScrollArea>
       
-      <div className="p-6 border-t">
-        <div className="flex items-center gap-3">
+      <div className="p-3 border-t">
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
