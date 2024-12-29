@@ -79,7 +79,10 @@ export const TaskItem = ({
           variant="ghost"
           size="icon"
           className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          onClick={() => addTask(task.groupId, task.id)}
+          onClick={() => {
+            setEditingTaskId(task.id);
+            addTask(task.groupId, task.id);
+          }}
         >
           <Plus className="h-4 w-4" />
         </Button>
