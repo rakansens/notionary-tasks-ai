@@ -1,4 +1,4 @@
-import { Paperclip, Folder, ArrowRight } from "lucide-react";
+import { Paperclip, Folder, ArrowRight, CheckCircle, PlusCircle } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -67,7 +67,6 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
       <CollapsibleContent className="absolute right-0 mt-2 w-96 p-4 bg-white rounded-lg shadow-lg border border-notion-border z-50">
         <div className="space-y-4 max-h-96 overflow-y-auto">
           {sessions.map(session => {
-            // Combine completed and new tasks for this session
             const sessionNewTasks = newTasks.filter(task => task.sessionId === session.id);
             const allTasks = [
               ...session.completedTasks,
@@ -103,31 +102,38 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                       )}
                     >
                       <div className="flex items-center justify-between">
-                        {editingTaskId === task.id ? (
-                          <Input
-                            value={editingTitle}
-                            onChange={(e) => setEditingTitle(e.target.value)}
-                            onBlur={handleEditComplete}
-                            onKeyPress={(e) => e.key === "Enter" && handleEditComplete()}
-                            className="h-6 text-sm"
-                            autoFocus
-                          />
-                        ) : (
-                          <span 
-                            className={cn(
-                              "cursor-pointer hover:text-notion-primary",
-                              isTaskFromCurrentSession(task, session) && "font-medium"
-                            )}
-                            onClick={() => handleEditStart(task.id, task.title)}
-                          >
-                            {task.title}
-                            {isTaskFromCurrentSession(task, session) && (
-                              <span className="ml-2 text-xs text-blue-500 dark:text-blue-400">
-                                (現在のセッション)
-                              </span>
-                            )}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {task.status === 'new' ? (
+                            <PlusCircle className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4 text-blue-600" />
+                          )}
+                          {editingTaskId === task.id ? (
+                            <Input
+                              value={editingTitle}
+                              onChange={(e) => setEditingTitle(e.target.value)}
+                              onBlur={handleEditComplete}
+                              onKeyPress={(e) => e.key === "Enter" && handleEditComplete()}
+                              className="h-6 text-sm"
+                              autoFocus
+                            />
+                          ) : (
+                            <span 
+                              className={cn(
+                                "cursor-pointer hover:text-notion-primary",
+                                isTaskFromCurrentSession(task, session) && "font-medium"
+                              )}
+                              onClick={() => handleEditStart(task.id, task.title)}
+                            >
+                              {task.title}
+                              {isTaskFromCurrentSession(task, session) && (
+                                <span className="ml-2 text-xs text-blue-500 dark:text-blue-400">
+                                  (現在のセッション)
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-sm text-notion-secondary">
                           {format(task.completedAt || new Date(task.addedAt), "HH:mm")}
                         </span>
