@@ -58,13 +58,15 @@ export const TaskItem = ({
         id: task.id,
         title: task.title,
         parentTask: parentTask?.title,
-        groupName: groupName
+        groupName: groupName,
+        addedAt: task.addedAt
       });
       
       const completedTask = {
         id: task.id,
         title: task.title,
         completedAt: new Date(),
+        addedAt: task.addedAt,
         parentTaskTitle: parentTask?.title || null,
         grandParentTaskTitle: parentTask?.parentId ? 
           task.parentId ? parentTask?.title : null : 
