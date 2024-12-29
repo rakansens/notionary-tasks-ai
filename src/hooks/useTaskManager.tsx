@@ -7,6 +7,7 @@ export interface Task {
   groupId?: number;
   parentId?: number;
   subtasks?: Task[];
+  order?: number;
 }
 
 export interface Group {
@@ -51,6 +52,29 @@ export const useTaskManager = () => {
         };
       }
       return task;
+    });
+  };
+
+  const updateTaskOrder = (taskId: number, newGroupId?: number, newIndex?: number) => {
+    setTasks(prevTasks => {
+      const taskToMove = prevTasks.find(t => t.id === taskId);
+      if (!taskToMove) return prevTasks;
+
+      const newTasks = prevTasks.filter(t => t.id !== taskId);
+      
+      if (typeof newIndex === 'number') {
+        newTasks.splice(newIndex, 0, {
+          ...taskToMove,
+          groupId: newGroupId ?? taskToMove.groupId,
+        });
+      } else {
+        newTasks.push({
+          ...taskToMove,
+          groupId: newGroupId ?? taskToMove.groupId,
+        });
+      }
+
+      return newTasks;
     });
   };
 
@@ -217,5 +241,6 @@ export const useTaskManager = () => {
     deleteGroup,
     confirmDelete,
     cancelDelete,
+    updateTaskOrder,
   };
 };
