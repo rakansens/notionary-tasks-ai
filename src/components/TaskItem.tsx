@@ -34,7 +34,8 @@ export const TaskItem = ({
   setNewTask,
   addTask,
 }: TaskItemProps) => {
-  const handleAddSubtask = () => {
+  const handleAddSubtask = (e: React.MouseEvent) => {
+    e.stopPropagation();  // Prevent event from bubbling up to DnD handlers
     setAddingSubtaskId(task.id);
   };
 
@@ -49,6 +50,11 @@ export const TaskItem = ({
     if (toggleTask) {
       toggleTask(task.id, task.parentId);
     }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();  // Prevent event from bubbling up to DnD handlers
+    deleteTask(task.id);
   };
 
   return (
@@ -92,7 +98,10 @@ export const TaskItem = ({
           </span>
         )}
 
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div 
+          className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          onClick={(e) => e.stopPropagation()} // Prevent DnD from triggering on button clicks
+        >
           <Button
             variant="ghost"
             size="icon"
@@ -106,12 +115,12 @@ export const TaskItem = ({
             variant="ghost"
             size="icon"
             className="h-6 w-6 hover:bg-notion-hover"
-            onClick={() => deleteTask(task.id)}
+            onClick={handleDelete}
           >
             <X className="h-3.5 w-3.5 text-notion-secondary" />
           </Button>
           
-          <TaskDropdownMenu onDelete={() => deleteTask(task.id)} />
+          <TaskDropdownMenu onDelete={handleDelete} />
         </div>
       </div>
 
