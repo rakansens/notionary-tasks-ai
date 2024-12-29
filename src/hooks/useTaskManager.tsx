@@ -28,10 +28,30 @@ export const useTaskManager = () => {
     id: number;
   } | null>(null);
 
-  const updateGroupName = (id: number, newName: string) => {
-    setGroups(groups.map(group =>
-      group.id === id ? { ...group, name: newName } : group
-    ));
+  const findTaskById = (taskList: Task[], id: number): Task | undefined => {
+    for (const task of taskList) {
+      if (task.id === id) return task;
+      if (task.subtasks) {
+        const found = findTaskById(task.subtasks, id);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  };
+
+  const updateTaskInTree = (taskList: Task[], updatedTask: Task): Task[] => {
+    return taskList.map(task => {
+      if (task.id === updatedTask.id) {
+        return updatedTask;
+      }
+      if (task.subtasks) {
+        return {
+          ...task,
+          subtasks: updateTaskInTree(task.subtasks, updatedTask)
+        };
+      }
+      return task;
+    });
   };
 
   const addTask = (groupId?: number, parentId?: number) => {
@@ -47,19 +67,24 @@ export const useTaskManager = () => {
     };
     
     setTasks(prevTasks => {
-      // If this is a subtask
       if (parentId) {
-        return prevTasks.map(t => {
-          if (t.id === parentId) {
-            return {
-              ...t,
-              subtasks: [...(t.subtasks || []), task],
-            };
+        const updatedTasks = [...prevTasks];
+        const findAndAddSubtask = (tasks: Task[]): boolean => {
+          for (let i = 0; i < tasks.length; i++) {
+            if (tasks[i].id === parentId) {
+              tasks[i].subtasks = [...(tasks[i].subtasks || []), task];
+              return true;
+            }
+            if (tasks[i].subtasks && findAndAddSubtask(tasks[i].subtasks)) {
+              return true;
+            }
           }
-          return t;
-        });
+          return false;
+        };
+        
+        findAndAddSubtask(updatedTasks);
+        return updatedTasks;
       }
-      // If this is a main task
       return [...prevTasks, task];
     });
     
