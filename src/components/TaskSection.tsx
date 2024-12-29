@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Plus, MoreHorizontal, Check, FolderPlus, Folder } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,75 +9,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-
-interface Task {
-  id: number;
-  title: string;
-  completed: boolean;
-  groupId?: number;
-}
-
-interface Group {
-  id: number;
-  name: string;
-}
+import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { useTaskManager } from "@/hooks/useTaskManager";
 
 export const TaskSection = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [newTask, setNewTask] = useState("");
-  const [newGroup, setNewGroup] = useState("");
-  const [isAddingGroup, setIsAddingGroup] = useState(false);
-  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
-
-  const addTask = (groupId?: number) => {
-    if (!newTask.trim()) return;
-    
-    const task: Task = {
-      id: Date.now(),
-      title: newTask,
-      completed: false,
-      groupId,
-    };
-    
-    setTasks([...tasks, task]);
-    setNewTask("");
-  };
-
-  const addGroup = () => {
-    if (!newGroup.trim()) return;
-    
-    const group: Group = {
-      id: Date.now(),
-      name: newGroup,
-    };
-    
-    setGroups([...groups, group]);
-    setNewGroup("");
-    setIsAddingGroup(false);
-  };
-
-  const toggleTask = (id: number) => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
-  };
-
-  const updateTaskTitle = (id: number, newTitle: string) => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, title: newTitle } : task
-    ));
-    setEditingTaskId(null);
-  };
-
-  const deleteTask = (id: number) => {
-    setTasks(tasks.filter(task => task.id !== id));
-  };
-
-  const deleteGroup = (groupId: number) => {
-    setGroups(groups.filter(group => group.id !== groupId));
-    setTasks(tasks.filter(task => task.groupId !== groupId));
-  };
+  const {
+    tasks,
+    groups,
+    newTask,
+    newGroup,
+    isAddingGroup,
+    editingTaskId,
+    deleteTarget,
+    setNewTask,
+    setNewGroup,
+    setIsAddingGroup,
+    setEditingTaskId,
+    addTask,
+    addGroup,
+    toggleTask,
+    updateTaskTitle,
+    deleteTask,
+    deleteGroup,
+    confirmDelete,
+    cancelDelete,
+  } = useTaskManager();
 
   const renderTask = (task: Task) => (
     <div
@@ -148,10 +103,8 @@ export const TaskSection = () => {
       
       <ScrollArea className="flex-1 p-1">
         <div className="space-y-0.5">
-          {/* Ungrouped tasks */}
           {tasks.filter(task => !task.groupId).map(renderTask)}
 
-          {/* Groups and their tasks */}
           {groups.map(group => (
             <div key={group.id} className="mt-2">
               <div className="flex items-center gap-1 p-1 text-sm font-medium text-muted-foreground">
@@ -241,6 +194,16 @@ export const TaskSection = () => {
           />
         </div>
       </div>
+
+      <DeleteConfirmDialog
+        isOpen={deleteTarget !== null}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title={`${deleteTarget?.type === "task" ? "タスク" : "グループ"}を削除`}
+        description={`このアイテムを削除してもよろしいですか？${
+          deleteTarget?.type === "group" ? "グループ内のすべてのタスクも削除されます。" : ""
+        }`}
+      />
     </div>
   );
 };
