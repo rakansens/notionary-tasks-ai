@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { DragEndEvent } from "@dnd-kit/core";
-import { Task, Group } from "./useTaskManager";
+import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
+import type { Task, Group } from "./useTaskManager";
 
 interface DragAndDropState {
   activeId: string | null;
@@ -15,8 +15,8 @@ export const useDragAndDrop = (
     activeId: null,
   });
 
-  const handleDragStart = (event: { active: { id: string } }) => {
-    setState({ activeId: event.active.id });
+  const handleDragStart = (event: DragStartEvent) => {
+    setState({ activeId: event.active.id.toString() });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {

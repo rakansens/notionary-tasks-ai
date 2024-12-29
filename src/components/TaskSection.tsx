@@ -34,6 +34,7 @@ export const TaskSection = () => {
     deleteGroup,
     confirmDelete,
     cancelDelete,
+    updateTaskOrder,
   } = useTaskManager();
 
   return (
@@ -80,6 +81,7 @@ export const TaskSection = () => {
             updateGroupName={updateGroupName}
             deleteTask={deleteTask}
             deleteGroup={deleteGroup}
+            updateTaskOrder={updateTaskOrder}
           />
         </div>
       </ScrollArea>
