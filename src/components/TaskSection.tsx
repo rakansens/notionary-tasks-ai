@@ -22,6 +22,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 
 export const TaskSection = () => {
   const {
@@ -52,15 +53,22 @@ export const TaskSection = () => {
     updateTaskOrder,
   } = useTaskManager();
 
+  const nonGroupTasks = tasks.filter(task => !task.groupId && !task.parentId);
+  const activeTask = tasks.find(task => task.id === editingTaskId);
+
+  const {
+    dragAndDropState,
+    handleDragStart,
+    handleDragEnd,
+    handleDragCancel,
+  } = useDragAndDrop(tasks, groups, updateTaskOrder);
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  const nonGroupTasks = tasks.filter(task => !task.groupId && !task.parentId);
-  const activeTask = tasks.find(task => task.id === editingTaskId);
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -73,11 +81,9 @@ export const TaskSection = () => {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
-            onDragEnd={({ active, over }) => {
-              if (over && active.id !== over.id) {
-                updateTaskOrder(Number(active.id), undefined, Number(over.id));
-              }
-            }}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
           >
             <SortableContext
               items={nonGroupTasks.map(task => task.id.toString())}
@@ -101,44 +107,46 @@ export const TaskSection = () => {
               ))}
             </SortableContext>
             
+            <GroupList
+              groups={groups}
+              tasks={tasks}
+              newTask={newTask}
+              editingTaskId={editingTaskId}
+              editingGroupId={editingGroupId}
+              addingSubtaskId={addingSubtaskId}
+              setNewTask={setNewTask}
+              setEditingTaskId={setEditingTaskId}
+              setEditingGroupId={setEditingGroupId}
+              setAddingSubtaskId={setAddingSubtaskId}
+              addTask={addTask}
+              toggleTask={toggleTask}
+              updateTaskTitle={updateTaskTitle}
+              updateGroupName={updateGroupName}
+              deleteTask={deleteTask}
+              deleteGroup={deleteGroup}
+              updateTaskOrder={updateTaskOrder}
+            />
+
             <DragOverlay>
-              {activeTask ? (
-                <TaskItem
-                  task={activeTask}
-                  editingTaskId={editingTaskId}
-                  addingSubtaskId={addingSubtaskId}
-                  setEditingTaskId={setEditingTaskId}
-                  setAddingSubtaskId={setAddingSubtaskId}
-                  toggleTask={toggleTask}
-                  updateTaskTitle={updateTaskTitle}
-                  deleteTask={deleteTask}
-                  newTask={newTask}
-                  setNewTask={setNewTask}
-                  addTask={addTask}
-                />
+              {dragAndDropState.activeId ? (
+                <div className="shadow-lg rounded-md bg-white">
+                  <TaskItem
+                    task={tasks.find(t => t.id.toString() === dragAndDropState.activeId) || tasks[0]}
+                    editingTaskId={editingTaskId}
+                    addingSubtaskId={addingSubtaskId}
+                    setEditingTaskId={setEditingTaskId}
+                    setAddingSubtaskId={setAddingSubtaskId}
+                    toggleTask={toggleTask}
+                    updateTaskTitle={updateTaskTitle}
+                    deleteTask={deleteTask}
+                    newTask={newTask}
+                    setNewTask={setNewTask}
+                    addTask={addTask}
+                  />
+                </div>
               ) : null}
             </DragOverlay>
           </DndContext>
-          
-          <GroupList
-            groups={groups}
-            tasks={tasks}
-            newTask={newTask}
-            editingTaskId={editingTaskId}
-            editingGroupId={editingGroupId}
-            addingSubtaskId={addingSubtaskId}
-            setNewTask={setNewTask}
-            setEditingTaskId={setEditingTaskId}
-            setEditingGroupId={setEditingGroupId}
-            setAddingSubtaskId={setAddingSubtaskId}
-            addTask={addTask}
-            toggleTask={toggleTask}
-            updateTaskTitle={updateTaskTitle}
-            updateGroupName={updateGroupName}
-            deleteTask={deleteTask}
-            deleteGroup={deleteGroup}
-            updateTaskOrder={updateTaskOrder}
-          />
         </div>
       </ScrollArea>
       
