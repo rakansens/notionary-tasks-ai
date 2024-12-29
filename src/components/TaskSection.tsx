@@ -8,6 +8,7 @@ import { TaskItem } from "./TaskItem";
 import { TaskInput } from "./TaskInput";
 import { GroupList } from "./GroupList";
 import { DraggableTask } from "./DraggableTask";
+import { PomodoroHeader } from "./pomodoro/PomodoroHeader";
 import {
   DndContext,
   DragOverlay,
@@ -72,8 +73,9 @@ export const TaskSection = () => {
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="p-4 border-b border-notion-border">
+      <div className="p-4 border-b border-notion-border flex items-center justify-between">
         <h2 className="text-xl font-medium text-notion-primary">タスク管理</h2>
+        <PomodoroHeader />
       </div>
       
       <ScrollArea className="flex-1">
