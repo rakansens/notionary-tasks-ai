@@ -3,6 +3,7 @@ import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 interface Message {
   id: number;
@@ -38,24 +39,28 @@ export const ChatSection = () => {
   };
 
   return (
-    <div className="flex flex-col h-full border-r border-notion-border">
-      <div className="p-4 border-b border-notion-border">
-        <h2 className="text-xl font-semibold text-notion-primary">AIアシスタント</h2>
+    <div className="flex flex-col h-full bg-background">
+      <div className="p-6 border-b">
+        <h2 className="text-2xl font-semibold text-foreground">AIアシスタント</h2>
       </div>
       
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-6">
         <div className="space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
+              className={cn(
+                "flex",
+                message.isUser ? "justify-end" : "justify-start"
+              )}
             >
               <div
-                className={`max-w-[80%] p-3 rounded-lg ${
+                className={cn(
+                  "max-w-[80%] p-4 rounded-lg transition-all duration-200",
                   message.isUser
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-100 text-notion-primary"
-                }`}
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground"
+                )}
               >
                 {message.text}
               </div>
@@ -64,8 +69,8 @@ export const ChatSection = () => {
         </div>
       </ScrollArea>
       
-      <div className="p-4 border-t border-notion-border">
-        <div className="flex gap-2">
+      <div className="p-6 border-t">
+        <div className="flex gap-3">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}

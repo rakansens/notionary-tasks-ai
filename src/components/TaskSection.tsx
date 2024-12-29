@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface Task {
   id: number;
@@ -44,33 +45,38 @@ export const TaskSection = () => {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-notion-border">
-        <h2 className="text-xl font-semibold text-notion-primary">タスク管理</h2>
+    <div className="flex flex-col h-full bg-background">
+      <div className="p-6 border-b">
+        <h2 className="text-2xl font-semibold text-foreground">タスク管理</h2>
       </div>
       
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-2">
+      <ScrollArea className="flex-1 p-6">
+        <div className="space-y-3">
           {tasks.map((task) => (
             <div
               key={task.id}
-              className="flex items-center gap-2 p-3 rounded-lg hover:bg-notion-hover group"
+              className={cn(
+                "flex items-center gap-3 p-4 rounded-lg transition-all duration-200",
+                "hover:bg-muted/50 group"
+              )}
             >
               <Button
                 variant="ghost"
                 size="icon"
-                className={`h-5 w-5 rounded-sm border ${
-                  task.completed ? "bg-blue-500 border-blue-500" : "border-gray-300"
-                }`}
+                className={cn(
+                  "h-5 w-5 rounded-md border transition-colors duration-200",
+                  task.completed ? "bg-primary border-primary" : "border-input"
+                )}
                 onClick={() => toggleTask(task.id)}
               >
-                {task.completed && <Check className="h-3 w-3 text-white" />}
+                {task.completed && <Check className="h-3 w-3 text-primary-foreground" />}
               </Button>
               
               <span
-                className={`flex-1 ${
-                  task.completed ? "line-through text-notion-secondary" : "text-notion-primary"
-                }`}
+                className={cn(
+                  "flex-1 transition-all duration-200",
+                  task.completed && "line-through text-muted-foreground"
+                )}
               >
                 {task.title}
               </span>
@@ -80,7 +86,7 @@ export const TaskSection = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="opacity-0 group-hover:opacity-100"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
@@ -96,12 +102,13 @@ export const TaskSection = () => {
         </div>
       </ScrollArea>
       
-      <div className="p-4 border-t border-notion-border">
-        <div className="flex items-center gap-2">
+      <div className="p-6 border-t">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="h-5 w-5 rounded-sm border border-gray-300"
+            className="h-5 w-5 rounded-md border border-input"
+            onClick={addTask}
           >
             <Plus className="h-3 w-3" />
           </Button>
