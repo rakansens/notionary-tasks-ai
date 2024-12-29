@@ -72,36 +72,9 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
       </CollapsibleTrigger>
       <CollapsibleContent className="absolute right-0 mt-2 w-96 p-4 bg-white rounded-lg shadow-lg border border-notion-border z-50">
         <div className="space-y-4 max-h-96 overflow-y-auto">
-          {currentSession && newTasks.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-green-600">新規追加タスク</h3>
-              {newTasks.map((task, index) => (
-                <div
-                  key={`new-${index}`}
-                  className="flex flex-col p-2 rounded-lg bg-green-50"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-green-700">{task.title}</span>
-                    <span className="text-sm text-notion-secondary">
-                      {format(new Date(task.addedAt), "HH:mm")}
-                    </span>
-                  </div>
-                  {task.groupId && (
-                    <div className="text-xs text-notion-secondary mt-1">
-                      <span className="flex items-center gap-1">
-                        <Folder className="h-3 w-3" />
-                        {task.groupName || 'グループ内'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
           {sessions.map(session => (
             <div key={session.id} className="space-y-2">
-              {session.completedTasks.length > 0 && (
+              {(session.completedTasks.length > 0 || (currentSession?.id === session.id && newTasks.length > 0)) && (
                 <>
                   <h3 className="text-sm font-medium flex items-center justify-between">
                     <span>{session.name}</span>
@@ -111,6 +84,27 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                     </span>
                   </h3>
                   <div className="space-y-2">
+                    {currentSession?.id === session.id && newTasks.map((task, index) => (
+                      <div
+                        key={`new-${index}`}
+                        className="flex flex-col p-2 rounded-lg bg-green-50"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-green-700">{task.title}</span>
+                          <span className="text-sm text-notion-secondary">
+                            {format(new Date(task.addedAt), "HH:mm")}
+                          </span>
+                        </div>
+                        {task.groupId && (
+                          <div className="text-xs text-notion-secondary mt-1">
+                            <span className="flex items-center gap-1">
+                              <Folder className="h-3 w-3" />
+                              {task.groupName || 'グループ内'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                     {session.completedTasks.map((task, index) => (
                       <div
                         key={`${task.id}-${index}`}
@@ -143,11 +137,6 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                               {isTaskFromCurrentSession(task, session) && (
                                 <span className="ml-2 text-xs text-blue-500 dark:text-blue-400">
                                   (現在のセッション)
-                                </span>
-                              )}
-                              {isTaskAddedInCurrentSession(task) && (
-                                <span className="ml-2 text-xs text-green-500 dark:text-green-400">
-                                  (新規追加)
                                 </span>
                               )}
                             </span>
