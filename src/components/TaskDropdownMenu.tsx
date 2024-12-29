@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface TaskDropdownMenuProps {
-  onDelete: () => void;
+  onDelete: (e?: React.MouseEvent) => void;
 }
 
 export const TaskDropdownMenu = ({ onDelete }: TaskDropdownMenuProps) => {
