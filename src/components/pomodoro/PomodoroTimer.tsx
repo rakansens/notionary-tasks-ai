@@ -1,24 +1,15 @@
-import { Clock, Play, Pause, RefreshCw } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
-interface PomodoroTimerProps {
-  minutes: number;
-  seconds: number;
-  isRunning: boolean;
-  pomodoroCount: number;
-  totalMinutes: number;
-  toggleTimer: () => void;
-  resetTimer: () => void;
-}
+import { useState } from "react";
+import { TimerControls } from "./TimerControls";
+import { TimerDisplay } from "./TimerDisplay";
 
 const PRESET_TIMES = [
   { label: "5分", value: 5 },
@@ -142,52 +133,20 @@ export const PomodoroTimer = ({
 
       <Popover>
         <PopoverTrigger asChild>
-          <div 
-            className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors duration-200 cursor-pointer",
-              isBreak ? "bg-green-50 text-green-500" : isRunning ? "bg-red-50 text-red-500" : "hover:bg-notion-hover"
-            )}
-          >
-            {isEditing ? (
-              <Input
-                type="text"
-                value={editMinutes}
-                onChange={handleTimeChange}
-                onBlur={handleTimeSubmit}
-                onKeyDown={handleKeyDown}
-                className="h-6 w-16 text-sm font-medium text-center"
-                autoFocus
-              />
-            ) : (
-              <span 
-                className="text-sm font-medium min-w-[54px]"
-                onClick={handleTimeClick}
-              >
-                {formatTime(minutes)}:{formatTime(seconds)}
-              </span>
-            )}
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 hover:bg-notion-hover"
-                onClick={toggleTimer}
-              >
-                {isRunning ? (
-                  <Pause className="h-3.5 w-3.5" />
-                ) : (
-                  <Play className="h-3.5 w-3.5" />
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 hover:bg-notion-hover"
-                onClick={resetTimer}
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+          <div className="flex items-center">
+            <TimerDisplay
+              minutes={minutes}
+              seconds={seconds}
+              isRunning={isRunning}
+              isBreak={isBreak}
+              formatTime={formatTime}
+              onTimeClick={handleTimeClick}
+            />
+            <TimerControls
+              isRunning={isRunning}
+              toggleTimer={toggleTimer}
+              resetTimer={resetTimer}
+            />
           </div>
         </PopoverTrigger>
         <PopoverContent className="w-48 p-2">
