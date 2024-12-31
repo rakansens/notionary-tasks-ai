@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { PomodoroTimer } from "./PomodoroTimer";
 import { PomodoroStats } from "./PomodoroStats";
 import { CompletedTasks } from "./CompletedTasks";
 import { PomodoroSessionName } from "./PomodoroSessionName";
+import { createLogEvent } from "@/utils/logEvents";
 import type { PomodoroSession, CompletedTask } from "@/types/pomodoro";
 
 export const PomodoroHeader = () => {
@@ -54,6 +55,14 @@ export const PomodoroHeader = () => {
       setIsBreak(true);
       setMinutes(5);
       setSeconds(0);
+      
+      // Dispatch break started event
+      window.dispatchEvent(new CustomEvent('taskAdded', {
+        detail: createLogEvent('break_started', '休憩開始', '5分間の休憩を開始しました'),
+        bubbles: true,
+        composed: true
+      }));
+
       toast({
         title: "ポモドーロ完了！",
         description: "5分間の休憩を始めましょう。",
@@ -62,6 +71,14 @@ export const PomodoroHeader = () => {
       setIsBreak(false);
       setMinutes(25);
       setSeconds(0);
+
+      // Dispatch break ended event
+      window.dispatchEvent(new CustomEvent('taskAdded', {
+        detail: createLogEvent('break_ended', '休憩終了', '次のポモドーロを始めましょう'),
+        bubbles: true,
+        composed: true
+      }));
+
       toast({
         title: "休憩完了！",
         description: "次のポモドーロを始めましょう。",
@@ -80,6 +97,13 @@ export const PomodoroHeader = () => {
       setCurrentSession(newSession);
       setSessions(prev => [...prev, newSession]);
       setSessionName(newSession.name);
+
+      // Dispatch pomodoro started event
+      window.dispatchEvent(new CustomEvent('taskAdded', {
+        detail: createLogEvent('pomodoro_started', 'ポモドーロ開始', '25分のタイマーを開始しました'),
+        bubbles: true,
+        composed: true
+      }));
       
       toast({
         title: "タイマー開始",

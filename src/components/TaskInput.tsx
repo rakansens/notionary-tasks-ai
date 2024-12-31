@@ -2,6 +2,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { createLogEvent } from "@/utils/logEvents";
 
 interface TaskInputProps {
   value: string;
@@ -22,11 +23,10 @@ export const TaskInput = ({
 }: TaskInputProps) => {
   const handleSubmit = () => {
     if (value.trim()) {
-      // Dispatch new task added event
+      // Dispatch task added event
       window.dispatchEvent(new CustomEvent('taskAdded', {
         detail: {
-          title: value,
-          addedAt: new Date(),
+          ...createLogEvent('task_added', value, 'タスクが追加されました'),
           groupId: groupId || null
         },
         bubbles: true,
@@ -38,7 +38,6 @@ export const TaskInput = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    // 入力候補表示中（IME変換中）はエンターでの送信を防ぐ
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       handleSubmit();
     } else if (e.key === "Escape" && onCancel) {

@@ -16,4 +16,6 @@ export interface CompletedTask {
   parentTaskTitle?: string | null;
   grandParentTaskTitle?: string | null;
   groupName?: string | null;
+  eventType?: 'task_added' | 'task_deleted' | 'pomodoro_started' | 'break_started' | 'break_ended';
+  description?: string;
 }
