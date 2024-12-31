@@ -37,11 +37,21 @@ export const TaskItem = ({
   groupName,
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
+    console.log('Adding subtask for task:', {
+      taskId: task.id,
+      groupId: task.groupId,
+      currentNewTask: newTask
+    });
     setAddingSubtaskId(task.id);
     setNewTask('');
   };
 
   const handleSubmitSubtask = () => {
+    console.log('Submitting subtask:', {
+      taskId: task.id,
+      groupId: task.groupId,
+      newTask: newTask
+    });
     if (newTask.trim()) {
       addTask(task.groupId, task.id);
       setAddingSubtaskId(null);
