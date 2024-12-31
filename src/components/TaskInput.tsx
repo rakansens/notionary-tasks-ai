@@ -32,9 +32,9 @@ export const TaskInput = ({
         bubbles: true,
         composed: true
       }));
+      onSubmit();
       onChange(''); // Clear the input after submission
     }
-    onSubmit();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
