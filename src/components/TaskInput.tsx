@@ -2,9 +2,10 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 interface TaskInputProps {
+  value: string;
+  onChange: (value: string) => void;
   onSubmit: () => void;
   onCancel?: () => void;
   groupId?: number;
@@ -13,14 +14,14 @@ interface TaskInputProps {
 }
 
 export const TaskInput = ({ 
+  value, 
+  onChange, 
   onSubmit,
   onCancel,
   groupId,
   autoFocus,
   className
 }: TaskInputProps) => {
-  const [value, setValue] = useState("");
-
   const handleSubmit = () => {
     if (value.trim()) {
       // Dispatch new task added event
@@ -34,7 +35,7 @@ export const TaskInput = ({
         composed: true
       }));
       onSubmit();
-      setValue(''); // Clear the input after submission
+      onChange(''); // Clear the input after submission
     }
   };
 
@@ -65,7 +66,7 @@ export const TaskInput = ({
       </Button>
       <Input
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyPress}
         onBlur={handleBlur}
         placeholder="新しいタスクを追加..."

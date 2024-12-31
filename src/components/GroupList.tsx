@@ -125,6 +125,8 @@ export const GroupList = ({
                   ))}
               </SortableContext>
               <TaskInput
+                value={newTask}
+                onChange={setNewTask}
                 onSubmit={() => addTask(group.id)}
                 groupId={group.id}
               />
