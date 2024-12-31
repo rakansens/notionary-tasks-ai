@@ -84,10 +84,13 @@ export const TaskItem = ({
     console.log('Updating task title:', {
       taskId: task.id,
       newTitle: title,
-      parentId: task.parentId,
+      parentId: task.parentId || (task.groupId ? task.id : undefined),
       groupId: task.groupId
     });
-    updateTaskTitle(task.id, title, task.parentId);
+    
+    // If the task is in a group, use its own ID as the parentId
+    const effectiveParentId = task.parentId || (task.groupId ? task.id : undefined);
+    updateTaskTitle(task.id, title, effectiveParentId);
   };
 
   return (
