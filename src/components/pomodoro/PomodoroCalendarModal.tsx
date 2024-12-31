@@ -11,7 +11,7 @@ export const PomodoroCalendarModal = () => {
           <Calendar className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="max-w-[800px] p-6">
         <DialogTitle className="text-xl font-semibold mb-2">
           ポモドーロカレンダー
         </DialogTitle>

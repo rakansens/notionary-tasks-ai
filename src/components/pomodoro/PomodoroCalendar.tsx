@@ -29,8 +29,8 @@ export const PomodoroCalendar = () => {
   const selectedStats = selectedDateStr ? mockStats[selectedDateStr] : null;
 
   return (
-    <div className="flex flex-col md:flex-row gap-4">
-      <Card className="w-full md:w-[350px]">
+    <div className="flex flex-col md:flex-row gap-6">
+      <Card className="flex-1 max-w-[400px]">
         <CardContent className="p-4">
           <Calendar
             mode="single"
@@ -76,15 +76,15 @@ export const PomodoroCalendar = () => {
         </CardContent>
       </Card>
 
-      <Card className="w-full md:w-[350px] h-fit">
-        <CardContent className="p-4">
+      <Card className="flex-1 max-w-[400px]">
+        <CardContent className="p-6">
           {selectedDate ? (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">
                 {format(selectedDate, "yyyy年MM月dd日")}の記録
               </h3>
               {selectedStats ? (
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <div className="p-4 rounded-lg bg-notion-hover">
                     <p className="text-sm text-notion-secondary">ポモドーロ回数</p>
                     <p className="text-2xl font-bold">{selectedStats.pomodoroCount}回</p>
