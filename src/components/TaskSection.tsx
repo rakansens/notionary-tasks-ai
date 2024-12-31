@@ -35,6 +35,7 @@ export const TaskSection = () => {
     editingGroupId,
     addingSubtaskId,
     deleteTarget,
+    collapsedGroups,
     setNewTask,
     setNewGroup,
     setIsAddingGroup,
@@ -51,6 +52,7 @@ export const TaskSection = () => {
     confirmDelete,
     cancelDelete,
     updateTaskOrder,
+    toggleGroupCollapse,
   } = useTaskManager();
 
   const nonGroupTasks = tasks.filter(task => !task.groupId && !task.parentId);
@@ -204,6 +206,7 @@ export const TaskSection = () => {
               editingTaskId={editingTaskId}
               editingGroupId={editingGroupId}
               addingSubtaskId={addingSubtaskId}
+              collapsedGroups={collapsedGroups}
               setNewTask={setNewTask}
               setEditingTaskId={setEditingTaskId}
               setEditingGroupId={setEditingGroupId}
@@ -216,6 +219,7 @@ export const TaskSection = () => {
               deleteGroup={deleteGroup}
               updateTaskOrder={updateTaskOrder}
               onReorderSubtasks={handleReorderSubtasks}
+              toggleGroupCollapse={toggleGroupCollapse}
             />
 
             <DragOverlay dropAnimation={{
