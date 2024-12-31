@@ -92,8 +92,16 @@ export const useTaskManager = () => {
     setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
   };
 
-  const updateTaskOrder = (tasks: Task[]) => {
-    setTasks(tasks);
+  const updateTaskOrder = (updatedTasks: Task[]) => {
+    setTasks(updatedTasks);
+  };
+
+  const updateGroupOrder = (updatedGroups: Group[]) => {
+    setGroups(updatedGroups);
+  };
+
+  const handleReorderSubtasks = (startIndex: number, endIndex: number, parentId: number) => {
+    // Implementation of handleReorderSubtasks
   };
 
   const updateGroupName = (id: number, name: string) => {
@@ -167,5 +175,7 @@ export const useTaskManager = () => {
     cancelDelete,
     updateTaskOrder,
     toggleGroupCollapse,
+    updateGroupOrder,
+    handleReorderSubtasks,
   };
 };

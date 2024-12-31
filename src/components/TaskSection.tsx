@@ -23,6 +23,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import { Folder } from "lucide-react";
 
 export const TaskSection = () => {
   const {
@@ -52,6 +53,7 @@ export const TaskSection = () => {
     confirmDelete,
     cancelDelete,
     updateTaskOrder,
+    updateGroupOrder,
     toggleGroupCollapse,
   } = useTaskManager();
 
@@ -65,8 +67,9 @@ export const TaskSection = () => {
     handleDragEnd,
     handleDragCancel,
   } = useDragAndDrop(tasks, groups, (tasks: Task[]) => {
-    // Update all tasks with new order
     updateTaskOrder(tasks);
+  }, (groups: Group[]) => {
+    updateGroupOrder(groups);
   });
 
   const sensors = useSensors(
@@ -206,21 +209,36 @@ export const TaskSection = () => {
               easing: "cubic-bezier(0.25, 1, 0.5, 1)",
             }}>
               {dragAndDropState.activeId ? (
-                <div className="shadow-lg rounded-md bg-white">
-                  <TaskItem
-                    task={tasks.find(t => t.id.toString() === dragAndDropState.activeId) || tasks[0]}
-                    editingTaskId={editingTaskId}
-                    addingSubtaskId={addingSubtaskId}
-                    setEditingTaskId={setEditingTaskId}
-                    setAddingSubtaskId={setAddingSubtaskId}
-                    toggleTask={toggleTask}
-                    updateTaskTitle={updateTaskTitle}
-                    deleteTask={deleteTask}
-                    newTask={newTask}
-                    setNewTask={setNewTask}
-                    addTask={addTask}
-                  />
-                </div>
+                dragAndDropState.activeId.startsWith('group-') ? (
+                  <div className="shadow-lg rounded-md bg-gray-50 p-4">
+                    {(() => {
+                      const groupId = Number(dragAndDropState.activeId.replace('group-', ''));
+                      const group = groups.find(g => g.id === groupId);
+                      return group ? (
+                        <div className="flex items-center gap-2">
+                          <Folder className="h-5 w-5 text-gray-500" />
+                          <h3 className="font-medium text-gray-900">{group.name}</h3>
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                ) : (
+                  <div className="shadow-lg rounded-md bg-white">
+                    <TaskItem
+                      task={tasks.find(t => t.id.toString() === dragAndDropState.activeId) || tasks[0]}
+                      editingTaskId={editingTaskId}
+                      addingSubtaskId={addingSubtaskId}
+                      setEditingTaskId={setEditingTaskId}
+                      setAddingSubtaskId={setAddingSubtaskId}
+                      toggleTask={toggleTask}
+                      updateTaskTitle={updateTaskTitle}
+                      deleteTask={deleteTask}
+                      newTask={newTask}
+                      setNewTask={setNewTask}
+                      addTask={addTask}
+                    />
+                  </div>
+                )
               ) : null}
             </DragOverlay>
           </DndContext>

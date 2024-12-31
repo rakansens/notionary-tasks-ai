@@ -4,7 +4,7 @@ export const addGroupToState = (
   prevGroups: Group[],
   newGroup: Group
 ): Group[] => {
-  return [...prevGroups, newGroup];
+  return [...prevGroups, { ...newGroup, order: prevGroups.length }];
 };
 
 export const updateGroupNameInState = (

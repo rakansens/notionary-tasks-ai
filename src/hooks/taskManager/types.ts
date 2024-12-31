@@ -12,6 +12,7 @@ export interface Task {
 export interface Group {
   id: number;
   name: string;
+  order: number;
 }
 
 export interface DeleteTarget {

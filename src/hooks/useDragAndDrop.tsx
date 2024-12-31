@@ -7,11 +7,13 @@ interface DragAndDropState {
 }
 
 type UpdateTaskOrderFn = (tasks: Task[]) => void;
+type UpdateGroupOrderFn = (groups: Group[]) => void;
 
 export const useDragAndDrop = (
   tasks: Task[],
   groups: Group[],
-  updateTaskOrder: UpdateTaskOrderFn
+  updateTaskOrder: UpdateTaskOrderFn,
+  updateGroupOrder?: UpdateGroupOrderFn
 ) => {
   const [state, setState] = useState<DragAndDropState>({
     activeId: null,
@@ -29,16 +31,71 @@ export const useDragAndDrop = (
       return;
     }
 
-    const activeId = Number(active.id);
-    const overId = Number(over.id);
+    const activeId = active.id.toString();
+    const overId = over.id.toString();
     
     if (activeId === overId) {
       setState({ activeId: null });
       return;
     }
 
-    const activeTask = tasks.find(task => task.id === activeId);
-    const overTask = tasks.find(task => task.id === overId);
+    // グループのドラッグ&ドロップ
+    if (activeId.startsWith('group-') && overId.startsWith('group-')) {
+      const activeGroupId = Number(activeId.replace('group-', ''));
+      const overGroupId = Number(overId.replace('group-', ''));
+
+      const activeGroup = groups.find(g => g.id === activeGroupId);
+      const overGroup = groups.find(g => g.id === overGroupId);
+
+      if (!activeGroup || !overGroup || !updateGroupOrder) {
+        setState({ activeId: null });
+        return;
+      }
+
+      // グループの順序を更新
+      const updatedGroups = [...groups].sort((a, b) => a.order - b.order);
+      const activeIndex = updatedGroups.findIndex(g => g.id === activeGroupId);
+      const overIndex = updatedGroups.findIndex(g => g.id === overGroupId);
+
+      if (activeIndex !== -1 && overIndex !== -1) {
+        // グループの位置を更新
+        const [movedGroup] = updatedGroups.splice(activeIndex, 1);
+        
+        // 移動先のインデックスを計算
+        const newIndex = overIndex;
+        updatedGroups.splice(newIndex, 0, movedGroup);
+
+        // グループの順序を更新
+        const reorderedGroups = updatedGroups.map((group, index) => ({
+          ...group,
+          order: index,
+        }));
+
+        // グループ内のタスクの順序も維持
+        const updatedTasks = tasks.map(task => {
+          if (task.groupId === activeGroupId) {
+            return {
+              ...task,
+              groupId: activeGroupId,
+            };
+          }
+          return task;
+        });
+
+        updateTaskOrder(updatedTasks);
+        updateGroupOrder(reorderedGroups);
+      }
+
+      setState({ activeId: null });
+      return;
+    }
+
+    // タスクのドラッグ&ドロップ（既存のコード）
+    const activeTaskId = Number(activeId);
+    const overTaskId = Number(overId);
+
+    const activeTask = tasks.find(task => task.id === activeTaskId);
+    const overTask = tasks.find(task => task.id === overTaskId);
     
     if (!activeTask) {
       setState({ activeId: null });
@@ -62,11 +119,11 @@ export const useDragAndDrop = (
 
     // Update task order
     const updatedTasks = [...tasks];
-    const taskToMove = updatedTasks.find(t => t.id === activeId);
+    const taskToMove = updatedTasks.find(t => t.id === activeTaskId);
     if (!taskToMove) return;
 
     // Remove task from current position
-    const filteredTasks = updatedTasks.filter(t => t.id !== activeId);
+    const filteredTasks = updatedTasks.filter(t => t.id !== activeTaskId);
 
     // Update task's group
     taskToMove.groupId = newGroupId;
@@ -80,10 +137,10 @@ export const useDragAndDrop = (
       taskToMove.order = maxOrder + 1;
     } else {
       // 通常の移動の場合
-      const overIndex = tasksInTargetArea.findIndex(task => task.id === overId);
+      const overIndex = tasksInTargetArea.findIndex(task => task.id === overTaskId);
       if (overIndex >= 0) {
         const targetTask = tasksInTargetArea[overIndex];
-        const currentIndex = tasksInTargetArea.findIndex(task => task.id === activeId);
+        const currentIndex = tasksInTargetArea.findIndex(task => task.id === activeTaskId);
         let newOrder;
 
         if (currentIndex === -1) {
