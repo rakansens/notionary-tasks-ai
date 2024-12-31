@@ -51,12 +51,12 @@ export const SubtaskList = ({
             addingSubtaskId={addingSubtaskId}
             setEditingTaskId={setEditingTaskId}
             setAddingSubtaskId={setAddingSubtaskId}
-            toggleTask={toggleTask}
-            updateTaskTitle={updateTaskTitle}
-            deleteTask={deleteTask}
+            toggleTask={(id) => toggleTask(id, parentTask.id)}
+            updateTaskTitle={(id, title) => updateTaskTitle(id, title, parentTask.id)}
+            deleteTask={(id) => deleteTask(id, parentTask.id)}
             newTask={newTask}
             setNewTask={setNewTask}
-            addTask={addTask}
+            addTask={(groupId) => addTask(groupId, subtask.id)}
           />
         ))}
       </SortableContext>
