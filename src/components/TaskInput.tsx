@@ -38,7 +38,8 @@ export const TaskInput = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
+    // 入力候補表示中（IME変換中）はエンターでの送信を防ぐ
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       handleSubmit();
     } else if (e.key === "Escape" && onCancel) {
       onCancel();
