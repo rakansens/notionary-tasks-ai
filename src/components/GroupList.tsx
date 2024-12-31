@@ -128,11 +128,13 @@ export const GroupList = ({
               <SortableContext
                 items={tasks
                   .filter(task => task.groupId === group.id && !task.parentId)
+                  .sort((a, b) => a.order - b.order)
                   .map(task => task.id.toString())}
                 strategy={verticalListSortingStrategy}
               >
                 {tasks
                   .filter(task => task.groupId === group.id && !task.parentId)
+                  .sort((a, b) => a.order - b.order)
                   .map(task => (
                     <DraggableTask
                       key={task.id}

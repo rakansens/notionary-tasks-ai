@@ -55,7 +55,9 @@ export const TaskSection = () => {
     toggleGroupCollapse,
   } = useTaskManager();
 
-  const nonGroupTasks = tasks.filter(task => !task.groupId && !task.parentId);
+  const nonGroupTasks = tasks
+    .filter(task => !task.groupId && !task.parentId)
+    .sort((a, b) => a.order - b.order);
 
   const {
     dragAndDropState,
@@ -176,29 +178,6 @@ export const TaskSection = () => {
             onDragCancel={handleDragCancel}
             modifiers={[restrictToVerticalAxis]}
           >
-            <SortableContext
-              items={nonGroupTasks.map(task => task.id.toString())}
-              strategy={verticalListSortingStrategy}
-            >
-              {nonGroupTasks.map(task => (
-                <DraggableTask
-                  key={task.id}
-                  task={task}
-                  editingTaskId={editingTaskId}
-                  addingSubtaskId={addingSubtaskId}
-                  setEditingTaskId={setEditingTaskId}
-                  setAddingSubtaskId={setAddingSubtaskId}
-                  toggleTask={toggleTask}
-                  updateTaskTitle={updateTaskTitle}
-                  deleteTask={deleteTask}
-                  newTask={newTask}
-                  setNewTask={setNewTask}
-                  addTask={addTask}
-                  onReorderSubtasks={handleReorderSubtasks}
-                />
-              ))}
-            </SortableContext>
-            
             <GroupList
               groups={groups}
               tasks={tasks}
@@ -222,6 +201,29 @@ export const TaskSection = () => {
               toggleGroupCollapse={toggleGroupCollapse}
             />
 
+            <SortableContext
+              items={nonGroupTasks.map(task => task.id.toString())}
+              strategy={verticalListSortingStrategy}
+            >
+              {nonGroupTasks.map(task => (
+                <DraggableTask
+                  key={task.id}
+                  task={task}
+                  editingTaskId={editingTaskId}
+                  addingSubtaskId={addingSubtaskId}
+                  setEditingTaskId={setEditingTaskId}
+                  setAddingSubtaskId={setAddingSubtaskId}
+                  toggleTask={toggleTask}
+                  updateTaskTitle={updateTaskTitle}
+                  deleteTask={deleteTask}
+                  newTask={newTask}
+                  setNewTask={setNewTask}
+                  addTask={addTask}
+                  onReorderSubtasks={handleReorderSubtasks}
+                />
+              ))}
+            </SortableContext>
+            
             <DragOverlay dropAnimation={{
               duration: 150,
               easing: "cubic-bezier(0.25, 1, 0.5, 1)",
