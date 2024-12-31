@@ -23,7 +23,7 @@ export const TaskInput = ({
 }: TaskInputProps) => {
   const handleSubmit = () => {
     if (value.trim()) {
-      // Dispatch task added event
+      // タスク追加イベントを発行
       window.dispatchEvent(new CustomEvent('taskAdded', {
         detail: {
           ...createLogEvent('task_added', value, 'タスクが追加されました'),
@@ -33,7 +33,7 @@ export const TaskInput = ({
         composed: true
       }));
       onSubmit();
-      onChange(''); // Clear the input after submission
+      onChange(''); // 送信後に入力をクリア
     }
   };
 
