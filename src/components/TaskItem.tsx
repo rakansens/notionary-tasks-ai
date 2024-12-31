@@ -80,6 +80,10 @@ export const TaskItem = ({
     }
   };
 
+  const handleTitleChange = (title: string) => {
+    updateTaskTitle(task.id, title, task.parentId);
+  };
+
   return (
     <div className="space-y-0.5">
       <div className="flex items-center gap-2 py-1 px-2 -mx-2 rounded transition-all duration-200 hover:bg-notion-hover group">
@@ -92,7 +96,7 @@ export const TaskItem = ({
           title={task.title}
           completed={task.completed}
           isEditing={editingTaskId === task.id}
-          onTitleChange={(title) => updateTaskTitle(task.id, title, task.parentId)}
+          onTitleChange={handleTitleChange}
           onTitleClick={() => setEditingTaskId(task.id)}
           onBlur={() => setEditingTaskId(null)}
           onKeyPress={(e) => e.key === "Enter" && setEditingTaskId(null)}
@@ -132,6 +136,7 @@ export const TaskItem = ({
               setAddingSubtaskId(null);
               setNewTask('');
             }}
+            parentTaskTitle={task.title}
             autoFocus
           />
         </div>
