@@ -11,6 +11,8 @@ interface TaskInputProps {
   groupId?: number;
   autoFocus?: boolean;
   className?: string;
+  groupName?: string;
+  parentTaskTitle?: string;
 }
 
 export const TaskInput = ({ 
@@ -20,16 +22,20 @@ export const TaskInput = ({
   onCancel,
   groupId,
   autoFocus,
-  className
+  className,
+  groupName,
+  parentTaskTitle
 }: TaskInputProps) => {
   const handleSubmit = () => {
     if (value.trim()) {
-      // Dispatch new task added event
+      // Dispatch new task added event with group information
       window.dispatchEvent(new CustomEvent('taskAdded', {
         detail: {
           title: value,
           addedAt: new Date(),
-          groupId: groupId || null
+          groupId: groupId || null,
+          groupName: groupName || null,
+          parentTaskTitle: parentTaskTitle || null
         },
         bubbles: true,
         composed: true
@@ -40,7 +46,6 @@ export const TaskInput = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    // 入力候補表示中（IME変換中）はエンターでの送信を防ぐ
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       handleSubmit();
     } else if (e.key === "Escape" && onCancel) {
