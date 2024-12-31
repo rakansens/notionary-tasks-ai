@@ -58,8 +58,6 @@ export const TaskFooter = ({
 
       <div className="relative">
         <TaskInput
-          value={newTask}
-          onChange={setNewTask}
           onSubmit={addTask}
           className="bg-white/80 hover:bg-white transition-colors duration-200"
         />
