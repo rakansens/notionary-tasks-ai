@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface TaskInputProps {
-  onSubmit: () => void;
+  onSubmit: (title: string) => void;
   onCancel?: () => void;
   groupId?: number;
   autoFocus?: boolean;
@@ -33,13 +33,12 @@ export const TaskInput = ({
         bubbles: true,
         composed: true
       }));
-      onSubmit();
+      onSubmit(inputValue);
       setInputValue(''); // Clear the input after submission
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    // 入力候補表示中（IME変換中）はエンターでの送信を防ぐ
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       handleSubmit();
     } else if (e.key === "Escape" && onCancel) {

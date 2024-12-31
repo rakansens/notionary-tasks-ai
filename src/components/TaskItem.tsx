@@ -38,32 +38,29 @@ export const TaskItem = ({
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
     setAddingSubtaskId(task.id);
-    setNewTask('');
   };
 
-  const handleSubmitSubtask = () => {
-    if (newTask.trim()) {
-      addTask(task.groupId, task.id);
-      
-      // Dispatch taskAdded event with group and parent task information
-      const addedTask = {
-        id: Date.now(),
-        title: newTask,
-        addedAt: new Date(),
-        parentTaskTitle: task.title,
-        grandParentTaskTitle: parentTask?.title || null,
-        groupName: groupName || null,
-      };
-      
-      window.dispatchEvent(new CustomEvent('taskAdded', { 
-        detail: addedTask,
-        bubbles: true,
-        composed: true
-      }));
-      
-      setAddingSubtaskId(null);
-      setNewTask('');
-    }
+  const handleSubmitSubtask = (title: string) => {
+    setNewTask(title);
+    addTask(task.groupId, task.id);
+    
+    // Dispatch taskAdded event with group and parent task information
+    const addedTask = {
+      id: Date.now(),
+      title: title,
+      addedAt: new Date(),
+      parentTaskTitle: task.title,
+      grandParentTaskTitle: parentTask?.title || null,
+      groupName: groupName || null,
+    };
+    
+    window.dispatchEvent(new CustomEvent('taskAdded', { 
+      detail: addedTask,
+      bubbles: true,
+      composed: true
+    }));
+    
+    setAddingSubtaskId(null);
   };
 
   const handleToggleTask = () => {
@@ -145,7 +142,6 @@ export const TaskItem = ({
             onSubmit={handleSubmitSubtask}
             onCancel={() => {
               setAddingSubtaskId(null);
-              setNewTask('');
             }}
             autoFocus
           />
