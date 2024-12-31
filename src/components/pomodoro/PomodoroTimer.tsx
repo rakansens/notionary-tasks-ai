@@ -10,6 +10,17 @@ import {
 import { useState } from "react";
 import { TimerControls } from "./TimerControls";
 import { TimerDisplay } from "./TimerDisplay";
+import { cn } from "@/lib/utils";
+
+interface PomodoroTimerProps {
+  minutes: number;
+  seconds: number;
+  isRunning: boolean;
+  pomodoroCount: number;
+  totalMinutes: number;
+  toggleTimer: () => void;
+  resetTimer: () => void;
+}
 
 const PRESET_TIMES = [
   { label: "5分", value: 5 },
@@ -42,8 +53,8 @@ export const PomodoroTimer = ({
   const [breakMinutes, setBreakMinutes] = useState(5);
   const { toast } = useToast();
 
-  const formatTime = (time: number) => {
-    return time < 10 ? `0${time}` : time;
+  const formatTime = (time: number): string => {
+    return time < 10 ? `0${time}` : time.toString();
   };
 
   const handleTimeClick = () => {
