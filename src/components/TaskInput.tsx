@@ -1,11 +1,10 @@
 import { Plus } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface TaskInputProps {
-  value: string;
-  onChange: (value: string) => void;
   onSubmit: () => void;
   onCancel?: () => void;
   groupId?: number;
@@ -14,20 +13,20 @@ interface TaskInputProps {
 }
 
 export const TaskInput = ({ 
-  value, 
-  onChange, 
   onSubmit,
   onCancel,
   groupId,
   autoFocus,
   className
 }: TaskInputProps) => {
+  const [inputValue, setInputValue] = useState("");
+
   const handleSubmit = () => {
-    if (value.trim()) {
+    if (inputValue.trim()) {
       // Dispatch new task added event
       window.dispatchEvent(new CustomEvent('taskAdded', {
         detail: {
-          title: value,
+          title: inputValue,
           addedAt: new Date(),
           groupId: groupId || null
         },
@@ -35,7 +34,7 @@ export const TaskInput = ({
         composed: true
       }));
       onSubmit();
-      onChange(''); // Clear the input after submission
+      setInputValue(''); // Clear the input after submission
     }
   };
 
@@ -49,7 +48,7 @@ export const TaskInput = ({
   };
 
   const handleBlur = () => {
-    if (!value.trim() && onCancel) {
+    if (!inputValue.trim() && onCancel) {
       onCancel();
     }
   };
@@ -65,8 +64,8 @@ export const TaskInput = ({
         <Plus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
       </Button>
       <Input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyPress}
         onBlur={handleBlur}
         placeholder="新しいタスクを追加..."
