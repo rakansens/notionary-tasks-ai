@@ -142,8 +142,6 @@ export const TaskItem = ({
       {addingSubtaskId === task.id && (
         <div className="pl-6">
           <TaskInput
-            value={newTask}
-            onChange={setNewTask}
             onSubmit={handleSubmitSubtask}
             onCancel={() => {
               setAddingSubtaskId(null);
