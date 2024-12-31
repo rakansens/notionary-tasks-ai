@@ -84,43 +84,24 @@ export const useTaskManager = () => {
       }
 
       // メインタスクの移動
+      const updatedTasks = [...prevTasks];
+      const oldIndex = updatedTasks.findIndex(t => t.id === taskId);
+      if (oldIndex === -1) return prevTasks;
+
+      // タスクを一時的に削除
+      const [removed] = updatedTasks.splice(oldIndex, 1);
+      
+      // 新しいグループIDを設定
       const updatedTask = {
-        ...taskToMove,
-        groupId: newGroupId ?? taskToMove.groupId,
+        ...removed,
+        groupId: newGroupId,
       };
 
-      // 現在のタスクの位置を取得
-      const currentIndex = prevTasks.findIndex(t => t.id === taskId);
-      
-      // 移動先のグループ内のタスクを取得（現在のタスクを除く）
-      const tasksInTargetGroup = prevTasks.filter(t => 
-        t.groupId === updatedTask.groupId && !t.parentId && t.id !== taskId
-      );
-
-      // グループ外のタスクを取得
-      const tasksOutsideGroup = prevTasks.filter(t => 
-        (t.groupId !== updatedTask.groupId || t.parentId) && t.id !== taskId
-      );
-
       // 移動先のインデックスを計算
-      let targetIndex = typeof newIndex === 'number' ? newIndex : tasksInTargetGroup.length;
-
-      // 下から上への移動の場合のインデックス調整
-      if (currentIndex !== -1 && targetIndex > currentIndex) {
-        targetIndex--;
-      }
-
+      let targetIndex = typeof newIndex === 'number' ? newIndex : updatedTasks.length;
+      
       // タスクを新しい位置に挿入
-      const beforeTasks = tasksInTargetGroup.slice(0, targetIndex);
-      const afterTasks = tasksInTargetGroup.slice(targetIndex);
-
-      // 最終的なタスクリストを構築
-      const updatedTasks = [
-        ...tasksOutsideGroup,
-        ...beforeTasks,
-        updatedTask,
-        ...afterTasks,
-      ];
+      updatedTasks.splice(targetIndex, 0, updatedTask);
 
       console.log('Updated tasks:', updatedTasks);
       return updatedTasks;
