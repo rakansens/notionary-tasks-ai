@@ -75,31 +75,49 @@ export const updateTaskTitleInState = (
   return tasks.map(task => (task.id === id ? { ...task, title } : task));
 };
 
-export const updateTaskOrderInState = (tasks: Task[]): Task[] => {
-  console.log('Initial tasks:', tasks);
-  const updatedTasks = tasks.map(task => {
-    if (task.subtasks && task.subtasks.length > 0) {
-      return {
-        ...task,
-        subtasks: task.subtasks.map((subtask, index) => {
-          if (subtask.subtasks && subtask.subtasks.length > 0) {
-            return {
-              ...subtask,
-              subtasks: subtask.subtasks.map((grandchild, grandchildIndex) => ({
-                ...grandchild,
-                order: grandchildIndex,
-              })),
-            };
-          }
-          return {
-            ...subtask,
-            order: index,
-          };
-        }),
-      };
+export const updateTaskOrderInState = (tasks: Task[], taskId: number, newGroupId?: number, newIndex?: number): Task[] => {
+  const updatedTasks = [...tasks];
+  const taskToMove = updatedTasks.find(t => t.id === taskId);
+  
+  if (!taskToMove) return tasks;
+
+  // タスクを現在の位置から削除
+  const filteredTasks = updatedTasks.filter(t => t.id !== taskId);
+
+  // 新しい位置を計算
+  const targetTasks = filteredTasks.filter(t => {
+    if (newGroupId) {
+      return t.groupId === newGroupId && !t.parentId;
+    } else {
+      return !t.groupId && !t.parentId;
     }
-    return task;
   });
-  console.log('Updated tasks:', updatedTasks);
-  return updatedTasks;
+
+  // タスクのグループIDを更新
+  taskToMove.groupId = newGroupId;
+
+  // 新しい位置にタスクを挿入
+  if (typeof newIndex === 'number') {
+    targetTasks.splice(newIndex, 0, taskToMove);
+    
+    // 順序を更新
+    targetTasks.forEach((task, index) => {
+      task.order = index;
+    });
+
+    // 更新されたタスクを元の配列に統合
+    return [
+      ...filteredTasks.filter(t => {
+        if (newGroupId) {
+          return t.groupId !== newGroupId || t.parentId;
+        } else {
+          return t.groupId || t.parentId;
+        }
+      }),
+      ...targetTasks,
+    ];
+  } else {
+    // インデックスが指定されていない場合は最後に追加
+    return [...filteredTasks, { ...taskToMove, order: filteredTasks.length }];
+  }
 };

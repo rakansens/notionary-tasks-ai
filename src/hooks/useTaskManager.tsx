@@ -92,13 +92,8 @@ export const useTaskManager = () => {
     setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
   };
 
-  const updateTaskOrder = (updatedTasks: Task[]) => {
-    console.log('Updating task order with tasks:', updatedTasks);
-    setTasks(prevTasks => {
-      const newTasks = updateTaskOrderInState(updatedTasks);
-      console.log('Tasks after setTasks:', newTasks);
-      return newTasks;
-    });
+  const updateTaskOrder = (taskId: number, newGroupId?: number, newIndex?: number) => {
+    setTasks(prevTasks => updateTaskOrderInState(prevTasks, taskId, newGroupId, newIndex));
   };
 
   const updateGroupName = (id: number, name: string) => {

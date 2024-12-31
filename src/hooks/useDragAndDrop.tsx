@@ -47,11 +47,19 @@ export const useDragAndDrop = (
 
     // Calculate new index and group
     const newGroupId = overTask?.groupId;
-    const tasksInTargetGroup = tasks.filter(task => task.groupId === newGroupId && !task.parentId);
-    const overIndex = tasksInTargetGroup.findIndex(task => task.id === overId);
+    const tasksInTargetArea = tasks.filter(task => {
+      if (newGroupId) {
+        // グループ内のタスクの場合
+        return task.groupId === newGroupId && !task.parentId;
+      } else {
+        // グループ外のタスクの場合
+        return !task.groupId && !task.parentId;
+      }
+    });
+    const overIndex = tasksInTargetArea.findIndex(task => task.id === overId);
     
     // Update task order
-    updateTaskOrder(activeId, newGroupId, overIndex);
+    updateTaskOrder(activeId, newGroupId, overIndex >= 0 ? overIndex : undefined);
     setState({ activeId: null });
   };
 
