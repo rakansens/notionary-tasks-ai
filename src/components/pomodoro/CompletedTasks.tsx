@@ -27,6 +27,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
 
   useEffect(() => {
     const handleNewTask = (event: CustomEvent) => {
+      console.log('New task added:', event.detail);
       if (currentSession) {
         const task = {
           ...event.detail,
@@ -34,14 +35,34 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
           sessionId: currentSession.id
         };
         setNewTasks(prev => [...prev, task]);
+        
+        // Show toast notification
+        toast({
+          title: "新しいタスクが追加されました",
+          description: `${task.title}${task.groupName ? ` (グループ: ${task.groupName})` : ''}`,
+        });
+      }
+    };
+
+    const handleTaskCompleted = (event: CustomEvent) => {
+      if (currentSession) {
+        const task = {
+          ...event.detail,
+          status: 'completed',
+          sessionId: currentSession.id
+        };
+        onAddCompletedTask(task);
       }
     };
 
     window.addEventListener('taskAdded', handleNewTask as EventListener);
+    window.addEventListener('taskCompleted', handleTaskCompleted as EventListener);
+    
     return () => {
       window.removeEventListener('taskAdded', handleNewTask as EventListener);
+      window.removeEventListener('taskCompleted', handleTaskCompleted as EventListener);
     };
-  }, [currentSession]);
+  }, [currentSession, onAddCompletedTask]);
 
   const handleEditStart = (taskId: number, currentTitle: string) => {
     setEditingTaskId(taskId);
@@ -138,20 +159,46 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                               autoFocus
                             />
                           ) : (
-                            <span 
-                              className={cn(
-                                "text-sm cursor-pointer hover:text-notion-primary",
-                                isTaskFromCurrentSession(task, session) && "text-notion-primary"
+                            <div className="space-y-0.5">
+                              <span 
+                                className={cn(
+                                  "text-sm cursor-pointer hover:text-notion-primary",
+                                  isTaskFromCurrentSession(task, session) && "text-notion-primary"
+                                )}
+                                onClick={() => handleEditStart(task.id, task.title)}
+                              >
+                                {task.title}
+                                {isTaskFromCurrentSession(task, session) && (
+                                  <span className="ml-2 text-xs text-[#3291FF]">
+                                    (現在のセッション)
+                                  </span>
+                                )}
+                              </span>
+                              {(task.parentTaskTitle || task.groupName) && (
+                                <div className="text-xs text-notion-secondary flex items-center gap-2 flex-wrap">
+                                  {task.parentTaskTitle && (
+                                    <div className="flex items-center gap-1">
+                                      <History className="h-3 w-3" />
+                                      <span className="flex items-center gap-1">
+                                        {task.parentTaskTitle}
+                                        {task.grandParentTaskTitle && (
+                                          <>
+                                            <ArrowRight className="h-3 w-3" />
+                                            {task.grandParentTaskTitle}
+                                          </>
+                                        )}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {task.groupName && (
+                                    <span className="flex items-center gap-1">
+                                      <Folder className="h-3 w-3" />
+                                      {task.groupName}
+                                    </span>
+                                  )}
+                                </div>
                               )}
-                              onClick={() => handleEditStart(task.id, task.title)}
-                            >
-                              {task.title}
-                              {isTaskFromCurrentSession(task, session) && (
-                                <span className="ml-2 text-xs text-[#3291FF]">
-                                  (現在のセッション)
-                                </span>
-                              )}
-                            </span>
+                            </div>
                           )}
                         </div>
                         <Popover>
@@ -177,30 +224,6 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                           </PopoverContent>
                         </Popover>
                       </div>
-                      {(task.parentTaskTitle || task.groupName) && (
-                        <div className="text-xs text-notion-secondary mt-1 flex items-center gap-2 flex-wrap pl-6">
-                          {task.parentTaskTitle && (
-                            <div className="flex items-center gap-1">
-                              <History className="h-3 w-3" />
-                              <span className="flex items-center gap-1">
-                                {task.parentTaskTitle}
-                                {task.grandParentTaskTitle && (
-                                  <>
-                                    <ArrowRight className="h-3 w-3" />
-                                    {task.grandParentTaskTitle}
-                                  </>
-                                )}
-                              </span>
-                            </div>
-                          )}
-                          {task.groupName && (
-                            <span className="flex items-center gap-1">
-                              <Folder className="h-3 w-3" />
-                              {task.groupName}
-                            </span>
-                          )}
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
