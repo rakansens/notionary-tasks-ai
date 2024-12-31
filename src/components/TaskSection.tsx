@@ -1,14 +1,11 @@
-import { FolderPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { useTaskManager } from "@/hooks/useTaskManager";
 import { TaskItem } from "./TaskItem";
-import { TaskInput } from "./TaskInput";
-import { GroupList } from "./GroupList";
 import { DraggableTask } from "./DraggableTask";
-import { PomodoroHeader } from "./pomodoro/PomodoroHeader";
+import { GroupList } from "./GroupList";
+import { TaskHeader } from "./task/TaskHeader";
+import { TaskFooter } from "./task/TaskFooter";
 import {
   DndContext,
   DragOverlay,
@@ -55,7 +52,6 @@ export const TaskSection = () => {
   } = useTaskManager();
 
   const nonGroupTasks = tasks.filter(task => !task.groupId && !task.parentId);
-  const activeTask = tasks.find(task => task.id === editingTaskId);
 
   const {
     dragAndDropState,
@@ -73,10 +69,7 @@ export const TaskSection = () => {
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="p-4 border-b border-notion-border flex items-center justify-between">
-        <h2 className="text-xl font-medium text-notion-primary">タスク管理</h2>
-        <PomodoroHeader />
-      </div>
+      <TaskHeader />
       
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-1">
@@ -152,43 +145,16 @@ export const TaskSection = () => {
         </div>
       </ScrollArea>
       
-      <div className="p-4 border-t border-notion-border space-y-3">
-        {isAddingGroup ? (
-          <div className="flex items-center gap-2">
-            <Input
-              value={newGroup}
-              onChange={(e) => setNewGroup(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && addGroup()}
-              onBlur={() => {
-                if (newGroup.trim()) {
-                  addGroup();
-                } else {
-                  setIsAddingGroup(false);
-                }
-              }}
-              placeholder="新しいグループ名..."
-              className="h-8 text-sm bg-transparent border-notion-border focus:border-notion-primary focus:ring-0"
-              autoFocus
-            />
-          </div>
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full flex items-center gap-2 text-notion-secondary hover:bg-notion-hover"
-            onClick={() => setIsAddingGroup(true)}
-          >
-            <FolderPlus className="h-4 w-4" />
-            グループを追加
-          </Button>
-        )}
-
-        <TaskInput
-          value={newTask}
-          onChange={setNewTask}
-          onSubmit={() => addTask()}
-        />
-      </div>
+      <TaskFooter
+        isAddingGroup={isAddingGroup}
+        newGroup={newGroup}
+        setNewGroup={setNewGroup}
+        setIsAddingGroup={setIsAddingGroup}
+        addGroup={addGroup}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        addTask={() => addTask()}
+      />
 
       <DeleteConfirmDialog
         isOpen={deleteTarget !== null}

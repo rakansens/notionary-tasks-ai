@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { Edit2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { PomodoroTimer } from "./PomodoroTimer";
 import { PomodoroStats } from "./PomodoroStats";
 import { CompletedTasks } from "./CompletedTasks";
+import { PomodoroSessionName } from "./PomodoroSessionName";
 import type { PomodoroSession, CompletedTask } from "@/types/pomodoro";
 
 export const PomodoroHeader = () => {
@@ -32,25 +30,6 @@ export const PomodoroHeader = () => {
       ));
     }
   };
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (isRunning) {
-      interval = setInterval(() => {
-        if (seconds > 0) {
-          setSeconds(seconds - 1);
-        } else if (minutes > 0) {
-          setMinutes(minutes - 1);
-          setSeconds(59);
-        } else {
-          handlePomodoroComplete();
-        }
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [isRunning, minutes, seconds]);
 
   const handlePomodoroComplete = () => {
     setIsRunning(false);
@@ -131,6 +110,25 @@ export const PomodoroHeader = () => {
   };
 
   useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (isRunning) {
+      interval = setInterval(() => {
+        if (seconds > 0) {
+          setSeconds(seconds - 1);
+        } else if (minutes > 0) {
+          setMinutes(minutes - 1);
+          setSeconds(59);
+        } else {
+          handlePomodoroComplete();
+        }
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [isRunning, minutes, seconds]);
+
+  useEffect(() => {
     const handleUpdateTimer = (event: CustomEvent<{ minutes: number }>) => {
       setMinutes(event.detail.minutes);
       setSeconds(0);
@@ -161,28 +159,14 @@ export const PomodoroHeader = () => {
     <div className="flex items-center gap-3 ml-auto relative">
       {currentSession && (
         <div className="flex items-center gap-2">
-          {isEditingName ? (
-            <Input
-              value={sessionName}
-              onChange={(e) => setSessionName(e.target.value)}
-              onBlur={updateSessionName}
-              onKeyPress={(e) => e.key === "Enter" && updateSessionName()}
-              className="h-6 text-sm"
-              autoFocus
-            />
-          ) : (
-            <div className="flex items-center gap-1">
-              <span className="text-sm">{currentSession.name}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 hover:bg-notion-hover"
-                onClick={() => setIsEditingName(true)}
-              >
-                <Edit2 className="h-3 w-3" />
-              </Button>
-            </div>
-          )}
+          <PomodoroSessionName
+            currentSession={currentSession}
+            isEditingName={isEditingName}
+            sessionName={sessionName}
+            setSessionName={setSessionName}
+            setIsEditingName={setIsEditingName}
+            updateSessionName={updateSessionName}
+          />
         </div>
       )}
 
