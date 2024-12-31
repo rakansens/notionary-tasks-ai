@@ -132,6 +132,8 @@ export const TaskItem = ({
               setAddingSubtaskId(null);
               setNewTask('');
             }}
+            groupId={task.groupId}
+            parentTaskTitle={task.title}
             autoFocus
           />
         </div>

@@ -51,9 +51,9 @@ export const SubtaskList = ({
             addingSubtaskId={addingSubtaskId}
             setEditingTaskId={setEditingTaskId}
             setAddingSubtaskId={setAddingSubtaskId}
-            toggleTask={(id) => toggleTask(id, parentTask.id)}
-            updateTaskTitle={(id, title) => updateTaskTitle(id, title, parentTask.id)}
-            deleteTask={(id) => deleteTask(id, parentTask.id)}
+            toggleTask={toggleTask}
+            updateTaskTitle={updateTaskTitle}
+            deleteTask={deleteTask}
             newTask={newTask}
             setNewTask={setNewTask}
             addTask={addTask}
