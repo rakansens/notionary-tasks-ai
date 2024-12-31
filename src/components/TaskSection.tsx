@@ -64,32 +64,9 @@ export const TaskSection = () => {
     handleDragStart,
     handleDragEnd,
     handleDragCancel,
-  } = useDragAndDrop(tasks, groups, (taskId: number, newGroupId?: number, newIndex?: number) => {
-    const updatedTasks = [...tasks];
-    const taskToMove = updatedTasks.find(t => t.id === taskId);
-    if (!taskToMove) return;
-
-    // Remove the task from its current position
-    const filteredTasks = updatedTasks.filter(t => t.id !== taskId);
-
-    // Find the correct insertion index
-    let insertIndex: number;
-    if (typeof newIndex === 'number') {
-      const targetTasks = filteredTasks.filter(t => t.groupId === newGroupId && !t.parentId);
-      insertIndex = targetTasks.findIndex((_, index) => index === newIndex);
-      if (insertIndex === -1) insertIndex = targetTasks.length;
-    } else {
-      insertIndex = filteredTasks.length;
-    }
-
-    // Update the task's group
-    taskToMove.groupId = newGroupId;
-
-    // Insert the task at the new position
-    filteredTasks.splice(insertIndex, 0, taskToMove);
-
-    // Update all tasks
-    updateTaskOrder(filteredTasks);
+  } = useDragAndDrop(tasks, groups, (tasks: Task[]) => {
+    // Update all tasks with new order
+    updateTaskOrder(tasks);
   });
 
   const sensors = useSensors(

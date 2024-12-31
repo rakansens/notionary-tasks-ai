@@ -6,7 +6,7 @@ interface DragAndDropState {
   activeId: string | null;
 }
 
-type UpdateTaskOrderFn = (taskId: number, newGroupId?: number, newIndex?: number) => void;
+type UpdateTaskOrderFn = (tasks: Task[]) => void;
 
 export const useDragAndDrop = (
   tasks: Task[],
@@ -73,15 +73,45 @@ export const useDragAndDrop = (
     // Calculate new order
     if (overIndex >= 0) {
       const targetTask = tasksInTargetArea[overIndex];
-      const newOrder = targetTask.order;
-      
-      // Shift orders of tasks after the target position
-      filteredTasks.forEach(task => {
-        if ((task.groupId === newGroupId || (!task.groupId && !newGroupId)) && 
-            task.order >= newOrder) {
-          task.order += 1;
+      const currentIndex = tasksInTargetArea.findIndex(task => task.id === activeId);
+      let newOrder;
+
+      if (currentIndex === -1) {
+        // タスクが別のエリアから移動してきた場合
+        newOrder = targetTask.order;
+        // 後続のタスクの順序をシフト
+        filteredTasks.forEach(task => {
+          if ((task.groupId === newGroupId || (!task.groupId && !newGroupId)) && 
+              task.order >= newOrder) {
+            task.order += 1;
+          }
+        });
+      } else {
+        // 同じエリア内での移動
+        if (currentIndex < overIndex) {
+          // 上から下への移動
+          newOrder = targetTask.order;
+          // 間のタスクの順序を上にシフト
+          filteredTasks.forEach(task => {
+            if ((task.groupId === newGroupId || (!task.groupId && !newGroupId)) && 
+                task.order > activeTask.order && 
+                task.order <= targetTask.order) {
+              task.order -= 1;
+            }
+          });
+        } else {
+          // 下から上への移動
+          newOrder = targetTask.order;
+          // 間のタスクの順序を下にシフト
+          filteredTasks.forEach(task => {
+            if ((task.groupId === newGroupId || (!task.groupId && !newGroupId)) && 
+                task.order >= targetTask.order && 
+                task.order < activeTask.order) {
+              task.order += 1;
+            }
+          });
         }
-      });
+      }
       
       taskToMove.order = newOrder;
     } else {
