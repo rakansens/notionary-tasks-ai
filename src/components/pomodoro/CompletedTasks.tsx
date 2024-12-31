@@ -59,13 +59,13 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 hover:bg-notion-hover"
+          className="h-8 w-8 hover:bg-notion-hover text-notion-secondary"
         >
           <Paperclip className="h-4 w-4" />
         </Button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="absolute right-0 mt-2 w-96 p-4 bg-white rounded-lg shadow-lg border border-notion-border z-50">
-        <div className="space-y-4 max-h-96 overflow-y-auto">
+      <CollapsibleContent className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-notion-border z-50">
+        <div className="max-h-96 overflow-y-auto">
           {sessions.map(session => {
             const sessionNewTasks = newTasks.filter(task => task.sessionId === session.id);
             const allTasks = [
@@ -80,33 +80,35 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
             if (allTasks.length === 0) return null;
 
             return (
-              <div key={session.id} className="space-y-2">
-                <h3 className="text-sm font-medium flex items-center justify-between">
-                  <span>{session.name}</span>
-                  <span className="text-notion-secondary">
-                    {format(session.startTime, "M/d HH:mm")}
-                    {session.endTime && ` - ${format(session.endTime, "HH:mm")}`}
-                  </span>
-                </h3>
-                <div className="space-y-2">
+              <div key={session.id} className="border-b border-notion-border last:border-b-0">
+                <div className="px-4 py-3 bg-[#F7F7F7]">
+                  <h3 className="text-sm font-medium text-notion-primary flex items-center justify-between">
+                    <span>{session.name}</span>
+                    <span className="text-notion-secondary text-xs">
+                      {format(session.startTime, "M/d HH:mm")}
+                      {session.endTime && ` - ${format(session.endTime, "HH:mm")}`}
+                    </span>
+                  </h3>
+                </div>
+                <div className="divide-y divide-notion-border">
                   {allTasks.map((task, index) => (
                     <div
                       key={`${task.id}-${index}`}
                       className={cn(
-                        "flex flex-col p-2 rounded-lg transition-colors duration-200",
+                        "px-4 py-2 transition-colors duration-200 hover:bg-notion-hover",
                         task.status === 'new' 
-                          ? "bg-green-50"
+                          ? "bg-[#F0F7F7]"
                           : isTaskFromCurrentSession(task, session)
-                            ? "bg-blue-50 dark:bg-blue-900/20"
-                            : "bg-notion-hover"
+                            ? "bg-[#F7F7F7]"
+                            : "bg-white"
                       )}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           {task.status === 'new' ? (
-                            <PlusCircle className="h-4 w-4 text-green-600" />
+                            <PlusCircle className="h-4 w-4 text-[#37A169]" />
                           ) : (
-                            <CheckCircle className="h-4 w-4 text-blue-600" />
+                            <CheckCircle className="h-4 w-4 text-[#3291FF]" />
                           )}
                           {editingTaskId === task.id ? (
                             <Input
@@ -114,32 +116,32 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                               onChange={(e) => setEditingTitle(e.target.value)}
                               onBlur={handleEditComplete}
                               onKeyPress={(e) => e.key === "Enter" && handleEditComplete()}
-                              className="h-6 text-sm"
+                              className="h-6 text-sm bg-white border-notion-border focus:ring-0 focus:border-notion-primary"
                               autoFocus
                             />
                           ) : (
                             <span 
                               className={cn(
-                                "cursor-pointer hover:text-notion-primary",
-                                isTaskFromCurrentSession(task, session) && "font-medium"
+                                "text-sm cursor-pointer hover:text-notion-primary",
+                                isTaskFromCurrentSession(task, session) && "text-notion-primary"
                               )}
                               onClick={() => handleEditStart(task.id, task.title)}
                             >
                               {task.title}
                               {isTaskFromCurrentSession(task, session) && (
-                                <span className="ml-2 text-xs text-blue-500 dark:text-blue-400">
+                                <span className="ml-2 text-xs text-[#3291FF]">
                                   (現在のセッション)
                                 </span>
                               )}
                             </span>
                           )}
                         </div>
-                        <span className="text-sm text-notion-secondary">
+                        <span className="text-xs text-notion-secondary">
                           {format(task.completedAt || new Date(task.addedAt), "HH:mm")}
                         </span>
                       </div>
                       {(task.parentTaskTitle || task.groupName) && (
-                        <div className="text-xs text-notion-secondary mt-1 flex items-center gap-2 flex-wrap">
+                        <div className="text-xs text-notion-secondary mt-1 flex items-center gap-2 flex-wrap pl-6">
                           {task.parentTaskTitle && (
                             <div className="flex items-center gap-1">
                               <Paperclip className="h-3 w-3" />
