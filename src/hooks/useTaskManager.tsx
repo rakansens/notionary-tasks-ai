@@ -92,8 +92,8 @@ export const useTaskManager = () => {
     setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
   };
 
-  const updateTaskOrder = (taskId: number, newGroupId?: number, newIndex?: number) => {
-    setTasks(prevTasks => updateTaskOrderInState(prevTasks, taskId, newGroupId, newIndex));
+  const updateTaskOrder = (tasks: Task[]) => {
+    setTasks(tasks);
   };
 
   const updateGroupName = (id: number, name: string) => {
