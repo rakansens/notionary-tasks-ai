@@ -20,6 +20,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 
 export const TaskSection = () => {
@@ -58,7 +59,33 @@ export const TaskSection = () => {
     handleDragStart,
     handleDragEnd,
     handleDragCancel,
-  } = useDragAndDrop(tasks, groups, updateTaskOrder);
+  } = useDragAndDrop(tasks, groups, (taskId: number, newGroupId?: number, newIndex?: number) => {
+    const updatedTasks = [...tasks];
+    const taskToMove = updatedTasks.find(t => t.id === taskId);
+    if (!taskToMove) return;
+
+    // Remove the task from its current position
+    const filteredTasks = updatedTasks.filter(t => t.id !== taskId);
+
+    // Find the correct insertion index
+    let insertIndex: number;
+    if (typeof newIndex === 'number') {
+      const targetTasks = filteredTasks.filter(t => t.groupId === newGroupId && !t.parentId);
+      insertIndex = targetTasks.findIndex((_, index) => index === newIndex);
+      if (insertIndex === -1) insertIndex = targetTasks.length;
+    } else {
+      insertIndex = filteredTasks.length;
+    }
+
+    // Update the task's group
+    taskToMove.groupId = newGroupId;
+
+    // Insert the task at the new position
+    filteredTasks.splice(insertIndex, 0, taskToMove);
+
+    // Update all tasks
+    updateTaskOrder(filteredTasks);
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -103,6 +130,7 @@ export const TaskSection = () => {
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
+            modifiers={[restrictToVerticalAxis]}
           >
             <SortableContext
               items={nonGroupTasks.map(task => task.id.toString())}
@@ -148,7 +176,10 @@ export const TaskSection = () => {
               onReorderSubtasks={handleReorderSubtasks}
             />
 
-            <DragOverlay>
+            <DragOverlay dropAnimation={{
+              duration: 150,
+              easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+            }}>
               {dragAndDropState.activeId ? (
                 <div className="shadow-lg rounded-md bg-white">
                   <TaskItem

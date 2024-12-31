@@ -6,10 +6,12 @@ interface DragAndDropState {
   activeId: string | null;
 }
 
+type UpdateTaskOrderFn = (taskId: number, newGroupId?: number, newIndex?: number) => void;
+
 export const useDragAndDrop = (
   tasks: Task[],
   groups: Group[],
-  updateTaskOrder: (taskId: number, newGroupId?: number, newIndex?: number) => void
+  updateTaskOrder: UpdateTaskOrderFn
 ) => {
   const [state, setState] = useState<DragAndDropState>({
     activeId: null,
@@ -45,7 +47,7 @@ export const useDragAndDrop = (
 
     // Calculate new index and group
     const newGroupId = overTask?.groupId;
-    const tasksInTargetGroup = tasks.filter(task => task.groupId === newGroupId);
+    const tasksInTargetGroup = tasks.filter(task => task.groupId === newGroupId && !task.parentId);
     const overIndex = tasksInTargetGroup.findIndex(task => task.id === overId);
     
     // Update task order
