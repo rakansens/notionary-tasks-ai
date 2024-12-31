@@ -29,8 +29,8 @@ export const PomodoroCalendar = () => {
   const selectedStats = selectedDateStr ? mockStats[selectedDateStr] : null;
 
   return (
-    <div className="flex gap-4">
-      <Card className="w-[350px]">
+    <div className="flex flex-col md:flex-row gap-4">
+      <Card className="w-full md:w-[350px]">
         <CardContent className="p-4">
           <Calendar
             mode="single"
@@ -76,7 +76,7 @@ export const PomodoroCalendar = () => {
         </CardContent>
       </Card>
 
-      <Card className="flex-1 min-w-[250px]">
+      <Card className="w-full md:w-[350px] h-fit">
         <CardContent className="p-4">
           {selectedDate ? (
             <div className="space-y-4">
