@@ -29,6 +29,13 @@ const PRESET_TIMES = [
   { label: "90分", value: 90 },
 ];
 
+const BREAK_TIMES = [
+  { label: "3分", value: 3 },
+  { label: "5分", value: 5 },
+  { label: "10分", value: 10 },
+  { label: "15分", value: 15 },
+];
+
 export const PomodoroTimer = ({
   minutes,
   seconds,
@@ -40,6 +47,8 @@ export const PomodoroTimer = ({
 }: PomodoroTimerProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editMinutes, setEditMinutes] = useState(minutes.toString());
+  const [isBreak, setIsBreak] = useState(false);
+  const [breakMinutes, setBreakMinutes] = useState(5);
   const { toast } = useToast();
 
   const formatTime = (time: number) => {
@@ -88,6 +97,14 @@ export const PomodoroTimer = ({
     setIsEditing(false);
   };
 
+  const handleBreakSelect = (minutes: number) => {
+    setBreakMinutes(minutes);
+    toast({
+      title: "休憩時間を更新しました",
+      description: `${minutes}分に設定しました。`,
+    });
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleTimeSubmit();
@@ -95,6 +112,24 @@ export const PomodoroTimer = ({
       setIsEditing(false);
       setEditMinutes(minutes.toString());
     }
+  };
+
+  const startBreak = () => {
+    setIsBreak(true);
+    updateTimer(breakMinutes);
+    toast({
+      title: "休憩時間開始",
+      description: `${breakMinutes}分の休憩を開始します。`,
+    });
+  };
+
+  const endBreak = () => {
+    setIsBreak(false);
+    updateTimer(25);
+    toast({
+      title: "作業時間開始",
+      description: "25分の作業時間を開始します。",
+    });
   };
 
   return (
@@ -110,7 +145,7 @@ export const PomodoroTimer = ({
           <div 
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors duration-200 cursor-pointer",
-              isRunning ? "bg-red-50 text-red-500" : "hover:bg-notion-hover"
+              isBreak ? "bg-green-50 text-green-500" : isRunning ? "bg-red-50 text-red-500" : "hover:bg-notion-hover"
             )}
           >
             {isEditing ? (
@@ -156,17 +191,40 @@ export const PomodoroTimer = ({
           </div>
         </PopoverTrigger>
         <PopoverContent className="w-48 p-2">
-          <div className="grid grid-cols-2 gap-2">
-            {PRESET_TIMES.map((preset) => (
-              <Button
-                key={preset.value}
-                variant="outline"
-                className="w-full"
-                onClick={() => handlePresetSelect(preset.value)}
-              >
-                {preset.label}
-              </Button>
-            ))}
+          <div className="space-y-4">
+            <div>
+              <h4 className="mb-2 text-sm font-medium">作業時間</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {PRESET_TIMES.map((preset) => (
+                  <Button
+                    key={preset.value}
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => handlePresetSelect(preset.value)}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h4 className="mb-2 text-sm font-medium">休憩時間</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {BREAK_TIMES.map((preset) => (
+                  <Button
+                    key={preset.value}
+                    variant="outline"
+                    className={cn(
+                      "w-full",
+                      breakMinutes === preset.value && "bg-green-50 text-green-500"
+                    )}
+                    onClick={() => handleBreakSelect(preset.value)}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
         </PopoverContent>
       </Popover>

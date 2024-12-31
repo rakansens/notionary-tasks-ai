@@ -16,6 +16,7 @@ export const PomodoroHeader = () => {
   const [sessions, setSessions] = useState<PomodoroSession[]>([]);
   const [isEditingName, setIsEditingName] = useState(false);
   const [sessionName, setSessionName] = useState("");
+  const [isBreak, setIsBreak] = useState(false);
   const { toast } = useToast();
 
   const addCompletedTask = (task: CompletedTask) => {
@@ -49,14 +50,27 @@ export const PomodoroHeader = () => {
       setCurrentSession(null);
     }
 
-    toast({
-      title: "ポモドーロ完了！",
-      description: "25分経過しました。休憩を取りましょう。",
-    });
+    if (!isBreak) {
+      setIsBreak(true);
+      setMinutes(5);
+      setSeconds(0);
+      toast({
+        title: "ポモドーロ完了！",
+        description: "5分間の休憩を始めましょう。",
+      });
+    } else {
+      setIsBreak(false);
+      setMinutes(25);
+      setSeconds(0);
+      toast({
+        title: "休憩完了！",
+        description: "次のポモドーロを始めましょう。",
+      });
+    }
   };
 
   const toggleTimer = () => {
-    if (!isRunning && minutes === 25 && seconds === 0) {
+    if (!isRunning && minutes === 25 && seconds === 0 && !isBreak) {
       const newSession: PomodoroSession = {
         id: Date.now(),
         name: `ポモドーロ #${pomodoroCount + 1}`,
@@ -77,7 +91,11 @@ export const PomodoroHeader = () => {
 
   const resetTimer = () => {
     setIsRunning(false);
-    setMinutes(25);
+    if (isBreak) {
+      setMinutes(5);
+    } else {
+      setMinutes(25);
+    }
     setSeconds(0);
     if (currentSession) {
       const updatedSession = {
