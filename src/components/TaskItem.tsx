@@ -44,6 +44,23 @@ export const TaskItem = ({
   const handleSubmitSubtask = () => {
     if (newTask.trim()) {
       addTask(task.groupId, task.id);
+      
+      // Dispatch taskAdded event with group and parent task information
+      const addedTask = {
+        id: Date.now(),
+        title: newTask,
+        addedAt: new Date(),
+        parentTaskTitle: task.title,
+        grandParentTaskTitle: parentTask?.title || null,
+        groupName: groupName || null,
+      };
+      
+      window.dispatchEvent(new CustomEvent('taskAdded', { 
+        detail: addedTask,
+        bubbles: true,
+        composed: true
+      }));
+      
       setAddingSubtaskId(null);
       setNewTask('');
     }

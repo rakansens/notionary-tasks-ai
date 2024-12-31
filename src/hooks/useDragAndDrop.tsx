@@ -38,25 +38,15 @@ export const useDragAndDrop = (
     const activeTask = tasks.find(task => task.id === activeId);
     const overTask = tasks.find(task => task.id === overId);
     
-    if (!activeTask || !overTask) {
+    if (!activeTask) {
       setState({ activeId: null });
       return;
     }
 
     // Calculate new index and group
-    const newGroupId = overTask.groupId;
-    const tasksInTargetGroup = tasks.filter(task => 
-      task.groupId === newGroupId && !task.parentId
-    );
+    const newGroupId = overTask?.groupId;
+    const tasksInTargetGroup = tasks.filter(task => task.groupId === newGroupId);
     const overIndex = tasksInTargetGroup.findIndex(task => task.id === overId);
-
-    console.log('Drag end:', {
-      activeTask,
-      overTask,
-      newGroupId,
-      overIndex,
-      tasksInTargetGroup: tasksInTargetGroup.map(t => ({ id: t.id, title: t.title }))
-    });
     
     // Update task order
     updateTaskOrder(activeId, newGroupId, overIndex);

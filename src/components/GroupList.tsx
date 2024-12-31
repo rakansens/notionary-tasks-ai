@@ -25,9 +25,11 @@ import type { Task, Group } from "@/hooks/useTaskManager";
 interface GroupListProps {
   groups: Group[];
   tasks: Task[];
+  newTask: string;
   editingTaskId: number | null;
   editingGroupId: number | null;
   addingSubtaskId: number | null;
+  setNewTask: (value: string) => void;
   setEditingTaskId: (id: number | null) => void;
   setEditingGroupId: (id: number | null) => void;
   setAddingSubtaskId: (id: number | null) => void;
@@ -38,16 +40,16 @@ interface GroupListProps {
   deleteTask: (id: number) => void;
   deleteGroup: (id: number) => void;
   updateTaskOrder: (taskId: number, newGroupId?: number, newIndex?: number) => void;
-  getNewTaskValue: (groupId?: number, parentId?: number) => string;
-  setNewTaskForGroup: (groupId: number, value: string) => void;
 }
 
 export const GroupList = ({
   groups,
   tasks,
+  newTask,
   editingTaskId,
   editingGroupId,
   addingSubtaskId,
+  setNewTask,
   setEditingTaskId,
   setEditingGroupId,
   setAddingSubtaskId,
@@ -58,8 +60,6 @@ export const GroupList = ({
   deleteTask,
   deleteGroup,
   updateTaskOrder,
-  getNewTaskValue,
-  setNewTaskForGroup,
 }: GroupListProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -117,19 +117,18 @@ export const GroupList = ({
                       toggleTask={toggleTask}
                       updateTaskTitle={updateTaskTitle}
                       deleteTask={deleteTask}
-                      newTask={getNewTaskValue(undefined, task.id)}
-                      setNewTask={(value) => setNewTaskForGroup(task.id, value)}
+                      newTask={newTask}
+                      setNewTask={setNewTask}
                       addTask={addTask}
                       groupName={group.name}
                     />
                   ))}
               </SortableContext>
               <TaskInput
-                value={getNewTaskValue(group.id)}
-                onChange={(value) => setNewTaskForGroup(group.id, value)}
+                value={newTask}
+                onChange={setNewTask}
                 onSubmit={() => addTask(group.id)}
                 groupId={group.id}
-                groupName={group.name}
               />
             </div>
           </div>
@@ -146,8 +145,8 @@ export const GroupList = ({
             toggleTask={toggleTask}
             updateTaskTitle={updateTaskTitle}
             deleteTask={deleteTask}
-            newTask={getNewTaskValue(undefined, activeTask.id)}
-            setNewTask={(value) => setNewTaskForGroup(activeTask.id, value)}
+            newTask={newTask}
+            setNewTask={setNewTask}
             addTask={addTask}
           />
         ) : null}

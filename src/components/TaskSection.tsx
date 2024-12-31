@@ -26,16 +26,14 @@ export const TaskSection = () => {
   const {
     tasks,
     groups,
-    getNewTaskValue,
-    setMainNewTask,
-    setNewTaskForGroup,
-    setNewTaskForSubtask,
+    newTask,
     newGroup,
     isAddingGroup,
     editingTaskId,
     editingGroupId,
     addingSubtaskId,
     deleteTarget,
+    setNewTask,
     setNewGroup,
     setIsAddingGroup,
     setEditingTaskId,
@@ -97,8 +95,8 @@ export const TaskSection = () => {
                   toggleTask={toggleTask}
                   updateTaskTitle={updateTaskTitle}
                   deleteTask={deleteTask}
-                  newTask={getNewTaskValue(undefined, task.id)}
-                  setNewTask={(value) => setNewTaskForSubtask(task.id, value)}
+                  newTask={newTask}
+                  setNewTask={setNewTask}
                   addTask={addTask}
                 />
               ))}
@@ -107,9 +105,11 @@ export const TaskSection = () => {
             <GroupList
               groups={groups}
               tasks={tasks}
+              newTask={newTask}
               editingTaskId={editingTaskId}
               editingGroupId={editingGroupId}
               addingSubtaskId={addingSubtaskId}
+              setNewTask={setNewTask}
               setEditingTaskId={setEditingTaskId}
               setEditingGroupId={setEditingGroupId}
               setAddingSubtaskId={setAddingSubtaskId}
@@ -120,8 +120,6 @@ export const TaskSection = () => {
               deleteTask={deleteTask}
               deleteGroup={deleteGroup}
               updateTaskOrder={updateTaskOrder}
-              getNewTaskValue={getNewTaskValue}
-              setNewTaskForGroup={setNewTaskForGroup}
             />
 
             <DragOverlay>
@@ -136,8 +134,8 @@ export const TaskSection = () => {
                     toggleTask={toggleTask}
                     updateTaskTitle={updateTaskTitle}
                     deleteTask={deleteTask}
-                    newTask={getNewTaskValue()}
-                    setNewTask={setMainNewTask}
+                    newTask={newTask}
+                    setNewTask={setNewTask}
                     addTask={addTask}
                   />
                 </div>
@@ -153,8 +151,8 @@ export const TaskSection = () => {
         setNewGroup={setNewGroup}
         setIsAddingGroup={setIsAddingGroup}
         addGroup={addGroup}
-        newTask={getNewTaskValue()}
-        setNewTask={setMainNewTask}
+        newTask={newTask}
+        setNewTask={setNewTask}
         addTask={() => addTask()}
       />
 
