@@ -1,6 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { useTaskManager } from "@/hooks/useTaskManager";
+import { Task } from "@/hooks/taskManager/types";
 import { TaskItem } from "./TaskItem";
 import { DraggableTask } from "./DraggableTask";
 import { GroupList } from "./GroupList";
@@ -97,58 +98,64 @@ export const TaskSection = () => {
   const handleReorderSubtasks = (startIndex: number, endIndex: number, parentId: number) => {
     console.log(`Reordering subtasks for parentId: ${parentId}, from ${startIndex} to ${endIndex}`);
     
-    // Find the parent task and its parent (if it's a grandchild task)
-    const findParentTask = (tasks: Task[], targetId: number): { parentTask: Task | undefined, grandParentTask: Task | undefined } => {
-      for (const task of tasks) {
-        if (task.id === targetId) {
-          return { parentTask: task, grandParentTask: undefined };
-        }
-        if (task.subtasks) {
-          for (const subtask of task.subtasks) {
-            if (subtask.id === targetId) {
-              return { parentTask: subtask, grandParentTask: task };
+    // Find the task hierarchy (parent chain) for the target task
+    const findTaskHierarchy = (tasks: Task[], targetId: number): Task[] => {
+      const hierarchy: Task[] = [];
+      
+      const findParent = (currentTasks: Task[], targetId: number): boolean => {
+        for (const task of currentTasks) {
+          if (task.id === targetId) {
+            hierarchy.unshift(task);
+            return true;
+          }
+          if (task.subtasks && task.subtasks.length > 0) {
+            if (findParent(task.subtasks, targetId)) {
+              hierarchy.unshift(task);
+              return true;
             }
           }
         }
-      }
-      return { parentTask: undefined, grandParentTask: undefined };
+        return false;
+      };
+      
+      findParent(tasks, targetId);
+      return hierarchy;
     };
 
-    const { parentTask, grandParentTask } = findParentTask(tasks, parentId);
-    if (!parentTask || !parentTask.subtasks) return;
+    const taskHierarchy = findTaskHierarchy(tasks, parentId);
+    if (taskHierarchy.length === 0) return;
 
-    const reorderedSubtasks = [...parentTask.subtasks];
+    const targetTask = taskHierarchy[taskHierarchy.length - 1];
+    if (!targetTask.subtasks) return;
+
+    const reorderedSubtasks = [...targetTask.subtasks];
     const [movedTask] = reorderedSubtasks.splice(startIndex, 1);
     reorderedSubtasks.splice(endIndex, 0, movedTask);
 
-    const updatedTasks = tasks.map(t => {
-      if (grandParentTask && t.id === grandParentTask.id) {
-        return {
-          ...t,
-          subtasks: t.subtasks?.map(st => 
-            st.id === parentId
-              ? {
-                  ...st,
-                  subtasks: reorderedSubtasks.map((subtask, index) => ({
-                    ...subtask,
-                    order: index,
-                  })),
-                }
-              : st
-          ),
-        };
-      } else if (!grandParentTask && t.id === parentId) {
-        return {
-          ...t,
-          subtasks: reorderedSubtasks.map((subtask, index) => ({
-            ...subtask,
-            order: index,
-          })),
-        };
-      }
-      return t;
-    });
+    // Update tasks recursively
+    const updateTasksRecursively = (tasks: Task[], hierarchy: Task[], index: number, reorderedSubtasks: Task[]): Task[] => {
+      return tasks.map(task => {
+        if (task.id === hierarchy[index].id) {
+          if (index === hierarchy.length - 1) {
+            return {
+              ...task,
+              subtasks: reorderedSubtasks.map((subtask, idx) => ({
+                ...subtask,
+                order: idx,
+              })),
+            };
+          } else {
+            return {
+              ...task,
+              subtasks: updateTasksRecursively(task.subtasks || [], hierarchy, index + 1, reorderedSubtasks),
+            };
+          }
+        }
+        return task;
+      });
+    };
 
+    const updatedTasks = updateTasksRecursively(tasks, taskHierarchy, 0, reorderedSubtasks);
     console.log('Updated tasks:', updatedTasks);
     updateTaskOrder(updatedTasks);
   };
