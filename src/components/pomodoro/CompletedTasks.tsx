@@ -1,4 +1,4 @@
-import { Paperclip, Folder, ArrowRight, CheckCircle, PlusCircle } from "lucide-react";
+import { Paperclip, Folder, ArrowRight, CheckCircle, PlusCircle, Clock } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { PomodoroSession } from "@/types/pomodoro";
 import { useState, useEffect } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface CompletedTasksProps {
   sessions: PomodoroSession[];
@@ -20,6 +21,7 @@ interface CompletedTasksProps {
 export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }: CompletedTasksProps) => {
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const [editingTime, setEditingTime] = useState<string>("");
   const [newTasks, setNewTasks] = useState<any[]>([]);
 
   useEffect(() => {
@@ -47,6 +49,16 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
 
   const handleEditComplete = () => {
     setEditingTaskId(null);
+  };
+
+  const handleTimeEdit = (taskId: number, currentTime: Date) => {
+    setEditingTime(format(currentTime, "HH:mm"));
+  };
+
+  const handleTimeUpdate = (taskId: number, newTime: string) => {
+    // Here you would typically update the task's time in your state management
+    console.log('Updating time for task', taskId, 'to', newTime);
+    setEditingTime("");
   };
 
   const isTaskFromCurrentSession = (task: any, session: PomodoroSession) => {
@@ -136,9 +148,27 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                             </span>
                           )}
                         </div>
-                        <span className="text-xs text-notion-secondary">
-                          {format(task.completedAt || new Date(task.addedAt), "HH:mm")}
-                        </span>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 text-xs text-notion-secondary hover:bg-notion-hover flex items-center gap-1"
+                            >
+                              <Clock className="h-3 w-3" />
+                              {format(task.completedAt || new Date(task.addedAt), "HH:mm")}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-2">
+                            <Input
+                              type="time"
+                              value={editingTime || format(task.completedAt || new Date(task.addedAt), "HH:mm")}
+                              onChange={(e) => setEditingTime(e.target.value)}
+                              onBlur={() => handleTimeUpdate(task.id, editingTime)}
+                              className="h-8 text-sm"
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                       {(task.parentTaskTitle || task.groupName) && (
                         <div className="text-xs text-notion-secondary mt-1 flex items-center gap-2 flex-wrap pl-6">
