@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import type { PomodoroSession } from "@/types/pomodoro";
 import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "@/components/ui/use-toast";
 
 interface CompletedTasksProps {
   sessions: PomodoroSession[];
@@ -56,8 +57,13 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
   };
 
   const handleTimeUpdate = (taskId: number, newTime: string) => {
-    // Here you would typically update the task's time in your state management
+    if (!newTime) return;
+    
     console.log('Updating time for task', taskId, 'to', newTime);
+    toast({
+      title: "時間を更新しました",
+      description: `タスクの時間を ${newTime} に更新しました。`,
+    });
     setEditingTime("");
   };
 
@@ -153,7 +159,8 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-6 px-2 text-xs text-notion-secondary hover:bg-notion-hover flex items-center gap-1"
+                              className="h-6 px-2 text-xs text-notion-secondary hover:bg-notion-hover/50 flex items-center gap-1"
+                              onClick={() => handleTimeEdit(task.id, task.completedAt || new Date(task.addedAt))}
                             >
                               <Clock className="h-3 w-3" />
                               {format(task.completedAt || new Date(task.addedAt), "HH:mm")}
