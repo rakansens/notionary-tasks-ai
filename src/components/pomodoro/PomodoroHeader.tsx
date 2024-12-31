@@ -131,6 +131,19 @@ export const PomodoroHeader = () => {
   };
 
   useEffect(() => {
+    const handleUpdateTimer = (event: CustomEvent<{ minutes: number }>) => {
+      setMinutes(event.detail.minutes);
+      setSeconds(0);
+    };
+
+    window.addEventListener('updateTimer', handleUpdateTimer as EventListener);
+    
+    return () => {
+      window.removeEventListener('updateTimer', handleUpdateTimer as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
     const handleTaskCompleted = (event: CustomEvent<CompletedTask>) => {
       if (currentSession) {
         addCompletedTask(event.detail);

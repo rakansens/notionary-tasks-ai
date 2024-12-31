@@ -49,6 +49,16 @@ export const PomodoroTimer = ({
   const handleTimeSubmit = () => {
     const newMinutes = parseInt(editMinutes);
     if (newMinutes > 0 && newMinutes <= 60) {
+      // Call parent's resetTimer to stop the timer if it's running
+      resetTimer();
+      // Update the minutes in the parent component through props
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('updateTimer', { 
+          detail: { minutes: newMinutes },
+          bubbles: true,
+          composed: true
+        }));
+      }
       toast({
         title: "タイマー時間を更新しました",
         description: `${newMinutes}分に設定しました。`,
