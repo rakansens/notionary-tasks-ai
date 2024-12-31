@@ -4,7 +4,6 @@ import { TaskItemActions } from "./task/TaskItemActions";
 import { TaskInput } from "./TaskInput";
 import { SubtaskList } from "./SubtaskList";
 import type { Task } from "@/hooks/useTaskManager";
-import { createLogEvent } from "@/utils/logEvents";
 
 interface TaskItemProps {
   task: Task;
@@ -81,16 +80,6 @@ export const TaskItem = ({
     }
   };
 
-  const handleDeleteTask = () => {
-    // タスク削除イベントを発行
-    window.dispatchEvent(new CustomEvent('taskAdded', {
-      detail: createLogEvent('task_deleted', task.title, 'タスクが削除されました'),
-      bubbles: true,
-      composed: true
-    }));
-    deleteTask(task.id, task.parentId);
-  };
-
   return (
     <div className="space-y-0.5">
       <div className="flex items-center gap-2 py-1 px-2 -mx-2 rounded transition-all duration-200 hover:bg-notion-hover group">
@@ -111,8 +100,8 @@ export const TaskItem = ({
 
         <TaskItemActions
           onAddSubtask={handleAddSubtask}
-          onDelete={handleDeleteTask}
-          onDropdownDelete={handleDeleteTask}
+          onDelete={() => deleteTask(task.id, task.parentId)}
+          onDropdownDelete={() => deleteTask(task.id, task.parentId)}
         />
       </div>
 
