@@ -1,16 +1,14 @@
 import { Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { TimerControls } from "./TimerControls";
 import { TimerDisplay } from "./TimerDisplay";
-import { cn } from "@/lib/utils";
+import { TimerSettings, PRESET_TIMES, BREAK_TIMES } from "./TimerSettings";
 
 interface PomodoroTimerProps {
   minutes: number;
@@ -21,22 +19,6 @@ interface PomodoroTimerProps {
   toggleTimer: () => void;
   resetTimer: () => void;
 }
-
-const PRESET_TIMES = [
-  { label: "5分", value: 5 },
-  { label: "10分", value: 10 },
-  { label: "15分", value: 15 },
-  { label: "25分", value: 25 },
-  { label: "60分", value: 60 },
-  { label: "90分", value: 90 },
-];
-
-const BREAK_TIMES = [
-  { label: "3分", value: 3 },
-  { label: "5分", value: 5 },
-  { label: "10分", value: 10 },
-  { label: "15分", value: 15 },
-];
 
 export const PomodoroTimer = ({
   minutes,
@@ -64,13 +46,6 @@ export const PomodoroTimer = ({
     }
   };
 
-  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (/^\d*$/.test(value) && parseInt(value) <= 90) {
-      setEditMinutes(value);
-    }
-  };
-
   const updateTimer = (newMinutes: number) => {
     if (newMinutes > 0 && newMinutes <= 90) {
       resetTimer();
@@ -88,32 +63,12 @@ export const PomodoroTimer = ({
     }
   };
 
-  const handleTimeSubmit = () => {
-    const newMinutes = parseInt(editMinutes);
-    updateTimer(newMinutes);
-    setIsEditing(false);
-  };
-
-  const handlePresetSelect = (minutes: number) => {
-    updateTimer(minutes);
-    setIsEditing(false);
-  };
-
   const handleBreakSelect = (minutes: number) => {
     setBreakMinutes(minutes);
     toast({
       title: "休憩時間を更新しました",
       description: `${minutes}分に設定しました。`,
     });
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleTimeSubmit();
-    } else if (e.key === "Escape") {
-      setIsEditing(false);
-      setEditMinutes(minutes.toString());
-    }
   };
 
   const startBreak = () => {
@@ -144,7 +99,7 @@ export const PomodoroTimer = ({
 
       <Popover>
         <PopoverTrigger asChild>
-          <div className="flex items-center">
+          <div>
             <TimerDisplay
               minutes={minutes}
               seconds={seconds}
@@ -153,51 +108,22 @@ export const PomodoroTimer = ({
               formatTime={formatTime}
               onTimeClick={handleTimeClick}
             />
-            <TimerControls
-              isRunning={isRunning}
-              toggleTimer={toggleTimer}
-              resetTimer={resetTimer}
-            />
           </div>
         </PopoverTrigger>
         <PopoverContent className="w-48 p-2">
-          <div className="space-y-4">
-            <div>
-              <h4 className="mb-2 text-sm font-medium">作業時間</h4>
-              <div className="grid grid-cols-2 gap-2">
-                {PRESET_TIMES.map((preset) => (
-                  <Button
-                    key={preset.value}
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => handlePresetSelect(preset.value)}
-                  >
-                    {preset.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="mb-2 text-sm font-medium">休憩時間</h4>
-              <div className="grid grid-cols-2 gap-2">
-                {BREAK_TIMES.map((preset) => (
-                  <Button
-                    key={preset.value}
-                    variant="outline"
-                    className={cn(
-                      "w-full",
-                      breakMinutes === preset.value && "bg-green-50 text-green-500"
-                    )}
-                    onClick={() => handleBreakSelect(preset.value)}
-                  >
-                    {preset.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <TimerSettings
+            onPresetSelect={updateTimer}
+            onBreakSelect={handleBreakSelect}
+            breakMinutes={breakMinutes}
+          />
         </PopoverContent>
       </Popover>
+
+      <TimerControls
+        isRunning={isRunning}
+        toggleTimer={toggleTimer}
+        resetTimer={resetTimer}
+      />
     </div>
   );
 };
