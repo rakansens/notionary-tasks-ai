@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface TaskTitleProps {
   title: string;
@@ -25,7 +26,11 @@ export const TaskTitle = ({
         value={title}
         onChange={(e) => onTitleChange(e.target.value)}
         onBlur={onBlur}
-        onKeyDown={onKeyPress}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+            onKeyPress(e);
+          }
+        }}
         className="flex-1 h-6 py-0 px-1 bg-transparent border-none focus:ring-0 text-sm"
         autoFocus
       />
@@ -34,9 +39,10 @@ export const TaskTitle = ({
 
   return (
     <span
-      className={`flex-1 text-sm transition-all duration-200 cursor-pointer ${
-        completed ? "line-through text-notion-secondary" : ""
-      }`}
+      className={cn(
+        "flex-1 text-sm transition-all duration-200 cursor-pointer",
+        completed && "line-through text-notion-secondary"
+      )}
       onClick={onTitleClick}
     >
       {title}

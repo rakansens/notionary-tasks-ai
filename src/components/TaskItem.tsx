@@ -81,6 +81,12 @@ export const TaskItem = ({
   };
 
   const handleTitleChange = (title: string) => {
+    console.log('Updating task title:', {
+      taskId: task.id,
+      newTitle: title,
+      parentId: task.parentId,
+      groupId: task.groupId
+    });
     updateTaskTitle(task.id, title, task.parentId);
   };
 
@@ -99,7 +105,11 @@ export const TaskItem = ({
           onTitleChange={handleTitleChange}
           onTitleClick={() => setEditingTaskId(task.id)}
           onBlur={() => setEditingTaskId(null)}
-          onKeyPress={(e) => e.key === "Enter" && setEditingTaskId(null)}
+          onKeyPress={(e) => {
+            if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+              setEditingTaskId(null);
+            }
+          }}
         />
 
         <TaskItemActions
