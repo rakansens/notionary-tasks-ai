@@ -1,4 +1,4 @@
-import { Paperclip, Folder, ArrowRight, CheckCircle, PlusCircle, Clock } from "lucide-react";
+import { History, Folder, ArrowRight, CheckCircle, PlusCircle, Clock } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -79,7 +79,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
           size="icon"
           className="h-8 w-8 hover:bg-notion-hover text-notion-secondary"
         >
-          <Paperclip className="h-4 w-4" />
+          <History className="h-4 w-4" />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-notion-border z-50">
