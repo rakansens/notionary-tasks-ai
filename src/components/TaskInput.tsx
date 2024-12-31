@@ -28,7 +28,6 @@ export const TaskInput = ({
 }: TaskInputProps) => {
   const handleSubmit = () => {
     if (value.trim()) {
-      // Dispatch new task added event with group information
       window.dispatchEvent(new CustomEvent('taskAdded', {
         detail: {
           title: value,
@@ -41,7 +40,6 @@ export const TaskInput = ({
         composed: true
       }));
       onSubmit();
-      onChange(''); // Clear the input after submission
     }
   };
 

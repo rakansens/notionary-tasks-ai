@@ -18,7 +18,9 @@ export type { Task, Group };
 export const useTaskManager = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [newTask, setNewTask] = useState("");
+  const [mainNewTask, setMainNewTask] = useState("");
+  const [groupNewTasks, setGroupNewTasks] = useState<Record<number, string>>({});
+  const [subtaskNewTasks, setSubtaskNewTasks] = useState<Record<number, string>>({});
   const [newGroup, setNewGroup] = useState("");
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
@@ -26,12 +28,49 @@ export const useTaskManager = () => {
   const [addingSubtaskId, setAddingSubtaskId] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
+  const setNewTaskForGroup = (groupId: number, value: string) => {
+    setGroupNewTasks(prev => ({ ...prev, [groupId]: value }));
+  };
+
+  const setNewTaskForSubtask = (parentId: number, value: string) => {
+    setSubtaskNewTasks(prev => ({ ...prev, [parentId]: value }));
+  };
+
+  const getNewTaskValue = (groupId?: number, parentId?: number): string => {
+    if (parentId !== undefined) {
+      return subtaskNewTasks[parentId] || "";
+    }
+    if (groupId !== undefined) {
+      return groupNewTasks[groupId] || "";
+    }
+    return mainNewTask;
+  };
+
+  const clearNewTaskValue = (groupId?: number, parentId?: number) => {
+    if (parentId !== undefined) {
+      setSubtaskNewTasks(prev => {
+        const next = { ...prev };
+        delete next[parentId];
+        return next;
+      });
+    } else if (groupId !== undefined) {
+      setGroupNewTasks(prev => {
+        const next = { ...prev };
+        delete next[groupId];
+        return next;
+      });
+    } else {
+      setMainNewTask("");
+    }
+  };
+
   const addTask = (groupId?: number, parentId?: number) => {
-    if (!newTask.trim()) return;
+    const taskValue = getNewTaskValue(groupId, parentId);
+    if (!taskValue.trim()) return;
     
     const task: Task = {
       id: Date.now(),
-      title: newTask,
+      title: taskValue,
       completed: false,
       groupId,
       parentId,
@@ -41,7 +80,7 @@ export const useTaskManager = () => {
     };
     
     setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
-    setNewTask("");
+    clearNewTaskValue(groupId, parentId);
   };
 
   const addGroup = () => {
@@ -115,14 +154,16 @@ export const useTaskManager = () => {
   return {
     tasks,
     groups,
-    newTask,
+    getNewTaskValue,
+    setMainNewTask,
+    setNewTaskForGroup,
+    setNewTaskForSubtask,
     newGroup,
     isAddingGroup,
     editingTaskId,
     editingGroupId,
     addingSubtaskId,
     deleteTarget,
-    setNewTask,
     setNewGroup,
     setIsAddingGroup,
     setEditingTaskId,
