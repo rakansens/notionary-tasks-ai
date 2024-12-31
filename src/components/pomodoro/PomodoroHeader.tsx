@@ -4,6 +4,7 @@ import { PomodoroTimer } from "./PomodoroTimer";
 import { PomodoroStats } from "./PomodoroStats";
 import { CompletedTasks } from "./CompletedTasks";
 import { PomodoroSessionName } from "./PomodoroSessionName";
+import { PomodoroCalendarModal } from "./PomodoroCalendarModal";
 import type { PomodoroSession, CompletedTask } from "@/types/pomodoro";
 
 export const PomodoroHeader = () => {
@@ -208,6 +209,7 @@ export const PomodoroHeader = () => {
         totalMinutes={totalMinutes}
         sessions={sessions}
       />
+      <PomodoroCalendarModal />
     </div>
   );
 };
