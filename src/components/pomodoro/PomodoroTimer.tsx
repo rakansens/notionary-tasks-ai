@@ -1,6 +1,9 @@
 import { Clock, Play, Pause, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface PomodoroTimerProps {
   minutes: number;
@@ -21,8 +24,37 @@ export const PomodoroTimer = ({
   toggleTimer,
   resetTimer,
 }: PomodoroTimerProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editMinutes, setEditMinutes] = useState(minutes.toString());
+  const { toast } = useToast();
+
   const formatTime = (time: number) => {
     return time < 10 ? `0${time}` : time;
+  };
+
+  const handleTimeClick = () => {
+    if (!isRunning) {
+      setIsEditing(true);
+      setEditMinutes(minutes.toString());
+    }
+  };
+
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/^\d*$/.test(value) && parseInt(value) <= 60) {
+      setEditMinutes(value);
+    }
+  };
+
+  const handleTimeSubmit = () => {
+    const newMinutes = parseInt(editMinutes);
+    if (newMinutes > 0 && newMinutes <= 60) {
+      toast({
+        title: "タイマー時間を更新しました",
+        description: `${newMinutes}分に設定しました。`,
+      });
+    }
+    setIsEditing(false);
   };
 
   return (
@@ -41,9 +73,24 @@ export const PomodoroTimer = ({
           isRunning ? "bg-red-50 text-red-500" : "hover:bg-notion-hover"
         )}
       >
-        <span className="text-sm font-medium min-w-[54px]">
-          {formatTime(minutes)}:{formatTime(seconds)}
-        </span>
+        {isEditing ? (
+          <Input
+            type="text"
+            value={editMinutes}
+            onChange={handleTimeChange}
+            onBlur={handleTimeSubmit}
+            onKeyPress={(e) => e.key === "Enter" && handleTimeSubmit()}
+            className="h-6 w-16 text-sm font-medium text-center"
+            autoFocus
+          />
+        ) : (
+          <span 
+            className="text-sm font-medium min-w-[54px] cursor-pointer"
+            onClick={handleTimeClick}
+          >
+            {formatTime(minutes)}:{formatTime(seconds)}
+          </span>
+        )}
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
