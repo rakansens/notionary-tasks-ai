@@ -38,6 +38,8 @@ export const PomodoroCalendar = () => {
             hasStats: {
               fontWeight: "bold",
               color: "var(--primary)",
+              backgroundColor: "var(--primary-foreground)",
+              borderRadius: "4px",
             },
           }}
           components={{
@@ -50,7 +52,7 @@ export const PomodoroCalendar = () => {
                   <span>{date.getDate()}</span>
                   {stats && (
                     <div className="text-[8px] leading-tight text-center">
-                      <div>{stats.pomodoroCount}回</div>
+                      <div className="font-semibold">{stats.pomodoroCount}回</div>
                       <div>{stats.totalMinutes}分</div>
                     </div>
                   )}
