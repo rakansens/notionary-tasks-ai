@@ -57,16 +57,23 @@ export const PomodoroTimer = ({
     setIsEditing(false);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleTimeSubmit();
+    } else if (e.key === "Escape") {
+      setIsEditing(false);
+      setEditMinutes(minutes.toString());
+    }
+  };
+
   return (
     <div className="flex items-center gap-3">
-      {/* タイマー統計情報 */}
       <div className="flex items-center gap-2 text-sm text-notion-secondary">
         <Clock className="h-4 w-4" />
         <span>{pomodoroCount}回</span>
         <span>({totalMinutes}分)</span>
       </div>
 
-      {/* タイマーコントロール */}
       <div 
         className={cn(
           "flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors duration-200",
@@ -79,7 +86,7 @@ export const PomodoroTimer = ({
             value={editMinutes}
             onChange={handleTimeChange}
             onBlur={handleTimeSubmit}
-            onKeyPress={(e) => e.key === "Enter" && handleTimeSubmit()}
+            onKeyDown={handleKeyDown}
             className="h-6 w-16 text-sm font-medium text-center"
             autoFocus
           />
