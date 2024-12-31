@@ -95,7 +95,26 @@ export const TaskSection = () => {
   );
 
   const handleReorderSubtasks = (startIndex: number, endIndex: number, parentId: number) => {
-    const parentTask = tasks.find(t => t.id === parentId);
+    console.log(`Reordering subtasks for parentId: ${parentId}, from ${startIndex} to ${endIndex}`);
+    
+    // Find the parent task and its parent (if it's a grandchild task)
+    const findParentTask = (tasks: Task[], targetId: number): { parentTask: Task | undefined, grandParentTask: Task | undefined } => {
+      for (const task of tasks) {
+        if (task.id === targetId) {
+          return { parentTask: task, grandParentTask: undefined };
+        }
+        if (task.subtasks) {
+          for (const subtask of task.subtasks) {
+            if (subtask.id === targetId) {
+              return { parentTask: subtask, grandParentTask: task };
+            }
+          }
+        }
+      }
+      return { parentTask: undefined, grandParentTask: undefined };
+    };
+
+    const { parentTask, grandParentTask } = findParentTask(tasks, parentId);
     if (!parentTask || !parentTask.subtasks) return;
 
     const reorderedSubtasks = [...parentTask.subtasks];
@@ -103,7 +122,22 @@ export const TaskSection = () => {
     reorderedSubtasks.splice(endIndex, 0, movedTask);
 
     const updatedTasks = tasks.map(t => {
-      if (t.id === parentId) {
+      if (grandParentTask && t.id === grandParentTask.id) {
+        return {
+          ...t,
+          subtasks: t.subtasks?.map(st => 
+            st.id === parentId
+              ? {
+                  ...st,
+                  subtasks: reorderedSubtasks.map((subtask, index) => ({
+                    ...subtask,
+                    order: index,
+                  })),
+                }
+              : st
+          ),
+        };
+      } else if (!grandParentTask && t.id === parentId) {
         return {
           ...t,
           subtasks: reorderedSubtasks.map((subtask, index) => ({
@@ -115,6 +149,7 @@ export const TaskSection = () => {
       return t;
     });
 
+    console.log('Updated tasks:', updatedTasks);
     updateTaskOrder(updatedTasks);
   };
 

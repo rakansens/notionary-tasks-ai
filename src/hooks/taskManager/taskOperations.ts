@@ -76,11 +76,30 @@ export const updateTaskTitleInState = (
 };
 
 export const updateTaskOrderInState = (tasks: Task[]): Task[] => {
-  return tasks.map(task => ({
-    ...task,
-    subtasks: task.subtasks?.map((subtask, index) => ({
-      ...subtask,
-      order: index,
-    })) || [],
-  }));
+  console.log('Initial tasks:', tasks);
+  const updatedTasks = tasks.map(task => {
+    if (task.subtasks && task.subtasks.length > 0) {
+      return {
+        ...task,
+        subtasks: task.subtasks.map((subtask, index) => {
+          if (subtask.subtasks && subtask.subtasks.length > 0) {
+            return {
+              ...subtask,
+              subtasks: subtask.subtasks.map((grandchild, grandchildIndex) => ({
+                ...grandchild,
+                order: grandchildIndex,
+              })),
+            };
+          }
+          return {
+            ...subtask,
+            order: index,
+          };
+        }),
+      };
+    }
+    return task;
+  });
+  console.log('Updated tasks:', updatedTasks);
+  return updatedTasks;
 };
