@@ -40,7 +40,8 @@ export const TaskItem = ({
     console.log('Adding subtask for task:', {
       taskId: task.id,
       groupId: task.groupId,
-      currentNewTask: newTask
+      currentNewTask: newTask,
+      parentId: task.parentId
     });
     setAddingSubtaskId(task.id);
     setNewTask('');
@@ -50,12 +51,12 @@ export const TaskItem = ({
     console.log('Submitting subtask:', {
       taskId: task.id,
       groupId: task.groupId,
-      newTask: newTask
+      newTask: newTask,
+      parentId: task.parentId
     });
     if (newTask.trim()) {
       addTask(task.groupId, task.id);
       setAddingSubtaskId(null);
-      setNewTask('');
     }
   };
 
@@ -98,7 +99,6 @@ export const TaskItem = ({
       groupId: task.groupId
     });
     
-    // If the task is in a group, use its own ID as the parentId
     const effectiveParentId = task.parentId || (task.groupId ? task.id : undefined);
     updateTaskTitle(task.id, title, effectiveParentId);
   };
@@ -153,7 +153,14 @@ export const TaskItem = ({
         <div className="pl-6">
           <TaskInput
             value={newTask}
-            onChange={setNewTask}
+            onChange={(value) => {
+              console.log('TaskInput onChange:', {
+                value,
+                taskId: task.id,
+                groupId: task.groupId
+              });
+              setNewTask(value);
+            }}
             onSubmit={handleSubmitSubtask}
             onCancel={() => {
               setAddingSubtaskId(null);
