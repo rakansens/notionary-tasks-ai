@@ -46,7 +46,7 @@ export const SubtaskList = ({
           <DraggableTask
             key={subtask.id}
             task={subtask}
-            parentTask={parentTask}
+            parentTask={subtask}
             editingTaskId={editingTaskId}
             addingSubtaskId={addingSubtaskId}
             setEditingTaskId={setEditingTaskId}
@@ -56,7 +56,7 @@ export const SubtaskList = ({
             deleteTask={(id) => deleteTask(id, parentTask.id)}
             newTask={newTask}
             setNewTask={setNewTask}
-            addTask={(groupId) => addTask(groupId, parentTask.id)}
+            addTask={(groupId) => addTask(groupId, subtask.id)}
           />
         ))}
       </SortableContext>
