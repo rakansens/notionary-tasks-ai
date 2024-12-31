@@ -181,7 +181,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                         <div className="text-xs text-notion-secondary mt-1 flex items-center gap-2 flex-wrap pl-6">
                           {task.parentTaskTitle && (
                             <div className="flex items-center gap-1">
-                              <Paperclip className="h-3 w-3" />
+                              <History className="h-3 w-3" />
                               <span className="flex items-center gap-1">
                                 {task.parentTaskTitle}
                                 {task.grandParentTaskTitle && (
