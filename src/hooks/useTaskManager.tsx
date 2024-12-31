@@ -4,7 +4,14 @@ import {
   addTaskToState,
   toggleTaskInState,
   updateTaskTitleInState,
+  updateTaskOrderInState,
 } from './taskManager/taskOperations';
+import {
+  addGroupToState,
+  updateGroupNameInState,
+  deleteGroupFromState,
+  cleanupTasksAfterGroupDelete,
+} from './taskManager/groupOperations';
 
 export type { Task, Group };
 
@@ -30,7 +37,7 @@ export const useTaskManager = () => {
       parentId,
       subtasks: [],
       order: tasks.length,
-      addedAt: new Date(), // Add this line to include the timestamp
+      addedAt: new Date(),
     };
     
     setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
@@ -45,7 +52,7 @@ export const useTaskManager = () => {
       name: newGroup,
     };
     
-    setGroups(prevGroups => [...prevGroups, group]);
+    setGroups(prevGroups => addGroupToState(prevGroups, group));
     setNewGroup("");
     setIsAddingGroup(false);
   };
@@ -59,59 +66,11 @@ export const useTaskManager = () => {
   };
 
   const updateTaskOrder = (taskId: number, newGroupId?: number, newIndex?: number) => {
-    setTasks(prevTasks => {
-      const taskToMove = prevTasks.find(t => t.id === taskId);
-      if (!taskToMove) return prevTasks;
-
-      // サブタスクの場合は親タスク内での並び替えのみ
-      if (taskToMove.parentId) {
-        const parentTask = prevTasks.find(t => t.id === taskToMove.parentId);
-        if (!parentTask || !parentTask.subtasks) return prevTasks;
-
-        const updatedSubtasks = [...parentTask.subtasks];
-        const oldIndex = updatedSubtasks.findIndex(t => t.id === taskId);
-        if (oldIndex === -1) return prevTasks;
-
-        const [removed] = updatedSubtasks.splice(oldIndex, 1);
-        const targetIndex = typeof newIndex === 'number' ? newIndex : updatedSubtasks.length;
-        updatedSubtasks.splice(targetIndex, 0, removed);
-
-        return prevTasks.map(task =>
-          task.id === parentTask.id
-            ? { ...task, subtasks: updatedSubtasks }
-            : task
-        );
-      }
-
-      // メインタスクの移動
-      const updatedTasks = [...prevTasks];
-      const oldIndex = updatedTasks.findIndex(t => t.id === taskId);
-      if (oldIndex === -1) return prevTasks;
-
-      // タスクを一時的に削除
-      const [removed] = updatedTasks.splice(oldIndex, 1);
-      
-      // 新しいグループIDを設定
-      const updatedTask = {
-        ...removed,
-        groupId: newGroupId,
-      };
-
-      // 移動先のインデックスを計算
-      let targetIndex = typeof newIndex === 'number' ? newIndex : updatedTasks.length;
-      
-      // タスクを新しい位置に挿入
-      updatedTasks.splice(targetIndex, 0, updatedTask);
-
-      console.log('Updated tasks:', updatedTasks);
-      return updatedTasks;
-    });
+    setTasks(prevTasks => updateTaskOrderInState(prevTasks, taskId, newGroupId, newIndex));
   };
 
-  const updateGroupName = (id: number, newName: string) => {
-    setGroups(groups.map(group =>
-      group.id === id ? { ...group, name: newName } : group
-    ));
+  const updateGroupName = (id: number, name: string) => {
+    setGroups(prevGroups => updateGroupNameInState(prevGroups, id, name));
   };
 
   const deleteTask = (id: number, parentId?: number) => {
@@ -142,8 +101,8 @@ export const useTaskManager = () => {
     if (deleteTarget.type === "task") {
       setTasks(tasks.filter(task => task.id !== deleteTarget.id));
     } else {
-      setGroups(groups.filter(group => group.id !== deleteTarget.id));
-      setTasks(tasks.filter(task => task.groupId !== deleteTarget.id));
+      setGroups(prevGroups => deleteGroupFromState(prevGroups, deleteTarget.id));
+      setTasks(prevTasks => cleanupTasksAfterGroupDelete(prevTasks, deleteTarget.id));
     }
     
     setDeleteTarget(null);

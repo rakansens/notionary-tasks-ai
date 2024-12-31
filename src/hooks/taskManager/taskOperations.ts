@@ -1,24 +1,5 @@
 import { Task } from './types';
 
-const findTaskAndUpdate = (
-  tasks: Task[],
-  taskId: number,
-  updateFn: (task: Task) => Task
-): Task[] => {
-  return tasks.map(task => {
-    if (task.id === taskId) {
-      return updateFn(task);
-    }
-    if (task.subtasks && task.subtasks.length > 0) {
-      return {
-        ...task,
-        subtasks: findTaskAndUpdate(task.subtasks, taskId, updateFn),
-      };
-    }
-    return task;
-  });
-};
-
 export const addTaskToState = (
   prevTasks: Task[],
   newTask: Task,
@@ -90,4 +71,27 @@ export const updateTaskTitleInState = (
   };
 
   return updateTitle(prevTasks);
+};
+
+export const updateTaskOrderInState = (
+  prevTasks: Task[],
+  taskId: number,
+  newGroupId?: number,
+  newIndex?: number
+): Task[] => {
+  const updatedTasks = [...prevTasks];
+  const oldIndex = updatedTasks.findIndex(t => t.id === taskId);
+  if (oldIndex === -1) return prevTasks;
+
+  const [removed] = updatedTasks.splice(oldIndex, 1);
+  
+  const updatedTask = {
+    ...removed,
+    groupId: newGroupId,
+  };
+
+  let targetIndex = typeof newIndex === 'number' ? newIndex : updatedTasks.length;
+  updatedTasks.splice(targetIndex, 0, updatedTask);
+
+  return updatedTasks;
 };
