@@ -37,26 +37,15 @@ export const TaskItem = ({
   groupName,
 }: TaskItemProps) => {
   const handleAddSubtask = () => {
-    console.log('Adding subtask for task:', {
-      taskId: task.id,
-      groupId: task.groupId,
-      currentNewTask: newTask,
-      parentId: task.parentId
-    });
     setAddingSubtaskId(task.id);
     setNewTask('');
   };
 
   const handleSubmitSubtask = () => {
-    console.log('Submitting subtask:', {
-      taskId: task.id,
-      groupId: task.groupId,
-      newTask: newTask,
-      parentId: task.parentId
-    });
     if (newTask.trim()) {
       addTask(task.groupId, task.id);
       setAddingSubtaskId(null);
+      setNewTask('');
     }
   };
 
@@ -91,18 +80,6 @@ export const TaskItem = ({
     }
   };
 
-  const handleTitleChange = (title: string) => {
-    console.log('Updating task title:', {
-      taskId: task.id,
-      newTitle: title,
-      parentId: task.parentId || (task.groupId ? task.id : undefined),
-      groupId: task.groupId
-    });
-    
-    const effectiveParentId = task.parentId || (task.groupId ? task.id : undefined);
-    updateTaskTitle(task.id, title, effectiveParentId);
-  };
-
   return (
     <div className="space-y-0.5">
       <div className="flex items-center gap-2 py-1 px-2 -mx-2 rounded transition-all duration-200 hover:bg-notion-hover group">
@@ -115,14 +92,10 @@ export const TaskItem = ({
           title={task.title}
           completed={task.completed}
           isEditing={editingTaskId === task.id}
-          onTitleChange={handleTitleChange}
+          onTitleChange={(title) => updateTaskTitle(task.id, title, task.parentId)}
           onTitleClick={() => setEditingTaskId(task.id)}
           onBlur={() => setEditingTaskId(null)}
-          onKeyPress={(e) => {
-            if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-              setEditingTaskId(null);
-            }
-          }}
+          onKeyPress={(e) => e.key === "Enter" && setEditingTaskId(null)}
         />
 
         <TaskItemActions
@@ -153,20 +126,12 @@ export const TaskItem = ({
         <div className="pl-6">
           <TaskInput
             value={newTask}
-            onChange={(value) => {
-              console.log('TaskInput onChange:', {
-                value,
-                taskId: task.id,
-                groupId: task.groupId
-              });
-              setNewTask(value);
-            }}
+            onChange={setNewTask}
             onSubmit={handleSubmitSubtask}
             onCancel={() => {
               setAddingSubtaskId(null);
               setNewTask('');
             }}
-            parentTaskTitle={task.title}
             autoFocus
           />
         </div>

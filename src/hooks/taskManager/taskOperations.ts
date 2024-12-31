@@ -55,32 +55,22 @@ export const updateTaskTitleInState = (
   title: string,
   parentId?: number
 ): Task[] => {
-  return prevTasks.map(task => {
-    // If this is the task we want to update
-    if (task.id === id) {
-      return { ...task, title };
-    }
+  const updateTitle = (tasks: Task[]): Task[] => {
+    return tasks.map(task => {
+      if (task.id === id) {
+        return { ...task, title };
+      }
+      if (task.subtasks && task.subtasks.length > 0) {
+        return {
+          ...task,
+          subtasks: updateTitle(task.subtasks),
+        };
+      }
+      return task;
+    });
+  };
 
-    // If this task has subtasks, recursively search them
-    if (task.subtasks && task.subtasks.length > 0) {
-      return {
-        ...task,
-        subtasks: updateTaskTitleInState(task.subtasks, id, title, parentId),
-      };
-    }
-
-    // If this task has the same groupId as the task we're updating
-    if (task.groupId && task.id === parentId) {
-      return {
-        ...task,
-        subtasks: (task.subtasks || []).map(subtask =>
-          subtask.id === id ? { ...subtask, title } : subtask
-        ),
-      };
-    }
-
-    return task;
-  });
+  return updateTitle(prevTasks);
 };
 
 export const updateTaskOrderInState = (

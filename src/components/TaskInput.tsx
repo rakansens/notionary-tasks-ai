@@ -57,15 +57,6 @@ export const TaskInput = ({
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('TaskInput handleChange:', {
-      value: e.target.value,
-      groupId,
-      parentTaskTitle
-    });
-    onChange(e.target.value);
-  };
-
   return (
     <div className={cn("flex items-center gap-2 group", className)}>
       <Button
@@ -78,7 +69,7 @@ export const TaskInput = ({
       </Button>
       <Input
         value={value}
-        onChange={handleChange}
+        onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyPress}
         onBlur={handleBlur}
         placeholder="新しいタスクを追加..."
