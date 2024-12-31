@@ -79,11 +79,6 @@ export const GroupList = ({
     ? tasks.find(task => task.id.toString() === dragAndDropState.activeId)
     : null;
 
-  const handleTaskSubmit = (title: string, groupId?: number) => {
-    setNewTask(title);
-    addTask(groupId);
-  };
-
   return (
     <DndContext
       sensors={sensors}
@@ -130,7 +125,9 @@ export const GroupList = ({
                   ))}
               </SortableContext>
               <TaskInput
-                onSubmit={(title) => handleTaskSubmit(title, group.id)}
+                value={newTask}
+                onChange={setNewTask}
+                onSubmit={() => addTask(group.id)}
                 groupId={group.id}
               />
             </div>

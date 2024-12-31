@@ -1,11 +1,12 @@
 import { Plus } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface TaskInputProps {
-  onSubmit: (title: string) => void;
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
   onCancel?: () => void;
   groupId?: number;
   autoFocus?: boolean;
@@ -13,32 +14,33 @@ interface TaskInputProps {
 }
 
 export const TaskInput = ({ 
+  value, 
+  onChange, 
   onSubmit,
   onCancel,
   groupId,
   autoFocus,
   className
 }: TaskInputProps) => {
-  const [inputValue, setInputValue] = useState("");
-
   const handleSubmit = () => {
-    if (inputValue.trim()) {
+    if (value.trim()) {
       // Dispatch new task added event
       window.dispatchEvent(new CustomEvent('taskAdded', {
         detail: {
-          title: inputValue,
+          title: value,
           addedAt: new Date(),
           groupId: groupId || null
         },
         bubbles: true,
         composed: true
       }));
-      onSubmit(inputValue);
-      setInputValue(''); // Clear the input after submission
+      onSubmit();
+      onChange(''); // Clear the input after submission
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    // 入力候補表示中（IME変換中）はエンターでの送信を防ぐ
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       handleSubmit();
     } else if (e.key === "Escape" && onCancel) {
@@ -47,7 +49,7 @@ export const TaskInput = ({
   };
 
   const handleBlur = () => {
-    if (!inputValue.trim() && onCancel) {
+    if (!value.trim() && onCancel) {
       onCancel();
     }
   };
@@ -63,8 +65,8 @@ export const TaskInput = ({
         <Plus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
       </Button>
       <Input
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyPress}
         onBlur={handleBlur}
         placeholder="新しいタスクを追加..."
