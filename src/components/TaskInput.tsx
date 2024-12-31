@@ -32,6 +32,7 @@ export const TaskInput = ({
         bubbles: true,
         composed: true
       }));
+      onChange(''); // Clear the input after submission
     }
     onSubmit();
   };
