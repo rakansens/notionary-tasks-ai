@@ -4,7 +4,6 @@ import { PomodoroTimer } from "./PomodoroTimer";
 import { PomodoroStats } from "./PomodoroStats";
 import { CompletedTasks } from "./CompletedTasks";
 import { PomodoroSessionName } from "./PomodoroSessionName";
-import { TaskLogTabs } from "./TaskLogTabs";
 import type { PomodoroSession, CompletedTask } from "@/types/pomodoro";
 
 export const PomodoroHeader = () => {
@@ -175,43 +174,40 @@ export const PomodoroHeader = () => {
   }, [currentSession]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 ml-auto relative">
-        {currentSession && (
-          <div className="flex items-center gap-2">
-            <PomodoroSessionName
-              currentSession={currentSession}
-              isEditingName={isEditingName}
-              sessionName={sessionName}
-              setSessionName={setSessionName}
-              setIsEditingName={setIsEditingName}
-              updateSessionName={updateSessionName}
-            />
-          </div>
-        )}
+    <div className="flex items-center gap-3 ml-auto relative">
+      {currentSession && (
+        <div className="flex items-center gap-2">
+          <PomodoroSessionName
+            currentSession={currentSession}
+            isEditingName={isEditingName}
+            sessionName={sessionName}
+            setSessionName={setSessionName}
+            setIsEditingName={setIsEditingName}
+            updateSessionName={updateSessionName}
+          />
+        </div>
+      )}
 
-        <PomodoroTimer
-          minutes={minutes}
-          seconds={seconds}
-          isRunning={isRunning}
-          pomodoroCount={pomodoroCount}
-          totalMinutes={totalMinutes}
-          toggleTimer={toggleTimer}
-          resetTimer={resetTimer}
-        />
+      <PomodoroTimer
+        minutes={minutes}
+        seconds={seconds}
+        isRunning={isRunning}
+        pomodoroCount={pomodoroCount}
+        totalMinutes={totalMinutes}
+        toggleTimer={toggleTimer}
+        resetTimer={resetTimer}
+      />
 
-        <CompletedTasks 
-          sessions={sessions}
-          currentSession={currentSession}
-          onAddCompletedTask={addCompletedTask}
-        />
-        <PomodoroStats
-          pomodoroCount={pomodoroCount}
-          totalMinutes={totalMinutes}
-          sessions={sessions}
-        />
-      </div>
-      <TaskLogTabs />
+      <CompletedTasks 
+        sessions={sessions}
+        currentSession={currentSession}
+        onAddCompletedTask={addCompletedTask}
+      />
+      <PomodoroStats
+        pomodoroCount={pomodoroCount}
+        totalMinutes={totalMinutes}
+        sessions={sessions}
+      />
     </div>
   );
 };
