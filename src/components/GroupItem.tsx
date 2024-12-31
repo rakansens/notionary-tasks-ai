@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Group } from "@/hooks/useTaskManager";
 
-interface GroupHeaderProps {
+interface GroupItemProps {
   group: Group;
   editingGroupId: number | null;
   setEditingGroupId: (id: number | null) => void;
@@ -11,13 +11,13 @@ interface GroupHeaderProps {
   deleteGroup: (id: number) => void;
 }
 
-export const GroupHeader = ({
+export const GroupItem = ({
   group,
   editingGroupId,
   setEditingGroupId,
   updateGroupName,
   deleteGroup,
-}: GroupHeaderProps) => {
+}: GroupItemProps) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       if (group.name.trim()) {

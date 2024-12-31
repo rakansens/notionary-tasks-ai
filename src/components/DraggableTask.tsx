@@ -1,31 +1,39 @@
+import { Task } from "@/hooks/useTaskManager";
+import { TaskItem } from "./TaskItem";
+import { SubtaskList } from "./SubtaskList";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
-import { TaskItem } from "./TaskItem";
-import type { Task } from "@/hooks/useTaskManager";
-import type { CSSProperties } from "react";
 
 interface DraggableTaskProps {
   task: Task;
+  parentTask?: Task;
   editingTaskId: number | null;
   addingSubtaskId: number | null;
   setEditingTaskId: (id: number | null) => void;
   setAddingSubtaskId: (id: number | null) => void;
-  toggleTask: (id: number) => void;
-  updateTaskTitle: (id: number, title: string) => void;
-  deleteTask: (id: number) => void;
+  toggleTask: (id: number, parentId?: number) => void;
+  updateTaskTitle: (id: number, title: string, parentId?: number) => void;
+  deleteTask: (id: number, parentId?: number) => void;
   newTask: string;
   setNewTask: (value: string) => void;
-  addTask: (groupId?: number) => void;
-  parentTask?: Task;
-  groupName?: string;
+  addTask: (groupId?: number, parentId?: number) => void;
+  onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
 }
 
 export const DraggableTask = ({
   task,
   parentTask,
-  groupName,
-  ...props
+  editingTaskId,
+  addingSubtaskId,
+  setEditingTaskId,
+  setAddingSubtaskId,
+  toggleTask,
+  updateTaskTitle,
+  deleteTask,
+  newTask,
+  setNewTask,
+  addTask,
+  onReorderSubtasks,
 }: DraggableTaskProps) => {
   const {
     attributes,
@@ -36,37 +44,48 @@ export const DraggableTask = ({
     isDragging,
   } = useSortable({ id: task.id.toString() });
 
-  const style: CSSProperties = {
+  const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    position: "relative" as const,
-    zIndex: isDragging ? 999 : "auto",
   };
 
+  const subtasks = task.subtasks || [];
+
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`group flex items-center gap-2 transition-shadow duration-200 ${
-        isDragging ? 'shadow-lg rounded-md bg-white' : ''
-      }`}
-    >
-      <div
-        {...attributes}
-        {...listeners}
-        className="touch-none cursor-grab p-2 hover:bg-notion-hover rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-      >
-        <GripVertical className="h-4 w-4 text-notion-secondary" />
-      </div>
-      <div className="flex-1">
-        <TaskItem 
-          task={task} 
-          {...props} 
-          parentTask={parentTask}
-          groupName={groupName}
+    <div ref={setNodeRef} style={style}>
+      <TaskItem
+        task={task}
+        parentTask={parentTask}
+        editingTaskId={editingTaskId}
+        addingSubtaskId={addingSubtaskId}
+        setEditingTaskId={setEditingTaskId}
+        setAddingSubtaskId={setAddingSubtaskId}
+        toggleTask={toggleTask}
+        updateTaskTitle={updateTaskTitle}
+        deleteTask={deleteTask}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        addTask={addTask}
+        dragHandleProps={{ ...attributes, ...listeners }}
+      />
+      {subtasks.length > 0 && (
+        <SubtaskList
+          parentTask={task}
+          subtasks={subtasks}
+          editingTaskId={editingTaskId}
+          addingSubtaskId={addingSubtaskId}
+          setEditingTaskId={setEditingTaskId}
+          setAddingSubtaskId={setAddingSubtaskId}
+          toggleTask={toggleTask}
+          updateTaskTitle={updateTaskTitle}
+          deleteTask={deleteTask}
+          newTask={newTask}
+          setNewTask={setNewTask}
+          addTask={addTask}
+          onReorderSubtasks={onReorderSubtasks}
         />
-      </div>
+      )}
     </div>
   );
 };

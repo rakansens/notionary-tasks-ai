@@ -1,12 +1,12 @@
-import { TaskCheckbox } from "./task/TaskCheckbox";
-import { TaskTitle } from "./task/TaskTitle";
-import { TaskItemActions } from "./task/TaskItemActions";
-import { TaskInput } from "./TaskInput";
-import { SubtaskList } from "./SubtaskList";
-import type { Task } from "@/hooks/useTaskManager";
+import { Task } from "@/hooks/useTaskManager";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { GripVertical, Plus, Trash2 } from "lucide-react";
 
 interface TaskItemProps {
   task: Task;
+  parentTask?: Task;
   editingTaskId: number | null;
   addingSubtaskId: number | null;
   setEditingTaskId: (id: number | null) => void;
@@ -17,12 +17,12 @@ interface TaskItemProps {
   newTask: string;
   setNewTask: (value: string) => void;
   addTask: (groupId?: number, parentId?: number) => void;
-  parentTask?: Task;
-  groupName?: string;
+  dragHandleProps?: Record<string, any>;
 }
 
 export const TaskItem = ({
   task,
+  parentTask,
   editingTaskId,
   addingSubtaskId,
   setEditingTaskId,
@@ -33,126 +33,87 @@ export const TaskItem = ({
   newTask,
   setNewTask,
   addTask,
-  parentTask,
-  groupName,
+  dragHandleProps,
 }: TaskItemProps) => {
-  const handleAddSubtask = () => {
-    setAddingSubtaskId(task.id);
-    setNewTask('');
-  };
+  const isEditing = editingTaskId === task.id;
+  const isAddingSubtask = addingSubtaskId === task.id;
 
-  const handleSubmitSubtask = () => {
-    if (newTask.trim()) {
-      addTask(task.groupId, task.id);
-      
-      // Dispatch taskAdded event with group and parent task information
-      const addedTask = {
-        id: Date.now(),
-        title: newTask,
-        addedAt: new Date(),
-        parentTaskTitle: task.title,
-        grandParentTaskTitle: parentTask?.title || null,
-        groupName: groupName || null,
-      };
-      
-      window.dispatchEvent(new CustomEvent('taskAdded', { 
-        detail: addedTask,
-        bubbles: true,
-        composed: true
-      }));
-      
-      setAddingSubtaskId(null);
-      setNewTask('');
-    }
-  };
-
-  const handleToggleTask = () => {
-    console.log('Task before toggle:', {
-      id: task.id,
-      title: task.title,
-      addedAt: task.addedAt,
-      completed: task.completed
-    });
-
-    toggleTask(task.id, task.parentId);
-
-    if (!task.completed) {
-      const completedTask = {
-        id: task.id,
-        title: task.title,
-        completedAt: new Date(),
-        addedAt: task.addedAt,
-        parentTaskTitle: parentTask?.title || null,
-        grandParentTaskTitle: parentTask?.parentId ? 
-          task.parentId ? parentTask?.title : null : 
-          null,
-        groupName: groupName || null,
-      };
-      
-      window.dispatchEvent(new CustomEvent('taskCompleted', { 
-        detail: completedTask,
-        bubbles: true,
-        composed: true
-      }));
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      setEditingTaskId(null);
     }
   };
 
   return (
-    <div className="space-y-0.5">
-      <div className="flex items-center gap-2 py-1 px-2 -mx-2 rounded transition-all duration-200 hover:bg-notion-hover group">
-        <TaskCheckbox 
-          completed={task.completed}
-          onClick={handleToggleTask}
-        />
-        
-        <TaskTitle
-          title={task.title}
-          completed={task.completed}
-          isEditing={editingTaskId === task.id}
-          onTitleChange={(title) => updateTaskTitle(task.id, title, task.parentId)}
-          onTitleClick={() => setEditingTaskId(task.id)}
-          onBlur={() => setEditingTaskId(null)}
-          onKeyPress={(e) => e.key === "Enter" && setEditingTaskId(null)}
-        />
-
-        <TaskItemActions
-          onAddSubtask={handleAddSubtask}
-          onDelete={() => deleteTask(task.id, task.parentId)}
-          onDropdownDelete={() => deleteTask(task.id, task.parentId)}
-        />
-      </div>
-
-      {task.subtasks && task.subtasks.length > 0 && (
-        <SubtaskList
-          parentTask={task}
-          subtasks={task.subtasks}
-          editingTaskId={editingTaskId}
-          addingSubtaskId={addingSubtaskId}
-          setEditingTaskId={setEditingTaskId}
-          setAddingSubtaskId={setAddingSubtaskId}
-          toggleTask={toggleTask}
-          updateTaskTitle={updateTaskTitle}
-          deleteTask={deleteTask}
-          newTask={newTask}
-          setNewTask={setNewTask}
-          addTask={addTask}
-        />
-      )}
-
-      {addingSubtaskId === task.id && (
-        <div className="pl-6">
-          <TaskInput
-            value={newTask}
-            onChange={setNewTask}
-            onSubmit={handleSubmitSubtask}
-            onCancel={() => {
-              setAddingSubtaskId(null);
-              setNewTask('');
-            }}
-            autoFocus
-          />
+    <div className="group flex items-center gap-2 py-0.5">
+      {dragHandleProps && (
+        <div
+          {...dragHandleProps}
+          className="touch-none cursor-grab p-2 hover:bg-notion-hover rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        >
+          <GripVertical className="h-4 w-4 text-notion-secondary" />
         </div>
       )}
+      <Checkbox
+        checked={task.completed}
+        onCheckedChange={() => toggleTask(task.id, parentTask?.id)}
+        className="h-4 w-4"
+      />
+      <div className="flex-1 min-w-0">
+        {isEditing ? (
+          <Input
+            value={task.title}
+            onChange={(e) => updateTaskTitle(task.id, e.target.value, parentTask?.id)}
+            onBlur={() => setEditingTaskId(null)}
+            onKeyDown={handleKeyDown}
+            className="h-6 text-sm"
+            autoFocus
+          />
+        ) : (
+          <div
+            onClick={() => setEditingTaskId(task.id)}
+            className={`cursor-text text-sm ${task.completed ? "line-through text-notion-secondary" : ""}`}
+          >
+            {task.title}
+          </div>
+        )}
+        {isAddingSubtask && (
+          <div className="pl-6 mt-1">
+            <Input
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              onBlur={() => setAddingSubtaskId(null)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newTask.trim()) {
+                  addTask(undefined, task.id);
+                  setAddingSubtaskId(null);
+                }
+              }}
+              placeholder="新しいサブタスク"
+              className="h-6 text-sm"
+              autoFocus
+            />
+          </div>
+        )}
+      </div>
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6"
+          onClick={() => setAddingSubtaskId(task.id)}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6"
+          onClick={() => deleteTask(task.id, parentTask?.id)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 };

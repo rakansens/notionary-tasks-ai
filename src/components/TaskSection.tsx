@@ -67,6 +67,30 @@ export const TaskSection = () => {
     })
   );
 
+  const handleReorderSubtasks = (startIndex: number, endIndex: number, parentId: number) => {
+    const parentTask = tasks.find(t => t.id === parentId);
+    if (!parentTask || !parentTask.subtasks) return;
+
+    const reorderedSubtasks = [...parentTask.subtasks];
+    const [movedTask] = reorderedSubtasks.splice(startIndex, 1);
+    reorderedSubtasks.splice(endIndex, 0, movedTask);
+
+    const updatedTasks = tasks.map(t => {
+      if (t.id === parentId) {
+        return {
+          ...t,
+          subtasks: reorderedSubtasks.map((subtask, index) => ({
+            ...subtask,
+            order: index,
+          })),
+        };
+      }
+      return t;
+    });
+
+    updateTaskOrder(updatedTasks);
+  };
+
   return (
     <div className="flex flex-col h-full bg-white">
       <TaskHeader />
@@ -98,6 +122,7 @@ export const TaskSection = () => {
                   newTask={newTask}
                   setNewTask={setNewTask}
                   addTask={addTask}
+                  onReorderSubtasks={handleReorderSubtasks}
                 />
               ))}
             </SortableContext>
@@ -120,6 +145,7 @@ export const TaskSection = () => {
               deleteTask={deleteTask}
               deleteGroup={deleteGroup}
               updateTaskOrder={updateTaskOrder}
+              onReorderSubtasks={handleReorderSubtasks}
             />
 
             <DragOverlay>

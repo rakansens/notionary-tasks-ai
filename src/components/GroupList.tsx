@@ -21,6 +21,7 @@ import { DraggableTask } from "./DraggableTask";
 import { TaskInput } from "./TaskInput";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import type { Task, Group } from "@/hooks/useTaskManager";
+import { GroupItem } from "./GroupItem";
 
 interface GroupListProps {
   groups: Group[];
@@ -33,13 +34,14 @@ interface GroupListProps {
   setEditingTaskId: (id: number | null) => void;
   setEditingGroupId: (id: number | null) => void;
   setAddingSubtaskId: (id: number | null) => void;
-  addTask: (groupId?: number) => void;
-  toggleTask: (id: number) => void;
-  updateTaskTitle: (id: number, title: string) => void;
+  addTask: (groupId?: number, parentId?: number) => void;
+  toggleTask: (id: number, parentId?: number) => void;
+  updateTaskTitle: (id: number, title: string, parentId?: number) => void;
   updateGroupName: (id: number, name: string) => void;
-  deleteTask: (id: number) => void;
+  deleteTask: (id: number, parentId?: number) => void;
   deleteGroup: (id: number) => void;
-  updateTaskOrder: (taskId: number, newGroupId?: number, newIndex?: number) => void;
+  updateTaskOrder: (tasks: Task[]) => void;
+  onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
 }
 
 export const GroupList = ({
@@ -60,6 +62,7 @@ export const GroupList = ({
   deleteTask,
   deleteGroup,
   updateTaskOrder,
+  onReorderSubtasks,
 }: GroupListProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -88,51 +91,50 @@ export const GroupList = ({
       onDragCancel={handleDragCancel}
     >
       <div className="space-y-0.5">
-        {groups.map(group => (
-          <div key={group.id} className="mt-2">
-            <GroupHeader
-              group={group}
-              editingGroupId={editingGroupId}
-              setEditingGroupId={setEditingGroupId}
-              updateGroupName={updateGroupName}
-              deleteGroup={deleteGroup}
-            />
-            <div className="pl-4 space-y-0.5">
-              <SortableContext
-                items={tasks
-                  .filter(task => task.groupId === group.id)
-                  .map(task => task.id.toString())}
-                strategy={verticalListSortingStrategy}
-              >
-                {tasks
-                  .filter(task => task.groupId === group.id)
-                  .map(task => (
-                    <DraggableTask
-                      key={task.id}
-                      task={task}
-                      editingTaskId={editingTaskId}
-                      addingSubtaskId={addingSubtaskId}
-                      setEditingTaskId={setEditingTaskId}
-                      setAddingSubtaskId={setAddingSubtaskId}
-                      toggleTask={toggleTask}
-                      updateTaskTitle={updateTaskTitle}
-                      deleteTask={deleteTask}
-                      newTask={newTask}
-                      setNewTask={setNewTask}
-                      addTask={addTask}
-                      groupName={group.name}
-                    />
-                  ))}
-              </SortableContext>
-              <TaskInput
-                value={newTask}
-                onChange={setNewTask}
-                onSubmit={() => addTask(group.id)}
-                groupId={group.id}
+        {groups.map(group => {
+          const groupTasks = tasks.filter(task => task.groupId === group.id && !task.parentId);
+
+          return (
+            <div key={group.id} className="space-y-1">
+              <GroupItem
+                group={group}
+                editingGroupId={editingGroupId}
+                setEditingGroupId={setEditingGroupId}
+                updateGroupName={updateGroupName}
+                deleteGroup={deleteGroup}
               />
+              <div className="pl-4">
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                >
+                  <SortableContext
+                    items={groupTasks.map(task => task.id.toString())}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {groupTasks.map(task => (
+                      <DraggableTask
+                        key={task.id}
+                        task={task}
+                        editingTaskId={editingTaskId}
+                        addingSubtaskId={addingSubtaskId}
+                        setEditingTaskId={setEditingTaskId}
+                        setAddingSubtaskId={setAddingSubtaskId}
+                        toggleTask={toggleTask}
+                        updateTaskTitle={updateTaskTitle}
+                        deleteTask={deleteTask}
+                        newTask={newTask}
+                        setNewTask={setNewTask}
+                        addTask={addTask}
+                        onReorderSubtasks={onReorderSubtasks}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <DragOverlay>
         {activeTask ? (
