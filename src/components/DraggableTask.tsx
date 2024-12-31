@@ -48,14 +48,14 @@ export const DraggableTask = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-2 transition-shadow duration-200 ${
+      className={`group flex items-center gap-2 transition-shadow duration-200 ${
         isDragging ? 'shadow-lg rounded-md bg-white' : ''
       }`}
     >
       <div
         {...attributes}
         {...listeners}
-        className="touch-none cursor-grab p-2 hover:bg-notion-hover rounded"
+        className="touch-none cursor-grab p-2 hover:bg-notion-hover rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
       >
         <GripVertical className="h-4 w-4 text-notion-secondary" />
       </div>
