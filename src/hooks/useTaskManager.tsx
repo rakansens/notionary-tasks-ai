@@ -25,13 +25,24 @@ export const useTaskManager = () => {
   const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
   const [addingSubtaskId, setAddingSubtaskId] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
+
+  const toggleGroupCollapse = (groupId: number) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) {
+        next.delete(groupId);
+      } else {
+        next.add(groupId);
+      }
+      return next;
+    });
+  };
 
   const addTask = (groupId?: number, parentId?: number) => {
-    if (!newTask.trim()) return;
-    
     const task: Task = {
       id: Date.now(),
-      title: newTask,
+      title: newTask || "新しいタスク",
       completed: false,
       groupId,
       parentId,
@@ -42,6 +53,7 @@ export const useTaskManager = () => {
     
     setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
     setNewTask("");
+    setEditingTaskId(task.id);
   };
 
   const addGroup = () => {
@@ -53,8 +65,23 @@ export const useTaskManager = () => {
     };
     
     setGroups(prevGroups => addGroupToState(prevGroups, group));
+
+    const taskId = Date.now() + 1;
+    const task: Task = {
+      id: taskId,
+      title: newTask || "新しいタスク",
+      completed: false,
+      groupId: group.id,
+      subtasks: [],
+      order: tasks.length,
+      addedAt: new Date(),
+    };
+    
+    setTasks(prevTasks => addTaskToState(prevTasks, task));
     setNewGroup("");
+    setNewTask("");
     setIsAddingGroup(false);
+    setEditingTaskId(taskId);
   };
 
   const toggleTask = (id: number, parentId?: number) => {
@@ -127,6 +154,7 @@ export const useTaskManager = () => {
     editingGroupId,
     addingSubtaskId,
     deleteTarget,
+    collapsedGroups,
     setNewTask,
     setNewGroup,
     setIsAddingGroup,
@@ -143,5 +171,6 @@ export const useTaskManager = () => {
     confirmDelete,
     cancelDelete,
     updateTaskOrder,
+    toggleGroupCollapse,
   };
 };

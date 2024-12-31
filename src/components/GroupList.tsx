@@ -1,4 +1,4 @@
-import { FolderPlus } from "lucide-react";
+import { FolderPlus, Folder, FolderOpen, Trash2, Plus } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -30,10 +30,11 @@ interface GroupListProps {
   editingTaskId: number | null;
   editingGroupId: number | null;
   addingSubtaskId: number | null;
+  collapsedGroups: Set<number>;
   setNewTask: (value: string) => void;
-  setEditingTaskId: (id: number | null) => void;
-  setEditingGroupId: (id: number | null) => void;
-  setAddingSubtaskId: (id: number | null) => void;
+  setEditingTaskId: (value: number | null) => void;
+  setEditingGroupId: (value: number | null) => void;
+  setAddingSubtaskId: (value: number | null) => void;
   addTask: (groupId?: number, parentId?: number) => void;
   toggleTask: (id: number, parentId?: number) => void;
   updateTaskTitle: (id: number, title: string, parentId?: number) => void;
@@ -41,7 +42,8 @@ interface GroupListProps {
   deleteTask: (id: number, parentId?: number) => void;
   deleteGroup: (id: number) => void;
   updateTaskOrder: (tasks: Task[]) => void;
-  onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
+  onReorderSubtasks: (startIndex: number, endIndex: number, parentId: number) => void;
+  toggleGroupCollapse: (groupId: number) => void;
 }
 
 export const GroupList = ({
@@ -51,6 +53,7 @@ export const GroupList = ({
   editingTaskId,
   editingGroupId,
   addingSubtaskId,
+  collapsedGroups,
   setNewTask,
   setEditingTaskId,
   setEditingGroupId,
@@ -63,96 +66,95 @@ export const GroupList = ({
   deleteGroup,
   updateTaskOrder,
   onReorderSubtasks,
+  toggleGroupCollapse,
 }: GroupListProps) => {
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const {
-    dragAndDropState,
-    handleDragStart,
-    handleDragEnd,
-    handleDragCancel,
-  } = useDragAndDrop(tasks, groups, updateTaskOrder);
-
-  const activeTask = dragAndDropState.activeId
-    ? tasks.find(task => task.id.toString() === dragAndDropState.activeId)
-    : null;
-
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-    >
-      <div className="space-y-0.5">
-        {groups.map(group => {
-          const groupTasks = tasks.filter(task => task.groupId === group.id && !task.parentId);
-
-          return (
-            <div key={group.id} className="space-y-1">
-              <GroupItem
-                group={group}
-                editingGroupId={editingGroupId}
-                setEditingGroupId={setEditingGroupId}
-                updateGroupName={updateGroupName}
-                deleteGroup={deleteGroup}
-              />
-              <div className="pl-4">
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
+    <div className="space-y-4">
+      {groups.map(group => (
+        <div key={group.id} className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => toggleGroupCollapse(group.id)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                {collapsedGroups.has(group.id) ? (
+                  <Folder className="h-5 w-5" />
+                ) : (
+                  <FolderOpen className="h-5 w-5" />
+                )}
+              </button>
+              {editingGroupId === group.id ? (
+                <Input
+                  value={group.name}
+                  onChange={e => updateGroupName(group.id, e.target.value)}
+                  onBlur={() => setEditingGroupId(null)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") {
+                      setEditingGroupId(null);
+                    }
+                  }}
+                  autoFocus
+                />
+              ) : (
+                <h3
+                  className="font-medium text-gray-900 cursor-pointer"
+                  onClick={() => setEditingGroupId(group.id)}
                 >
-                  <SortableContext
-                    items={groupTasks.map(task => task.id.toString())}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {groupTasks.map(task => (
-                      <DraggableTask
-                        key={task.id}
-                        task={task}
-                        editingTaskId={editingTaskId}
-                        addingSubtaskId={addingSubtaskId}
-                        setEditingTaskId={setEditingTaskId}
-                        setAddingSubtaskId={setAddingSubtaskId}
-                        toggleTask={toggleTask}
-                        updateTaskTitle={updateTaskTitle}
-                        deleteTask={deleteTask}
-                        newTask={newTask}
-                        setNewTask={setNewTask}
-                        addTask={addTask}
-                        onReorderSubtasks={onReorderSubtasks}
-                      />
-                    ))}
-                  </SortableContext>
-                </DndContext>
-              </div>
+                  {group.name}
+                </h3>
+              )}
             </div>
-          );
-        })}
-      </div>
-      <DragOverlay>
-        {activeTask ? (
-          <TaskItem
-            task={activeTask}
-            editingTaskId={editingTaskId}
-            addingSubtaskId={addingSubtaskId}
-            setEditingTaskId={setEditingTaskId}
-            setAddingSubtaskId={setAddingSubtaskId}
-            toggleTask={toggleTask}
-            updateTaskTitle={updateTaskTitle}
-            deleteTask={deleteTask}
-            newTask={newTask}
-            setNewTask={setNewTask}
-            addTask={addTask}
-          />
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setNewTask("");
+                  addTask(group.id);
+                }}
+                className="text-gray-400 hover:text-gray-700"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => deleteGroup(group.id)}
+                className="text-gray-400 hover:text-red-500"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          {!collapsedGroups.has(group.id) && (
+            <div className="space-y-1">
+              <SortableContext
+                items={tasks
+                  .filter(task => task.groupId === group.id && !task.parentId)
+                  .map(task => task.id.toString())}
+                strategy={verticalListSortingStrategy}
+              >
+                {tasks
+                  .filter(task => task.groupId === group.id && !task.parentId)
+                  .map(task => (
+                    <DraggableTask
+                      key={task.id}
+                      task={task}
+                      editingTaskId={editingTaskId}
+                      addingSubtaskId={addingSubtaskId}
+                      setEditingTaskId={setEditingTaskId}
+                      setAddingSubtaskId={setAddingSubtaskId}
+                      toggleTask={toggleTask}
+                      updateTaskTitle={updateTaskTitle}
+                      deleteTask={deleteTask}
+                      newTask={newTask}
+                      setNewTask={setNewTask}
+                      addTask={addTask}
+                      onReorderSubtasks={onReorderSubtasks}
+                    />
+                  ))}
+              </SortableContext>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
   );
 };
