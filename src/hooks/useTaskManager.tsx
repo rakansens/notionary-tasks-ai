@@ -55,11 +55,13 @@ export const useTaskManager = () => {
     const grandParentTask = parentTask?.parentId ? findTaskById(state.tasks, parentTask.parentId) : undefined;
     const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
 
+    setters.setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
+    
+    // タスク追加イベントの発行を、状態更新後に移動
     if (task.title) {
       taskEvents.emitTaskAdded(task, parentTask, group, grandParentTask);
     }
-
-    setters.setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
+    
     setters.setNewTask("");
     if (groupId) {
       setters.setEditingTaskId(task.id);
