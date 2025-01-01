@@ -27,7 +27,7 @@ export const TaskInput = ({
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
-    if (trimmedValue) {
+    if (trimmedValue || !isGroupMode) { // グループモードでない場合のみ空の値を許可
       if (isGroupMode) {
         window.dispatchEvent(new CustomEvent('groupAdded', {
           detail: {
