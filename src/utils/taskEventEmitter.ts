@@ -12,7 +12,11 @@ export const emitTaskEvent = (eventData: TaskEventData) => {
       logMessage = `新しいタスク「${eventData.title}」を追加しました`;
       break;
     case 'SUBTASK_ADDED':
-      logMessage = `タスク「${eventData.parentTask}」に新しいサブタスク「${eventData.title}」を追加しました`;
+      if (eventData.grandParentTask) {
+        logMessage = `「${eventData.grandParentTask}」の子タスク「${eventData.parentTask}」にサブタスク「${eventData.title}」を追加しました`;
+      } else {
+        logMessage = `タスク「${eventData.parentTask}」にサブタスク「${eventData.title}」を追加しました`;
+      }
       break;
     case 'GROUP_TASK_ADDED':
       logMessage = `グループ「${eventData.groupName}」に新しいタスク「${eventData.title}」を追加しました`;
@@ -20,7 +24,9 @@ export const emitTaskEvent = (eventData: TaskEventData) => {
     case 'TASK_COMPLETED':
       const location = eventData.groupName ? `グループ「${eventData.groupName}」内の` : '';
       const relation = eventData.parentTask 
-        ? `「${eventData.parentTask}」のサブタスク「${eventData.title}」` 
+        ? eventData.grandParentTask
+          ? `「${eventData.grandParentTask}」の子タスク「${eventData.parentTask}」のサブタスク「${eventData.title}」`
+          : `「${eventData.parentTask}」のサブタスク「${eventData.title}」`
         : `タスク「${eventData.title}」`;
       logMessage = `${location}${relation}を${eventData.message?.includes('未完了') ? '未完了' : '完了'}にしました`;
       break;
@@ -42,12 +48,14 @@ export const createTaskEvent = (
   title: string,
   parentTask?: string,
   groupName?: string,
-  message?: string
+  message?: string,
+  grandParentTask?: string
 ): TaskEventData => ({
   type,
   title,
   parentTask,
   groupName,
   message,
+  grandParentTask,
   timestamp: new Date()
 });

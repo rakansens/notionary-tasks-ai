@@ -16,4 +16,5 @@ export interface TaskEventData {
   groupName?: string;
   message?: string;
   timestamp: Date;
+  grandParentTask?: string;
 }
