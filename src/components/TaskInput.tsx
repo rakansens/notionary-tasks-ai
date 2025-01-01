@@ -24,14 +24,11 @@ export const TaskInput = ({
   className
 }: TaskInputProps) => {
   const [isGroupMode, setIsGroupMode] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [hasBeenEdited, setHasBeenEdited] = useState(false);
-  const [shouldEmitEvent, setShouldEmitEvent] = useState(false);
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
-    if (trimmedValue || !isGroupMode) {
-      if (isGroupMode && hasBeenEdited) {
+    if (trimmedValue) {
+      if (isGroupMode) {
         window.dispatchEvent(new CustomEvent('groupAdded', {
           detail: {
             title: trimmedValue,
@@ -40,30 +37,21 @@ export const TaskInput = ({
           bubbles: true,
           composed: true
         }));
-      } else if (isEditing && hasBeenEdited && shouldEmitEvent) {
+      } else {
         onSubmit();
       }
-      onChange('');
-      setIsGroupMode(false);
-      setIsEditing(false);
-      setHasBeenEdited(false);
-      setShouldEmitEvent(false);
+      onChange(''); // 入力をクリア
+      setIsGroupMode(false); // タスクモードにリセット
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
       e.preventDefault();
-      if (hasBeenEdited) {
-        setShouldEmitEvent(true);
-        handleSubmit();
-      }
+      handleSubmit();
     } else if (e.key === "Escape" && onCancel) {
       onCancel();
       setIsGroupMode(false);
-      setIsEditing(false);
-      setHasBeenEdited(false);
-      setShouldEmitEvent(false);
     }
   };
 
@@ -71,26 +59,12 @@ export const TaskInput = ({
     if (!value.trim() && onCancel) {
       onCancel();
       setIsGroupMode(false);
-      setIsEditing(false);
-      setHasBeenEdited(false);
-      setShouldEmitEvent(false);
     }
   };
 
   const toggleMode = () => {
     setIsGroupMode(!isGroupMode);
-    onChange('');
-    setHasBeenEdited(false);
-    setShouldEmitEvent(false);
-  };
-
-  const handleInputFocus = () => {
-    setIsEditing(true);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-    setHasBeenEdited(true);
+    onChange(''); // モード切替時に入力をクリア
   };
 
   return (
@@ -109,10 +83,9 @@ export const TaskInput = ({
       </Button>
       <Input
         value={value}
-        onChange={handleInputChange}
+        onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyPress}
         onBlur={handleBlur}
-        onFocus={handleInputFocus}
         placeholder={isGroupMode ? "新しいグループを追加..." : "新しいタスクを追加..."}
         className={cn(
           "flex-1 h-8 text-sm bg-transparent border-none focus:ring-0",
