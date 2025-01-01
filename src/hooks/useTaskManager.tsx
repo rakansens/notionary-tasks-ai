@@ -216,6 +216,8 @@ export const useTaskManager = () => {
     deleteGroup,
     confirmDelete,
     cancelDelete,
+    updateTaskOrder,  // 追加
+    updateGroupOrder, // 追加
     toggleGroupCollapse,
   };
 };
