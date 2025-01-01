@@ -59,6 +59,10 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
           case 'TASK_COMPLETED':
           case 'SUBTASK_COMPLETED':
             const location = groupName ? `グループ「${groupName}」内の` : '';
+            const taskHierarchy = [];
+            if (parentTask) taskHierarchy.push(parentTask);
+            taskHierarchy.push(title);
+            
             const relation = parentTask 
               ? `「${parentTask}」のサブタスク「${title}」` 
               : `タスク「${title}」`;
@@ -69,6 +73,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
         const task = {
           id: Date.now(),
           title: description,
+          originalTitle: title,
           completedAt: event.detail.timestamp,
           sessionId: currentSession.id,
           status: 'operation',
