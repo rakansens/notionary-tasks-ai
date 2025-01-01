@@ -162,6 +162,14 @@ export const useTaskManager = () => {
     setIsAddingGroup(false);
   };
 
+  const updateTaskOrder = (updatedTasks: Task[]) => {
+    setTasks(updatedTasks);
+  };
+
+  const updateGroupOrder = (updatedGroups: Group[]) => {
+    setGroups(updatedGroups);
+  };
+
   const updateGroupName = (id: number, name: string) => {
     setGroups(prevGroups => updateGroupNameInState(prevGroups, id, name));
   };
