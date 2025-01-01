@@ -28,6 +28,30 @@ export const useTaskManager = () => {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
 
+  // グループ追加イベントのリスナーを追加
+  useEffect(() => {
+    const handleGroupAdded = (event: CustomEvent) => {
+      const { title } = event.detail;
+      const group: Group = {
+        id: Date.now(),
+        name: title,
+        order: groups.length,
+      };
+      setGroups(prevGroups => [...prevGroups, group]);
+      
+      // グループ追加のログを記録
+      emitTaskEvent(createTaskEvent(
+        'GROUP_ADDED',
+        group.name
+      ));
+    };
+
+    window.addEventListener('groupAdded', handleGroupAdded as EventListener);
+    return () => {
+      window.removeEventListener('groupAdded', handleGroupAdded as EventListener);
+    };
+  }, [groups.length]);
+
   const findTaskById = (tasks: Task[], targetId: number): Task | undefined => {
     for (const task of tasks) {
       if (task.id === targetId) {
@@ -55,7 +79,6 @@ export const useTaskManager = () => {
       addedAt: new Date(),
     };
 
-    // タスク追加時のログ記録
     const parentTask = parentId ? findTaskById(tasks, parentId) : undefined;
     const grandParentTask = parentTask?.parentId ? findTaskById(tasks, parentTask.parentId) : undefined;
     const group = groupId ? groups.find(g => g.id === groupId) : undefined;
