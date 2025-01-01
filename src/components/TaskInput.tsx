@@ -25,6 +25,7 @@ export const TaskInput = ({
 }: TaskInputProps) => {
   const [isGroupMode, setIsGroupMode] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [hasBeenEdited, setHasBeenEdited] = useState(false);
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
@@ -38,12 +39,13 @@ export const TaskInput = ({
           bubbles: true,
           composed: true
         }));
-      } else if (isEditing) {
+      } else if (isEditing && hasBeenEdited) {
         onSubmit();
       }
       onChange('');
       setIsGroupMode(false);
       setIsEditing(false);
+      setHasBeenEdited(false);
     }
   };
 
@@ -55,6 +57,7 @@ export const TaskInput = ({
       onCancel();
       setIsGroupMode(false);
       setIsEditing(false);
+      setHasBeenEdited(false);
     }
   };
 
@@ -63,16 +66,23 @@ export const TaskInput = ({
       onCancel();
       setIsGroupMode(false);
       setIsEditing(false);
+      setHasBeenEdited(false);
     }
   };
 
   const toggleMode = () => {
     setIsGroupMode(!isGroupMode);
     onChange('');
+    setHasBeenEdited(false);
   };
 
   const handleInputFocus = () => {
     setIsEditing(true);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value);
+    setHasBeenEdited(true);
   };
 
   return (
@@ -91,7 +101,7 @@ export const TaskInput = ({
       </Button>
       <Input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={handleInputChange}
         onKeyDown={handleKeyPress}
         onBlur={handleBlur}
         onFocus={handleInputFocus}
