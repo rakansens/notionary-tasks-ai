@@ -68,11 +68,12 @@ export const useTaskManager = () => {
   };
 
   const addTask = (groupId?: number, parentId?: number) => {
-    if (!newTask.trim()) return; // 空のタイトルの場合は早期リターン
+    // グループタスク追加の場合は空のタイトルを許可
+    if (!groupId && !parentId && !newTask.trim()) return;
 
     const task: Task = {
       id: Date.now(),
-      title: newTask.trim(), // デフォルトタイトルを削除し、トリム済みの入力値のみを使用
+      title: newTask.trim(),
       completed: false,
       groupId,
       parentId,
