@@ -34,7 +34,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
           sessionId: currentSession.id,
           timestamp: new Date(),
         };
-        setActivities(prev => [activity, ...prev]); // 新しいアクティビティを配列の先頭に追加
+        setActivities(prev => [...prev, activity]); // 新しいアクティビティを配列の最後に追加
         
         // メッセージの生成を安全に行う
         const getActivityMessage = () => {

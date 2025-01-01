@@ -56,10 +56,10 @@ export const useTaskManager = () => {
     };
 
     const handleGroupAdded = (event: CustomEvent) => {
-      const { title } = event.detail;
+      const { name } = event.detail;
       const group: Group = {
         id: Date.now(),
-        name: title,
+        name,
         order: groups.length,
       };
       setGroups(prevGroups => [...prevGroups, group]);
@@ -221,7 +221,13 @@ export const useTaskManager = () => {
       order: groups.length,
     };
     
-    setGroups(prevGroups => [...prevGroups, group]);
+    // グループ追加イベントを発火
+    window.dispatchEvent(new CustomEvent('groupAdded', {
+      detail: {
+        name: newGroup,
+      }
+    }));
+
     setNewGroup("");
     setIsAddingGroup(false);
   };
