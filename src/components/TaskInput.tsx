@@ -2,7 +2,6 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 interface TaskInputProps {
   value: string;
@@ -23,118 +22,63 @@ export const TaskInput = ({
   autoFocus,
   className
 }: TaskInputProps) => {
-  const [isActive, setIsActive] = useState(false);
-  const [mode, setMode] = useState<'task' | 'group'>('task');
-
   const handleSubmit = () => {
     const trimmedValue = value.trim();
     if (trimmedValue) {
-      if (mode === 'group') {
-        window.dispatchEvent(new CustomEvent('groupAdded', {
-          detail: {
-            name: trimmedValue,
-            addedAt: new Date(),
-          },
-          bubbles: true,
-          composed: true
-        }));
-      } else {
-        window.dispatchEvent(new CustomEvent('taskAdded', {
-          detail: {
-            title: trimmedValue,
-            addedAt: new Date(),
-            groupId: groupId || null,
-            type: 'task'
-          },
-          bubbles: true,
-          composed: true
-        }));
-      }
+      // Dispatch new task added event
+      window.dispatchEvent(new CustomEvent('taskAdded', {
+        detail: {
+          title: trimmedValue,
+          addedAt: new Date(),
+          groupId: groupId || null
+        },
+        bubbles: true,
+        composed: true
+      }));
       onSubmit();
-      onChange('');
-      setIsActive(false);
-      setMode('task'); // モードをリセット
+      onChange(''); // Clear the input after submission
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    // IME入力中はエンターでの送信を防ぐ
     if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
-      e.preventDefault();
+      e.preventDefault(); // エンターキーのデフォルト動作を防ぐ
       handleSubmit();
-    } else if (e.key === "Escape") {
-      setIsActive(false);
-      onChange('');
-      setMode('task'); // モードをリセット
-      if (onCancel) {
-        onCancel();
-      }
+    } else if (e.key === "Escape" && onCancel) {
+      onCancel();
     }
   };
 
   const handleBlur = () => {
     if (!value.trim() && onCancel) {
       onCancel();
-      setIsActive(false);
-      setMode('task'); // モードをリセット
-    }
-  };
-
-  const handleButtonClick = () => {
-    if (!isActive) {
-      setIsActive(true);
-      setMode('task');
-    } else {
-      setMode(mode === 'task' ? 'group' : 'task');
     }
   };
 
   return (
-    <div className={cn("flex items-center gap-2 group relative", className)}>
+    <div className={cn("flex items-center gap-2 group", className)}>
       <Button
         variant="ghost"
         size="icon"
-        className={cn(
-          "h-4 w-4 rounded-sm border transition-all duration-200",
-          isActive 
-            ? mode === 'task'
-              ? "border-notion-primary bg-notion-primary/10 text-notion-primary scale-110"
-              : "border-green-500 bg-green-500/10 text-green-500 scale-110"
-            : "border-notion-border group-hover:border-notion-primary/50"
-        )}
-        onClick={handleButtonClick}
+        className="h-4 w-4 rounded-sm border border-notion-border group-hover:border-notion-primary/50 transition-colors duration-200"
+        onClick={handleSubmit}
       >
-        <Plus 
-          className={cn(
-            "h-3 w-3 transition-all duration-200",
-            isActive 
-              ? mode === 'task'
-                ? "text-notion-primary scale-110"
-                : "text-green-500 scale-110"
-              : "text-notion-secondary group-hover:text-notion-primary group-hover:scale-110"
-          )} 
-        />
+        <Plus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
       </Button>
-      {isActive && (
-        <Input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={handleKeyPress}
-          onBlur={handleBlur}
-          placeholder={mode === 'task' ? "新しいタスクを追加..." : "新しいグループを追加..."}
-          className={cn(
-            "flex-1 h-8 text-sm bg-white border-none focus:ring-0",
-            "placeholder:text-notion-secondary",
-            "transition-all duration-200 ease-in-out",
-            mode === 'group' && "border-l-2 border-l-green-500"
-          )}
-          autoFocus
-        />
-      )}
-      {isActive && (
-        <div className="absolute -top-6 left-0 text-xs text-notion-secondary bg-white px-2 py-1 rounded-md shadow-sm">
-          {mode === 'task' ? 'タスクモード' : 'グループモード'} (クリックで切り替え)
-        </div>
-      )}
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={handleKeyPress}
+        onBlur={handleBlur}
+        placeholder="新しいタスクを追加..."
+        className={cn(
+          "flex-1 h-8 text-sm bg-transparent border-none focus:ring-0",
+          "placeholder:text-notion-secondary",
+          "hover:bg-notion-hover/50 focus:bg-white transition-colors duration-200"
+        )}
+        autoFocus={autoFocus}
+      />
     </div>
   );
 };
