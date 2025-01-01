@@ -48,11 +48,13 @@ export const TaskHistorySession = ({
   };
 
   return (
-    <div className="border-b border-notion-border last:border-b-0">
-      <div className="px-4 py-3 bg-[#F7F7F7]">
+    <div className="border-b border-notion-border last:border-b-0 group transition-all duration-200">
+      <div className="px-4 py-3 bg-[#F7F7F7] group-hover:bg-[#EAEAEA] transition-colors duration-200 cursor-default">
         <h3 className="text-sm font-medium text-notion-primary flex items-center justify-between">
-          <span>{session.name}</span>
-          <span className="text-notion-secondary text-xs">
+          <span className="group-hover:text-notion-primary transition-colors duration-200">
+            {session.name}
+          </span>
+          <span className="text-notion-secondary text-xs group-hover:text-notion-primary/80 transition-colors duration-200">
             {format(session.startTime, "M/d HH:mm")}
             {session.endTime && ` - ${format(session.endTime, "HH:mm")}`}
           </span>
