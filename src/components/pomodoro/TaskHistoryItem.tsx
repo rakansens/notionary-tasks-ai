@@ -77,20 +77,22 @@ export const TaskHistoryItem = ({
             />
           ) : (
             <div className="space-y-1">
-              <span
-                className={cn(
-                  "text-sm cursor-pointer hover:text-notion-primary",
-                  isCurrentSession && "text-notion-primary"
-                )}
-                onClick={() => onEditStart(task.id, task.title)}
-              >
-                {task.title}
-              </span>
-              {isCurrentSession && (
-                <span className="ml-2 text-xs text-[#3291FF]">
-                  (現在のセッション)
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    "text-sm cursor-pointer hover:text-notion-primary",
+                    isCurrentSession && "text-notion-primary"
+                  )}
+                  onClick={() => onEditStart(task.id, task.title)}
+                >
+                  {task.title}
                 </span>
-              )}
+                {isCurrentSession && (
+                  <span className="text-xs text-[#3291FF]">
+                    (現在のセッション)
+                  </span>
+                )}
+              </div>
               {(task.parentTaskTitle || task.groupName) && (
                 <Breadcrumb>
                   <BreadcrumbList className="text-xs text-notion-secondary">
