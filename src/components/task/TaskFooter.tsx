@@ -2,7 +2,6 @@ import { FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TaskInput } from "../TaskInput";
-import { useEffect, useState } from "react";
 
 interface TaskFooterProps {
   isAddingGroup: boolean;
@@ -25,20 +24,6 @@ export const TaskFooter = ({
   setNewTask,
   addTask,
 }: TaskFooterProps) => {
-  const [showGroupButton, setShowGroupButton] = useState(true);
-
-  useEffect(() => {
-    const handleGroupModeToggle = (event: CustomEvent) => {
-      setShowGroupButton(!event.detail.isGroupMode);
-    };
-
-    window.addEventListener('groupModeToggled', handleGroupModeToggle as EventListener);
-
-    return () => {
-      window.removeEventListener('groupModeToggled', handleGroupModeToggle as EventListener);
-    };
-  }, []);
-
   return (
     <div className="p-6 border-t border-notion-border space-y-4 bg-white/50 backdrop-blur-sm">
       {isAddingGroup ? (
@@ -59,7 +44,7 @@ export const TaskFooter = ({
             autoFocus
           />
         </div>
-      ) : showGroupButton && (
+      ) : (
         <Button
           variant="ghost"
           size="sm"
