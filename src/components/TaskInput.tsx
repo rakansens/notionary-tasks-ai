@@ -24,10 +24,11 @@ export const TaskInput = ({
   className
 }: TaskInputProps) => {
   const [isGroupMode, setIsGroupMode] = useState(false);
+  const [hasUserInput, setHasUserInput] = useState(false);
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
-    if (trimmedValue) {
+    if (trimmedValue && hasUserInput) {
       if (isGroupMode) {
         window.dispatchEvent(new CustomEvent('groupAdded', {
           detail: {
@@ -40,8 +41,9 @@ export const TaskInput = ({
       } else {
         onSubmit();
       }
-      onChange(''); // 入力をクリア
-      setIsGroupMode(false); // タスクモードにリセット
+      onChange('');
+      setIsGroupMode(false);
+      setHasUserInput(false);
     }
   };
 
@@ -52,6 +54,7 @@ export const TaskInput = ({
     } else if (e.key === "Escape" && onCancel) {
       onCancel();
       setIsGroupMode(false);
+      setHasUserInput(false);
     }
   };
 
@@ -59,12 +62,21 @@ export const TaskInput = ({
     if (!value.trim() && onCancel) {
       onCancel();
       setIsGroupMode(false);
+      setHasUserInput(false);
     }
   };
 
   const toggleMode = () => {
     setIsGroupMode(!isGroupMode);
-    onChange(''); // モード切替時に入力をクリア
+    onChange('');
+    setHasUserInput(false);
+  };
+
+  const handleInputChange = (newValue: string) => {
+    onChange(newValue);
+    if (newValue.trim() !== '') {
+      setHasUserInput(true);
+    }
   };
 
   return (
@@ -83,7 +95,7 @@ export const TaskInput = ({
       </Button>
       <Input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => handleInputChange(e.target.value)}
         onKeyDown={handleKeyPress}
         onBlur={handleBlur}
         placeholder={isGroupMode ? "新しいグループを追加..." : "新しいタスクを追加..."}
