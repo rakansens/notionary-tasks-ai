@@ -33,7 +33,8 @@ export const TaskInput = ({
         detail: {
           title: trimmedValue,
           addedAt: new Date(),
-          groupId: groupId || null
+          groupId: groupId || null,
+          isGroup: isGroupMode
         },
         bubbles: true,
         composed: true

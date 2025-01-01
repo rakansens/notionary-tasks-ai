@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Task, Group, DeleteTarget } from './taskManager/types';
 import {
   addTaskToState,
@@ -62,27 +62,12 @@ export const useTaskManager = () => {
     const group: Group = {
       id: Date.now(),
       name: newGroup,
-      order: groups.length, // Add the order property
+      order: groups.length,
     };
     
-    setGroups(prevGroups => addGroupToState(prevGroups, group));
-
-    const taskId = Date.now() + 1;
-    const task: Task = {
-      id: taskId,
-      title: newTask || "新しいタスク",
-      completed: false,
-      groupId: group.id,
-      subtasks: [],
-      order: tasks.length,
-      addedAt: new Date(),
-    };
-    
-    setTasks(prevTasks => addTaskToState(prevTasks, task));
+    setGroups(prevGroups => [...prevGroups, group]);
     setNewGroup("");
-    setNewTask("");
     setIsAddingGroup(false);
-    setEditingTaskId(taskId);
   };
 
   const toggleTask = (id: number, parentId?: number) => {
@@ -147,6 +132,24 @@ export const useTaskManager = () => {
   const cancelDelete = () => {
     setDeleteTarget(null);
   };
+
+  // Add event listener for group added
+  useEffect(() => {
+    const handleGroupAdded = (event: CustomEvent) => {
+      const { title } = event.detail;
+      const group: Group = {
+        id: Date.now(),
+        name: title,
+        order: groups.length,
+      };
+      setGroups(prevGroups => [...prevGroups, group]);
+    };
+
+    window.addEventListener('groupAdded', handleGroupAdded as EventListener);
+    return () => {
+      window.removeEventListener('groupAdded', handleGroupAdded as EventListener);
+    };
+  }, [groups.length]);
 
   return {
     tasks,
