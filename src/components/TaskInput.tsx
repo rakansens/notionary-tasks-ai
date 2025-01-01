@@ -1,7 +1,8 @@
-import { Plus } from "lucide-react";
+import { Plus, FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface TaskInputProps {
   value: string;
@@ -22,11 +23,13 @@ export const TaskInput = ({
   autoFocus,
   className
 }: TaskInputProps) => {
+  const [isGroupMode, setIsGroupMode] = useState(false);
+
   const handleSubmit = () => {
     const trimmedValue = value.trim();
     if (trimmedValue) {
-      // Dispatch new task added event
-      window.dispatchEvent(new CustomEvent('taskAdded', {
+      // Dispatch new task/group added event
+      window.dispatchEvent(new CustomEvent(isGroupMode ? 'groupAdded' : 'taskAdded', {
         detail: {
           title: trimmedValue,
           addedAt: new Date(),
@@ -37,22 +40,31 @@ export const TaskInput = ({
       }));
       onSubmit();
       onChange(''); // Clear the input after submission
+      setIsGroupMode(false); // Reset to task mode after submission
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    // IME入力中はエンターでの送信を防ぐ
     if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
-      e.preventDefault(); // エンターキーのデフォルト動作を防ぐ
+      e.preventDefault();
       handleSubmit();
     } else if (e.key === "Escape" && onCancel) {
       onCancel();
+      setIsGroupMode(false);
     }
   };
 
   const handleBlur = () => {
     if (!value.trim() && onCancel) {
       onCancel();
+      setIsGroupMode(false);
+    }
+  };
+
+  const toggleMode = () => {
+    setIsGroupMode(!isGroupMode);
+    if (value.trim() === '') {
+      onChange(isGroupMode ? '新しいタスクを追加...' : '新しいグループを追加...');
     }
   };
 
@@ -62,16 +74,20 @@ export const TaskInput = ({
         variant="ghost"
         size="icon"
         className="h-4 w-4 rounded-sm border border-notion-border group-hover:border-notion-primary/50 transition-colors duration-200"
-        onClick={handleSubmit}
+        onClick={toggleMode}
       >
-        <Plus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
+        {isGroupMode ? (
+          <FolderPlus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
+        ) : (
+          <Plus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
+        )}
       </Button>
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyPress}
         onBlur={handleBlur}
-        placeholder="新しいタスクを追加..."
+        placeholder={isGroupMode ? "新しいグループを追加..." : "新しいタスクを追加..."}
         className={cn(
           "flex-1 h-8 text-sm bg-transparent border-none focus:ring-0",
           "placeholder:text-notion-secondary",
