@@ -34,7 +34,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
           sessionId: currentSession.id,
           timestamp: new Date(),
         };
-        setActivities(prev => [...prev, activity]);
+        setActivities(prev => [activity, ...prev]); // 新しいアクティビティを配列の先頭に追加
         
         // メッセージの生成を安全に行う
         const getActivityMessage = () => {
@@ -119,7 +119,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
               .sort((a, b) => {
                 const timeA = a.timestamp || new Date(a.addedAt);
                 const timeB = b.timestamp || new Date(b.addedAt);
-                return timeB.getTime() - timeA.getTime();
+                return timeA.getTime() - timeB.getTime(); // 古い順にソート
               });
 
             if (allItems.length === 0) return null;
