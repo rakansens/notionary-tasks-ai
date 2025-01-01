@@ -1,4 +1,4 @@
-import { History, Folder, ArrowRight, CheckCircle, PlusCircle, Clock } from "lucide-react";
+import { History, Folder, ArrowRight, CheckCircle, PlusCircle, Clock, Trash2 } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -24,45 +24,38 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
   const [editingTitle, setEditingTitle] = useState("");
   const [editingTime, setEditingTime] = useState<string>("");
   const [newTasks, setNewTasks] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
 
   useEffect(() => {
-    const handleNewTask = (event: CustomEvent) => {
-      console.log('New task added:', event.detail);
+    const handleTaskActivity = (event: CustomEvent) => {
       if (currentSession) {
-        const task = {
+        const activity = {
           ...event.detail,
-          status: 'new',
           sessionId: currentSession.id
         };
-        setNewTasks(prev => [...prev, task]);
+        setActivities(prev => [...prev, activity]);
         
-        // Show toast notification
+        // Show toast notification based on activity type
+        const messages = {
+          added: `新しいタスクが追加されました: ${activity.task.title}`,
+          deleted: `タスクが削除されました: ${activity.task.title}`,
+          toggled: `タスクが${activity.task.completed ? '完了' : '未完了'}に変更されました: ${activity.task.title}`,
+          groupAdded: `新しいグループが追加されました: ${activity.group.name}`,
+          groupDeleted: `グループが削除されました: ${activity.group.name}`,
+        };
+        
         toast({
-          title: "新しいタスクが追加されました",
-          description: `${task.title}${task.groupName ? ` (グループ: ${task.groupName})` : ''}`,
+          title: "アクティビティ",
+          description: messages[activity.type as keyof typeof messages],
         });
       }
     };
 
-    const handleTaskCompleted = (event: CustomEvent) => {
-      if (currentSession) {
-        const task = {
-          ...event.detail,
-          status: 'completed',
-          sessionId: currentSession.id
-        };
-        onAddCompletedTask(task);
-      }
-    };
-
-    window.addEventListener('taskAdded', handleNewTask as EventListener);
-    window.addEventListener('taskCompleted', handleTaskCompleted as EventListener);
-    
+    window.addEventListener('taskActivity', handleTaskActivity as EventListener);
     return () => {
-      window.removeEventListener('taskAdded', handleNewTask as EventListener);
-      window.removeEventListener('taskCompleted', handleTaskCompleted as EventListener);
+      window.removeEventListener('taskActivity', handleTaskActivity as EventListener);
     };
-  }, [currentSession, onAddCompletedTask]);
+  }, [currentSession]);
 
   const handleEditStart = (taskId: number, currentTitle: string) => {
     setEditingTaskId(taskId);
@@ -106,17 +99,16 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
       <CollapsibleContent className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-notion-border z-50">
         <div className="max-h-96 overflow-y-auto">
           {sessions.map(session => {
+            const sessionActivities = activities.filter(activity => activity.sessionId === session.id);
             const sessionNewTasks = newTasks.filter(task => task.sessionId === session.id);
-            const allTasks = [
-              ...session.completedTasks,
-              ...sessionNewTasks
-            ].sort((a, b) => {
-              const timeA = a.completedAt || new Date(a.addedAt);
-              const timeB = b.completedAt || new Date(b.addedAt);
-              return timeA.getTime() - timeB.getTime();
-            });
+            const allItems = [...sessionActivities, ...sessionNewTasks]
+              .sort((a, b) => {
+                const timeA = a.timestamp || new Date(a.addedAt);
+                const timeB = b.timestamp || new Date(b.addedAt);
+                return timeB.getTime() - timeA.getTime();
+              });
 
-            if (allTasks.length === 0) return null;
+            if (allItems.length === 0) return null;
 
             return (
               <div key={session.id} className="border-b border-notion-border last:border-b-0">
@@ -130,99 +122,38 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                   </h3>
                 </div>
                 <div className="divide-y divide-notion-border">
-                  {allTasks.map((task, index) => (
+                  {allItems.map((item, index) => (
                     <div
-                      key={`${task.id}-${index}`}
-                      className={cn(
-                        "px-4 py-2 transition-colors duration-200 hover:bg-notion-hover",
-                        task.status === 'new' 
-                          ? "bg-[#F0F7F7]"
-                          : isTaskFromCurrentSession(task, session)
-                            ? "bg-[#F7F7F7]"
-                            : "bg-white"
-                      )}
+                      key={`${item.type}-${index}`}
+                      className="px-4 py-2 transition-colors duration-200 hover:bg-notion-hover"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {task.status === 'new' ? (
-                            <PlusCircle className="h-4 w-4 text-[#37A169]" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4 text-[#3291FF]" />
+                      <div className="flex items-center gap-2">
+                        {item.type === 'added' && <PlusCircle className="h-4 w-4 text-[#37A169]" />}
+                        {item.type === 'deleted' && <Trash2 className="h-4 w-4 text-red-500" />}
+                        {item.type === 'toggled' && (
+                          <CheckCircle className={cn(
+                            "h-4 w-4",
+                            item.task.completed ? "text-[#3291FF]" : "text-gray-400"
+                          )} />
+                        )}
+                        {item.type === 'groupAdded' && <Folder className="h-4 w-4 text-[#37A169]" />}
+                        {item.type === 'groupDeleted' && (
+                          <div className="flex items-center gap-1">
+                            <Folder className="h-4 w-4 text-red-500" />
+                            <Trash2 className="h-3 w-3 text-red-500" />
+                          </div>
+                        )}
+                        <span className="text-sm">
+                          {item.task?.title || item.group?.name}
+                          {item.task?.groupName && (
+                            <span className="ml-2 text-xs text-notion-secondary">
+                              (グループ: {item.task.groupName})
+                            </span>
                           )}
-                          {editingTaskId === task.id ? (
-                            <Input
-                              value={editingTitle}
-                              onChange={(e) => setEditingTitle(e.target.value)}
-                              onBlur={handleEditComplete}
-                              onKeyPress={(e) => e.key === "Enter" && handleEditComplete()}
-                              className="h-6 text-sm bg-white border-notion-border focus:ring-0 focus:border-notion-primary"
-                              autoFocus
-                            />
-                          ) : (
-                            <div className="space-y-0.5">
-                              <span 
-                                className={cn(
-                                  "text-sm cursor-pointer hover:text-notion-primary",
-                                  isTaskFromCurrentSession(task, session) && "text-notion-primary"
-                                )}
-                                onClick={() => handleEditStart(task.id, task.title)}
-                              >
-                                {task.title}
-                                {isTaskFromCurrentSession(task, session) && (
-                                  <span className="ml-2 text-xs text-[#3291FF]">
-                                    (現在のセッション)
-                                  </span>
-                                )}
-                              </span>
-                              {(task.parentTaskTitle || task.groupName) && (
-                                <div className="text-xs text-notion-secondary flex items-center gap-2 flex-wrap">
-                                  {task.parentTaskTitle && (
-                                    <div className="flex items-center gap-1">
-                                      <History className="h-3 w-3" />
-                                      <span className="flex items-center gap-1">
-                                        {task.parentTaskTitle}
-                                        {task.grandParentTaskTitle && (
-                                          <>
-                                            <ArrowRight className="h-3 w-3" />
-                                            {task.grandParentTaskTitle}
-                                          </>
-                                        )}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {task.groupName && (
-                                    <span className="flex items-center gap-1">
-                                      <Folder className="h-3 w-3" />
-                                      {task.groupName}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2 text-xs text-notion-secondary hover:bg-notion-hover/50 flex items-center gap-1"
-                              onClick={() => handleTimeEdit(task.id, task.completedAt || new Date(task.addedAt))}
-                            >
-                              <Clock className="h-3 w-3" />
-                              {format(task.completedAt || new Date(task.addedAt), "HH:mm")}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-2">
-                            <Input
-                              type="time"
-                              value={editingTime || format(task.completedAt || new Date(task.addedAt), "HH:mm")}
-                              onChange={(e) => setEditingTime(e.target.value)}
-                              onBlur={() => handleTimeUpdate(task.id, editingTime)}
-                              className="h-8 text-sm"
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        </span>
+                        <span className="ml-auto text-xs text-notion-secondary">
+                          {format(new Date(item.timestamp), "HH:mm")}
+                        </span>
                       </div>
                     </div>
                   ))}

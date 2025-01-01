@@ -41,6 +41,18 @@ export const useTaskManager = () => {
         addedAt: new Date(),
       };
       setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
+
+      // タスク追加イベントを発火
+      window.dispatchEvent(new CustomEvent('taskActivity', {
+        detail: {
+          type: 'added',
+          task: {
+            ...task,
+            groupName: groups.find(g => g.id === groupId)?.name,
+          },
+          timestamp: new Date(),
+        }
+      }));
     };
 
     const handleGroupAdded = (event: CustomEvent) => {
@@ -51,6 +63,15 @@ export const useTaskManager = () => {
         order: groups.length,
       };
       setGroups(prevGroups => [...prevGroups, group]);
+
+      // グループ追加イベントを発火
+      window.dispatchEvent(new CustomEvent('taskActivity', {
+        detail: {
+          type: 'groupAdded',
+          group,
+          timestamp: new Date(),
+        }
+      }));
     };
 
     window.addEventListener('taskAdded', handleTaskAdded as EventListener);
@@ -61,6 +82,94 @@ export const useTaskManager = () => {
       window.removeEventListener('groupAdded', handleGroupAdded as EventListener);
     };
   }, [tasks.length, groups.length]);
+
+  const toggleTask = (id: number, parentId?: number) => {
+    setTasks(prevTasks => {
+      const updatedTasks = toggleTaskInState(prevTasks, id, parentId);
+      
+      // タスク完了状態変更イベントを発火
+      const task = updatedTasks.find(t => t.id === id);
+      if (task) {
+        window.dispatchEvent(new CustomEvent('taskActivity', {
+          detail: {
+            type: 'toggled',
+            task: {
+              ...task,
+              groupName: groups.find(g => g.id === task.groupId)?.name,
+            },
+            timestamp: new Date(),
+          }
+        }));
+      }
+      
+      return updatedTasks;
+    });
+  };
+
+  const deleteTask = (id: number, parentId?: number) => {
+    // 削除前にタスク情報を保存
+    const taskToDelete = tasks.find(t => t.id === id);
+    
+    if (parentId) {
+      setTasks(prevTasks =>
+        prevTasks.map(task => {
+          if (task.id === parentId) {
+            return {
+              ...task,
+              subtasks: task.subtasks?.filter(subtask => subtask.id !== id),
+            };
+          }
+          return task;
+        })
+      );
+    } else {
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+    }
+
+    // タスク削除イベントを発火
+    if (taskToDelete) {
+      window.dispatchEvent(new CustomEvent('taskActivity', {
+        detail: {
+          type: 'deleted',
+          task: {
+            ...taskToDelete,
+            groupName: groups.find(g => g.id === taskToDelete.groupId)?.name,
+          },
+          timestamp: new Date(),
+        }
+      }));
+    }
+  };
+
+  const deleteGroup = (id: number) => {
+    // 削除前にグループ情報を保存
+    const groupToDelete = groups.find(g => g.id === id);
+    
+    setDeleteTarget({ type: "group", id });
+
+    // グループ削除イベントを発火
+    if (groupToDelete) {
+      window.dispatchEvent(new CustomEvent('taskActivity', {
+        detail: {
+          type: 'groupDeleted',
+          group: groupToDelete,
+          timestamp: new Date(),
+        }
+      }));
+    }
+  };
+
+  const updateTaskTitle = (id: number, title: string, parentId?: number) => {
+    setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
+  };
+
+  const updateTaskOrder = (updatedTasks: Task[]) => {
+    setTasks(updatedTasks);
+  };
+
+  const updateGroupOrder = (updatedGroups: Group[]) => {
+    setGroups(updatedGroups);
+  };
 
   const toggleGroupCollapse = (groupId: number) => {
     setCollapsedGroups(prev => {
@@ -105,50 +214,8 @@ export const useTaskManager = () => {
     setIsAddingGroup(false);
   };
 
-  const toggleTask = (id: number, parentId?: number) => {
-    setTasks(prevTasks => toggleTaskInState(prevTasks, id, parentId));
-  };
-
-  const updateTaskTitle = (id: number, title: string, parentId?: number) => {
-    setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
-  };
-
-  const updateTaskOrder = (updatedTasks: Task[]) => {
-    setTasks(updatedTasks);
-  };
-
-  const updateGroupOrder = (updatedGroups: Group[]) => {
-    setGroups(updatedGroups);
-  };
-
-  const handleReorderSubtasks = (startIndex: number, endIndex: number, parentId: number) => {
-    // Implementation of handleReorderSubtasks
-  };
-
   const updateGroupName = (id: number, name: string) => {
     setGroups(prevGroups => updateGroupNameInState(prevGroups, id, name));
-  };
-
-  const deleteTask = (id: number, parentId?: number) => {
-    if (parentId) {
-      setTasks(prevTasks =>
-        prevTasks.map(task => {
-          if (task.id === parentId) {
-            return {
-              ...task,
-              subtasks: task.subtasks?.filter(subtask => subtask.id !== id),
-            };
-          }
-          return task;
-        })
-      );
-    } else {
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
-    }
-  };
-
-  const deleteGroup = (id: number) => {
-    setDeleteTarget({ type: "group", id });
   };
 
   const confirmDelete = () => {
