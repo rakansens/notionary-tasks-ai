@@ -100,7 +100,7 @@ export const handleTaskDragEnd = (
       .filter(t => !t.groupId && !t.parentId)
       .length;
 
-    return updatedTasksWithoutActive;
+    return [...updatedTasksWithoutActive, activeTask];
   }
 
   // 同じエリア内での並び替え
@@ -117,24 +117,37 @@ export const handleTaskDragEnd = (
   if (targetIndex >= 0) {
     // 現在の位置から削除
     const updatedTasksWithoutActive = removeTaskFromOldParent(updatedTasks, activeTaskId);
-    if (currentIndex >= 0) {
-      tasksInTargetArea.splice(currentIndex, 1);
-    }
-
-    // 新しい位置に挿入
-    const insertIndex = currentIndex < targetIndex ? targetIndex - 1 : targetIndex;
-    tasksInTargetArea.splice(insertIndex, 0, activeTask);
-
+    
     // グループIDを更新
     activeTask.groupId = overTask?.groupId;
     activeTask.parentId = undefined;
 
+    // 新しい位置に挿入
+    const insertIndex = currentIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    const tasksInSameArea = updatedTasksWithoutActive.filter(task => {
+      if (overTask?.groupId) {
+        return task.groupId === overTask.groupId && !task.parentId;
+      }
+      return !task.groupId && !task.parentId;
+    }).sort((a, b) => a.order - b.order);
+
+    tasksInSameArea.splice(insertIndex, 0, activeTask);
+
     // 順序を更新
-    tasksInTargetArea.forEach((task, index) => {
+    tasksInSameArea.forEach((task, index) => {
       task.order = index;
     });
 
-    return updatedTasksWithoutActive;
+    // 更新されたタスクを元の配列に統合
+    return [
+      ...updatedTasksWithoutActive.filter(task => {
+        if (overTask?.groupId) {
+          return task.groupId !== overTask.groupId || task.parentId;
+        }
+        return task.groupId || task.parentId;
+      }),
+      ...tasksInSameArea,
+    ];
   }
 
   return updatedTasks;
@@ -175,5 +188,5 @@ const removeTaskFromOldParent = (tasks: Task[], taskId: number): Task[] => {
       };
     }
     return task;
-  });
+  }).filter(task => task.id !== taskId);
 };
