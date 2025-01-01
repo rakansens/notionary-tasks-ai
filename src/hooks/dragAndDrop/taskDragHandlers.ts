@@ -7,15 +7,36 @@ export const handleTaskDragEnd = (
   newGroupId?: number
 ): Task[] => {
   const updatedTasks = [...tasks];
-  const activeTask = updatedTasks.find(t => t.id === activeTaskId);
+  const activeTask = updatedTasks.find(task => task.id === activeTaskId);
   
   if (!activeTask) return tasks;
 
   // グループへのドロップ処理
   if (newGroupId !== undefined) {
+    const oldGroupId = activeTask.groupId;
     activeTask.groupId = newGroupId;
     activeTask.order = updatedTasks
       .filter(t => t.groupId === newGroupId && !t.parentId)
+      .length;
+
+    // 元のグループ内のタスクの順序を更新
+    if (oldGroupId) {
+      const tasksInOldGroup = updatedTasks
+        .filter(t => t.groupId === oldGroupId && !t.parentId)
+        .sort((a, b) => a.order - b.order);
+      tasksInOldGroup.forEach((task, index) => {
+        task.order = index;
+      });
+    }
+
+    return updatedTasks;
+  }
+
+  // グループ外へのドロップ処理
+  if (overTaskId === -1) {
+    activeTask.groupId = undefined;
+    activeTask.order = updatedTasks
+      .filter(t => !t.groupId && !t.parentId)
       .length;
     return updatedTasks;
   }

@@ -77,7 +77,10 @@ export const DraggableGroup = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-gray-50 rounded-lg p-4 ${isDragging ? "opacity-50" : ""} ${isOver ? "bg-gray-100" : ""}`}
+      className={`bg-gray-50 rounded-lg p-4 ${isDragging ? "opacity-50" : ""} ${
+        isOver ? "bg-gray-100" : ""
+      }`}
+      data-group-id={group.id}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -101,9 +104,9 @@ export const DraggableGroup = ({
           {editingGroupId === group.id ? (
             <Input
               value={group.name}
-              onChange={e => updateGroupName(group.id, e.target.value)}
+              onChange={(e) => updateGroupName(group.id, e.target.value)}
               onBlur={() => setEditingGroupId(null)}
-              onKeyDown={e => {
+              onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   setEditingGroupId(null);
                 }
@@ -138,18 +141,18 @@ export const DraggableGroup = ({
         </div>
       </div>
       {!isCollapsed && (
-        <div className="space-y-1">
+        <div className="space-y-1 min-h-[2rem]">
           <SortableContext
             items={tasks
-              .filter(task => task.groupId === group.id && !task.parentId)
+              .filter((task) => task.groupId === group.id && !task.parentId)
               .sort((a, b) => a.order - b.order)
-              .map(task => task.id.toString())}
+              .map((task) => task.id.toString())}
             strategy={verticalListSortingStrategy}
           >
             {tasks
-              .filter(task => task.groupId === group.id && !task.parentId)
+              .filter((task) => task.groupId === group.id && !task.parentId)
               .sort((a, b) => a.order - b.order)
-              .map(task => (
+              .map((task) => (
                 <DraggableTask
                   key={task.id}
                   task={task}
