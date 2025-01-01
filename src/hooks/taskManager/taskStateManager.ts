@@ -1,17 +1,5 @@
 import { useState } from 'react';
 import { Task, Group, DeleteTarget } from './types';
-import {
-  addTaskToState,
-  toggleTaskInState,
-  updateTaskTitleInState,
-  updateTaskOrderInState,
-} from './taskOperations';
-import {
-  addGroupToState,
-  updateGroupNameInState,
-  deleteGroupFromState,
-  cleanupTasksAfterGroupDelete,
-} from './groupOperations';
 
 export const useTaskStateManager = () => {
   const [tasks, setTasks] = useState<Task[]>([]);

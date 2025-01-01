@@ -8,13 +8,13 @@ import {
   toggleTaskInState,
   updateTaskTitleInState,
   updateTaskOrderInState,
-} from './taskOperations';
+} from './taskManager/taskOperations';
 import {
   addGroupToState,
   updateGroupNameInState,
   deleteGroupFromState,
   cleanupTasksAfterGroupDelete,
-} from './groupOperations';
+} from './taskManager/groupOperations';
 
 export type { Task, Group };
 
@@ -173,6 +173,18 @@ export const useTaskManager = () => {
     setters.setDeleteTarget(null);
   };
 
+  const toggleGroupCollapse = (groupId: number) => {
+    setters.setCollapsedGroups(prev => {
+      const newCollapsed = new Set(prev);
+      if (newCollapsed.has(groupId)) {
+        newCollapsed.delete(groupId);
+      } else {
+        newCollapsed.add(groupId);
+      }
+      return newCollapsed;
+    });
+  };
+
   return {
     ...state,
     setNewTask: setters.setNewTask,
@@ -192,5 +204,6 @@ export const useTaskManager = () => {
     deleteGroup,
     confirmDelete,
     cancelDelete,
+    toggleGroupCollapse, // 追加
   };
 };
