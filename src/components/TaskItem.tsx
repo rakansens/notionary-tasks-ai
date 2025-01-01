@@ -40,9 +40,24 @@ export const TaskItem = ({
   const isAddingSubtask = addingSubtaskId === task.id;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+      e.preventDefault();
+      const value = e.currentTarget.value.trim();
+      if (value) {
+        updateTaskTitle(task.id, value, parentTask?.id);
+      }
+      setEditingTaskId(null);
+    } else if (e.key === "Escape") {
       setEditingTaskId(null);
     }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    if (value && value !== task.title) {
+      updateTaskTitle(task.id, value, parentTask?.id);
+    }
+    setEditingTaskId(null);
   };
 
   return (
@@ -66,9 +81,9 @@ export const TaskItem = ({
           title={task.title}
           completed={task.completed}
           isEditing={isEditing}
-          onTitleChange={(title) => updateTaskTitle(task.id, title, parentTask?.id)}
+          onTitleChange={(title) => {}}
           onTitleClick={() => setEditingTaskId(task.id)}
-          onBlur={() => setEditingTaskId(null)}
+          onBlur={handleBlur}
           onKeyPress={handleKeyDown}
         />
         
