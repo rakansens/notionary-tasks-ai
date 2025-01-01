@@ -198,6 +198,18 @@ export const useTaskManager = () => {
     setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
     setNewTask("");
     setEditingTaskId(task.id);
+
+    // タスク追加イベントを発火
+    window.dispatchEvent(new CustomEvent('taskActivity', {
+      detail: {
+        type: 'added',
+        task: {
+          ...task,
+          groupName: groups.find(g => g.id === groupId)?.name,
+        },
+        timestamp: new Date(),
+      }
+    }));
   };
 
   const addGroup = () => {

@@ -28,16 +28,6 @@ export const TaskInput = ({
   const handleSubmit = () => {
     const trimmedValue = value.trim();
     if (trimmedValue) {
-      window.dispatchEvent(new CustomEvent(isGroupMode ? 'groupAdded' : 'taskAdded', {
-        detail: {
-          title: trimmedValue,
-          addedAt: new Date(),
-          groupId: groupId || null,
-          isGroup: isGroupMode
-        },
-        bubbles: true,
-        composed: true
-      }));
       onSubmit();
       onChange(''); // Clear the input after submission
       setIsGroupMode(false); // Reset to task mode after submission
