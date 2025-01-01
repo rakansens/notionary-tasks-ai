@@ -12,6 +12,7 @@ interface TaskInputProps {
   autoFocus?: boolean;
   className?: string;
   isGroupMode?: boolean;
+  onIconClick?: () => void;
 }
 
 export const TaskInput = ({ 
@@ -22,12 +23,12 @@ export const TaskInput = ({
   groupId,
   autoFocus,
   className,
-  isGroupMode = false
+  isGroupMode = false,
+  onIconClick
 }: TaskInputProps) => {
   const handleSubmit = () => {
     const trimmedValue = value.trim();
     if (trimmedValue) {
-      // Dispatch new task added event
       window.dispatchEvent(new CustomEvent('taskAdded', {
         detail: {
           title: trimmedValue,
@@ -39,14 +40,13 @@ export const TaskInput = ({
         composed: true
       }));
       onSubmit();
-      onChange(''); // Clear the input after submission
+      onChange('');
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    // IME入力中はエンターでの送信を防ぐ
     if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
-      e.preventDefault(); // エンターキーのデフォルト動作を防ぐ
+      e.preventDefault();
       handleSubmit();
     } else if (e.key === "Escape" && onCancel) {
       onCancel();
@@ -65,7 +65,7 @@ export const TaskInput = ({
         variant="ghost"
         size="icon"
         className="h-4 w-4 rounded-sm border border-notion-border group-hover:border-notion-primary/50 transition-colors duration-200"
-        onClick={handleSubmit}
+        onClick={onIconClick}
       >
         {isGroupMode ? (
           <FolderPlus className="h-3 w-3 text-[#9b87f5] group-hover:text-[#8a73f4] group-hover:scale-110 transition-all duration-200" />
