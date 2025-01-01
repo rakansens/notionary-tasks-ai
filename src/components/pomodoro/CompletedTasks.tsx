@@ -112,6 +112,19 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
     return currentSession && session.id === currentSession.id;
   };
 
+  const getTaskIcon = (task: any) => {
+    if (task.status === 'operation') {
+      if (task.title.includes('追加')) {
+        return <PlusCircle className="h-4 w-4 text-[#37A169]" />;
+      } else if (task.title.includes('完了')) {
+        return <CheckCircle className="h-4 w-4 text-[#3291FF]" />;
+      } else if (task.title.includes('削除')) {
+        return <History className="h-4 w-4 text-[#FF3232]" />;
+      }
+    }
+    return <CheckCircle className="h-4 w-4 text-[#3291FF]" />;
+  };
+
   return (
     <Collapsible>
       <CollapsibleTrigger asChild>
@@ -164,11 +177,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          {task.status === 'new' ? (
-                            <PlusCircle className="h-4 w-4 text-[#37A169]" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4 text-[#3291FF]" />
-                          )}
+                          {getTaskIcon(task)}
                           {editingTaskId === task.id ? (
                             <Input
                               value={editingTitle}
