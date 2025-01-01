@@ -14,7 +14,21 @@ export const handleTaskDragEnd = (
   // グループへのドロップ処理
   if (newGroupId !== undefined) {
     const oldGroupId = activeTask.groupId;
+    const oldParentId = activeTask.parentId;
+    
+    // 元の親タスクからサブタスクを削除
+    if (oldParentId) {
+      const oldParent = updatedTasks.find(t => t.id === oldParentId);
+      if (oldParent && oldParent.subtasks) {
+        oldParent.subtasks = oldParent.subtasks.filter(t => t.id !== activeTask.id);
+        oldParent.subtasks.forEach((task, index) => {
+          task.order = index;
+        });
+      }
+    }
+
     activeTask.groupId = newGroupId;
+    activeTask.parentId = undefined;
     activeTask.order = updatedTasks
       .filter(t => t.groupId === newGroupId && !t.parentId)
       .length;
@@ -33,61 +47,16 @@ export const handleTaskDragEnd = (
   }
 
   const overTask = updatedTasks.find(task => task.id === overTaskId);
-  
   if (!overTask && overTaskId !== -1) return tasks;
 
   // サブタスク間の移動処理
   if (overTask?.parentId || activeTask.parentId) {
     const targetParentId = overTask?.parentId;
-    const parentTask = targetParentId 
-      ? updatedTasks.find(t => t.id === targetParentId)
-      : null;
-
-    if (parentTask) {
-      // 既存の親タスクからの削除
-      if (activeTask.parentId) {
-        const oldParent = updatedTasks.find(t => t.id === activeTask.parentId);
-        if (oldParent && oldParent.subtasks) {
-          oldParent.subtasks = oldParent.subtasks.filter(t => t.id !== activeTask.id);
-          oldParent.subtasks.forEach((task, index) => {
-            task.order = index;
-          });
-        }
-      }
-
-      // 新しい親タスクのsubtasksを初期化（必要な場合）
-      if (!parentTask.subtasks) {
-        parentTask.subtasks = [];
-      }
-
-      // activeTaskの親を更新
-      activeTask.parentId = parentTask.id;
-      activeTask.groupId = parentTask.groupId;
-
-      // 新しい位置を特定
-      const siblingTasks = parentTask.subtasks;
-      const targetIndex = siblingTasks.findIndex(t => t.id === overTaskId);
-      
-      // 新しい位置に挿入
-      if (targetIndex >= 0) {
-        siblingTasks.splice(targetIndex, 0, activeTask);
-      } else {
-        siblingTasks.push(activeTask);
-      }
-
-      // サブタスクの順序を更新
-      siblingTasks.forEach((task, index) => {
-        task.order = index;
-      });
-
-      return updatedTasks;
-    }
-  }
-
-  // グループ外へのドロップ処理
-  if (overTaskId === -1) {
-    if (activeTask.parentId) {
-      const oldParent = updatedTasks.find(t => t.id === activeTask.parentId);
+    const oldParentId = activeTask.parentId;
+    
+    // 元の親タスクからサブタスクを削除
+    if (oldParentId) {
+      const oldParent = updatedTasks.find(t => t.id === oldParentId);
       if (oldParent && oldParent.subtasks) {
         oldParent.subtasks = oldParent.subtasks.filter(t => t.id !== activeTask.id);
         oldParent.subtasks.forEach((task, index) => {
@@ -95,60 +64,79 @@ export const handleTaskDragEnd = (
         });
       }
     }
-    
-    activeTask.groupId = undefined;
-    activeTask.parentId = undefined;
-    activeTask.order = updatedTasks
-      .filter(t => !t.groupId && !t.parentId)
-      .length;
+
+    // 新しい親タスクにサブタスクを追加
+    if (targetParentId) {
+      const newParent = updatedTasks.find(t => t.id === targetParentId);
+      if (newParent) {
+        if (!newParent.subtasks) {
+          newParent.subtasks = [];
+        }
+
+        activeTask.parentId = newParent.id;
+        activeTask.groupId = newParent.groupId;
+
+        const insertIndex = newParent.subtasks.findIndex(t => t.id === overTaskId);
+        if (insertIndex >= 0) {
+          newParent.subtasks.splice(insertIndex, 0, activeTask);
+        } else {
+          newParent.subtasks.push(activeTask);
+        }
+
+        newParent.subtasks.forEach((task, index) => {
+          task.order = index;
+        });
+      }
+    } else {
+      // サブタスクをルートレベルに移動
+      activeTask.parentId = undefined;
+      activeTask.groupId = overTask?.groupId;
+      
+      const tasksInSameArea = updatedTasks.filter(task => {
+        if (overTask?.groupId) {
+          return task.groupId === overTask.groupId && !task.parentId;
+        }
+        return !task.groupId && !task.parentId;
+      }).sort((a, b) => a.order - b.order);
+
+      const insertIndex = tasksInSameArea.findIndex(t => t.id === overTaskId);
+      if (insertIndex >= 0) {
+        tasksInSameArea.splice(insertIndex, 0, activeTask);
+      } else {
+        tasksInSameArea.push(activeTask);
+      }
+
+      tasksInSameArea.forEach((task, index) => {
+        task.order = index;
+      });
+    }
 
     return updatedTasks;
   }
 
   // 同じエリア内での並び替え
-  const tasksInTargetArea = updatedTasks.filter(task => {
-    if (overTask?.parentId) {
-      return task.parentId === overTask.parentId;
-    }
+  const tasksInSameArea = updatedTasks.filter(task => {
     if (overTask?.groupId) {
       return task.groupId === overTask.groupId && !task.parentId;
     }
     return !task.groupId && !task.parentId;
   }).sort((a, b) => a.order - b.order);
 
-  const currentIndex = tasksInTargetArea.findIndex(t => t.id === activeTaskId);
-  const targetIndex = tasksInTargetArea.findIndex(t => t.id === overTaskId);
-
-  if (targetIndex >= 0) {
-    // 現在の位置から削除
-    if (activeTask.parentId) {
-      const oldParent = updatedTasks.find(t => t.id === activeTask.parentId);
-      if (oldParent && oldParent.subtasks) {
-        oldParent.subtasks = oldParent.subtasks.filter(t => t.id !== activeTask.id);
-      }
-    }
-    
-    // グループIDと親IDを更新
-    activeTask.groupId = overTask?.groupId;
-    activeTask.parentId = overTask?.parentId;
-
-    // 新しい位置に挿入
-    const insertIndex = currentIndex < targetIndex ? targetIndex - 1 : targetIndex;
-    tasksInTargetArea.splice(insertIndex, 0, activeTask);
-
-    // 順序を更新
-    tasksInTargetArea.forEach((task, index) => {
-      task.order = index;
-    });
-
-    // 更新されたタスクを親タスクに追加
-    if (overTask?.parentId) {
-      const parentTask = updatedTasks.find(t => t.id === overTask.parentId);
-      if (parentTask) {
-        parentTask.subtasks = tasksInTargetArea;
-      }
-    }
+  const currentIndex = tasksInSameArea.findIndex(t => t.id === activeTaskId);
+  if (currentIndex >= 0) {
+    tasksInSameArea.splice(currentIndex, 1);
   }
+
+  const targetIndex = tasksInSameArea.findIndex(t => t.id === overTaskId);
+  if (targetIndex >= 0) {
+    tasksInSameArea.splice(targetIndex, 0, activeTask);
+  } else {
+    tasksInSameArea.push(activeTask);
+  }
+
+  tasksInSameArea.forEach((task, index) => {
+    task.order = index;
+  });
 
   return updatedTasks;
 };
