@@ -27,19 +27,42 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
 
   useEffect(() => {
     const handleNewTask = (event: CustomEvent) => {
-      console.log('New task added:', event.detail);
+      console.log('New task event:', event.detail);
       if (currentSession) {
+        const getTaskDescription = (detail: any) => {
+          switch (detail.type) {
+            case 'subtask_added':
+              return `サブタスク「${detail.title}」を「${detail.parentTaskTitle}」に追加`;
+            case 'group_task_added':
+              return `タスク「${detail.title}」をグループ「${detail.groupName}」に追加`;
+            case 'task_added':
+              return `タスク「${detail.title}」を追加`;
+            case 'subtask_deleted':
+              return `サブタスク「${detail.title}」を「${detail.parentTaskTitle}」から削除`;
+            case 'group_task_deleted':
+              return `タスク「${detail.title}」をグループ「${detail.groupName}」から削除`;
+            case 'task_deleted':
+              return `タスク「${detail.title}」を削除`;
+            case 'group_added':
+              return `グループ「${detail.title}」を追加`;
+            case 'group_deleted':
+              return `グループ「${detail.title}」を削除`;
+            default:
+              return detail.title;
+          }
+        };
+
         const task = {
           ...event.detail,
+          title: getTaskDescription(event.detail),
           status: 'new',
           sessionId: currentSession.id
         };
         setNewTasks(prev => [...prev, task]);
         
-        // Show toast notification
         toast({
-          title: "新しいタスクが追加されました",
-          description: `${task.title}${task.groupName ? ` (グループ: ${task.groupName})` : ''}`,
+          title: "タスク操作を記録しました",
+          description: task.title,
         });
       }
     };

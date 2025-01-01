@@ -27,51 +27,15 @@ export const useTaskManager = () => {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
-    const handleTaskAdded = (event: CustomEvent) => {
-      const { title, groupId, parentId } = event.detail;
-      const task: Task = {
-        id: Date.now(),
-        title,
-        completed: false,
-        groupId,
-        parentId,
-        subtasks: [],
-        order: tasks.length,
-        addedAt: new Date(),
-      };
-      setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
-    };
-
-    const handleGroupAdded = (event: CustomEvent) => {
-      const { title } = event.detail;
-      const group: Group = {
-        id: Date.now(),
-        name: title,
-        order: groups.length,
-      };
-      setGroups(prevGroups => [...prevGroups, group]);
-    };
-
-    window.addEventListener('taskAdded', handleTaskAdded as EventListener);
-    window.addEventListener('groupAdded', handleGroupAdded as EventListener);
-
-    return () => {
-      window.removeEventListener('taskAdded', handleTaskAdded as EventListener);
-      window.removeEventListener('groupAdded', handleGroupAdded as EventListener);
-    };
-  }, [tasks.length, groups.length]);
-
-  const toggleGroupCollapse = (groupId: number) => {
-    setCollapsedGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(groupId)) {
-        next.delete(groupId);
-      } else {
-        next.add(groupId);
-      }
-      return next;
-    });
+  const dispatchTaskEvent = (eventName: string, detail: any) => {
+    window.dispatchEvent(new CustomEvent(eventName, {
+      detail: {
+        ...detail,
+        timestamp: new Date(),
+      },
+      bubbles: true,
+      composed: true
+    }));
   };
 
   const addTask = (groupId?: number, parentId?: number) => {
@@ -89,6 +53,68 @@ export const useTaskManager = () => {
     setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
     setNewTask("");
     setEditingTaskId(task.id);
+
+    // タスク追加イベントの発火
+    if (parentId) {
+      const parentTask = tasks.find(t => t.id === parentId);
+      dispatchTaskEvent('taskCompleted', {
+        type: 'subtask_added',
+        title: task.title,
+        parentTaskTitle: parentTask?.title,
+      });
+    } else if (groupId) {
+      const group = groups.find(g => g.id === groupId);
+      dispatchTaskEvent('taskCompleted', {
+        type: 'group_task_added',
+        title: task.title,
+        groupName: group?.name,
+      });
+    } else {
+      dispatchTaskEvent('taskCompleted', {
+        type: 'task_added',
+        title: task.title,
+      });
+    }
+  };
+
+  const deleteTask = (id: number, parentId?: number) => {
+    const taskToDelete = tasks.find(t => t.id === id);
+    if (!taskToDelete) return;
+
+    if (parentId) {
+      const parentTask = tasks.find(t => t.id === parentId);
+      setTasks(prevTasks =>
+        prevTasks.map(task => {
+          if (task.id === parentId) {
+            return {
+              ...task,
+              subtasks: task.subtasks?.filter(subtask => subtask.id !== id),
+            };
+          }
+          return task;
+        })
+      );
+      dispatchTaskEvent('taskCompleted', {
+        type: 'subtask_deleted',
+        title: taskToDelete.title,
+        parentTaskTitle: parentTask?.title,
+      });
+    } else {
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+      if (taskToDelete.groupId) {
+        const group = groups.find(g => g.id === taskToDelete.groupId);
+        dispatchTaskEvent('taskCompleted', {
+          type: 'group_task_deleted',
+          title: taskToDelete.title,
+          groupName: group?.name,
+        });
+      } else {
+        dispatchTaskEvent('taskCompleted', {
+          type: 'task_deleted',
+          title: taskToDelete.title,
+        });
+      }
+    }
   };
 
   const addGroup = () => {
@@ -103,14 +129,34 @@ export const useTaskManager = () => {
     setGroups(prevGroups => [...prevGroups, group]);
     setNewGroup("");
     setIsAddingGroup(false);
+
+    dispatchTaskEvent('taskCompleted', {
+      type: 'group_added',
+      title: group.name,
+    });
   };
 
-  const toggleTask = (id: number, parentId?: number) => {
-    setTasks(prevTasks => toggleTaskInState(prevTasks, id, parentId));
+  const deleteGroup = (id: number) => {
+    const groupToDelete = groups.find(g => g.id === id);
+    if (groupToDelete) {
+      dispatchTaskEvent('taskCompleted', {
+        type: 'group_deleted',
+        title: groupToDelete.name,
+      });
+    }
+    setDeleteTarget({ type: "group", id });
   };
 
-  const updateTaskTitle = (id: number, title: string, parentId?: number) => {
-    setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
+  const toggleGroupCollapse = (groupId: number) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) {
+        next.delete(groupId);
+      } else {
+        next.add(groupId);
+      }
+      return next;
+    });
   };
 
   const updateTaskOrder = (updatedTasks: Task[]) => {
@@ -121,34 +167,8 @@ export const useTaskManager = () => {
     setGroups(updatedGroups);
   };
 
-  const handleReorderSubtasks = (startIndex: number, endIndex: number, parentId: number) => {
-    // Implementation of handleReorderSubtasks
-  };
-
   const updateGroupName = (id: number, name: string) => {
     setGroups(prevGroups => updateGroupNameInState(prevGroups, id, name));
-  };
-
-  const deleteTask = (id: number, parentId?: number) => {
-    if (parentId) {
-      setTasks(prevTasks =>
-        prevTasks.map(task => {
-          if (task.id === parentId) {
-            return {
-              ...task,
-              subtasks: task.subtasks?.filter(subtask => subtask.id !== id),
-            };
-          }
-          return task;
-        })
-      );
-    } else {
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
-    }
-  };
-
-  const deleteGroup = (id: number) => {
-    setDeleteTarget({ type: "group", id });
   };
 
   const confirmDelete = () => {
