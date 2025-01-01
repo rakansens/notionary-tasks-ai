@@ -27,6 +27,41 @@ export const useTaskManager = () => {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
 
+  useEffect(() => {
+    const handleTaskAdded = (event: CustomEvent) => {
+      const { title, groupId, parentId } = event.detail;
+      const task: Task = {
+        id: Date.now(),
+        title,
+        completed: false,
+        groupId,
+        parentId,
+        subtasks: [],
+        order: tasks.length,
+        addedAt: new Date(),
+      };
+      setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
+    };
+
+    const handleGroupAdded = (event: CustomEvent) => {
+      const { title } = event.detail;
+      const group: Group = {
+        id: Date.now(),
+        name: title,
+        order: groups.length,
+      };
+      setGroups(prevGroups => [...prevGroups, group]);
+    };
+
+    window.addEventListener('taskAdded', handleTaskAdded as EventListener);
+    window.addEventListener('groupAdded', handleGroupAdded as EventListener);
+
+    return () => {
+      window.removeEventListener('taskAdded', handleTaskAdded as EventListener);
+      window.removeEventListener('groupAdded', handleGroupAdded as EventListener);
+    };
+  }, [tasks.length, groups.length]);
+
   const toggleGroupCollapse = (groupId: number) => {
     setCollapsedGroups(prev => {
       const next = new Set(prev);
@@ -133,24 +168,6 @@ export const useTaskManager = () => {
     setDeleteTarget(null);
   };
 
-  // Add event listener for group added
-  useEffect(() => {
-    const handleGroupAdded = (event: CustomEvent) => {
-      const { title } = event.detail;
-      const group: Group = {
-        id: Date.now(),
-        name: title,
-        order: groups.length,
-      };
-      setGroups(prevGroups => [...prevGroups, group]);
-    };
-
-    window.addEventListener('groupAdded', handleGroupAdded as EventListener);
-    return () => {
-      window.removeEventListener('groupAdded', handleGroupAdded as EventListener);
-    };
-  }, [groups.length]);
-
   return {
     tasks,
     groups,
@@ -178,8 +195,7 @@ export const useTaskManager = () => {
     confirmDelete,
     cancelDelete,
     updateTaskOrder,
-    toggleGroupCollapse,
     updateGroupOrder,
-    handleReorderSubtasks,
+    toggleGroupCollapse,
   };
 };
