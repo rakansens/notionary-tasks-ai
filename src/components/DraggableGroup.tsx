@@ -1,11 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { FolderPlus, Folder, FolderOpen, Trash2, Plus, GripVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { DraggableTask } from "./DraggableTask";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { Task, Group } from "@/hooks/useTaskManager";
+import { GroupHeader } from "./group/GroupHeader";
+import { GroupContent } from "./group/GroupContent";
 
 interface DraggableGroupProps {
   group: Group;
@@ -48,7 +45,6 @@ export const DraggableGroup = ({
   updateGroupName,
   deleteTask,
   deleteGroup,
-  updateTaskOrder,
   onReorderSubtasks,
   toggleGroupCollapse,
 }: DraggableGroupProps) => {
@@ -78,96 +74,37 @@ export const DraggableGroup = ({
       style={style}
       className={`bg-gray-50 rounded-lg p-4 ${isDragging ? "opacity-50" : ""}`}
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <button
-            className="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
-            {...attributes}
-            {...listeners}
-          >
-            <GripVertical className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => toggleGroupCollapse(group.id)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            {isCollapsed ? (
-              <Folder className="h-5 w-5" />
-            ) : (
-              <FolderOpen className="h-5 w-5" />
-            )}
-          </button>
-          {editingGroupId === group.id ? (
-            <Input
-              value={group.name}
-              onChange={e => updateGroupName(group.id, e.target.value)}
-              onBlur={() => setEditingGroupId(null)}
-              onKeyDown={e => {
-                if (e.key === "Enter") {
-                  setEditingGroupId(null);
-                }
-              }}
-              autoFocus
-            />
-          ) : (
-            <h3
-              className="font-medium text-gray-900 cursor-pointer"
-              onClick={() => setEditingGroupId(group.id)}
-            >
-              {group.name}
-            </h3>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setNewTask("");
-              addTask(group.id);
-            }}
-            className="text-gray-400 hover:text-gray-700"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => deleteGroup(group.id)}
-            className="text-gray-400 hover:text-red-500"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+      <GroupHeader
+        group={group}
+        isCollapsed={isCollapsed}
+        editingGroupId={editingGroupId}
+        dragHandleProps={listeners}
+        dragAttributes={attributes}
+        setEditingGroupId={setEditingGroupId}
+        updateGroupName={updateGroupName}
+        toggleGroupCollapse={toggleGroupCollapse}
+        deleteGroup={deleteGroup}
+        addTask={addTask}
+        setNewTask={setNewTask}
+      />
+      
       {!isCollapsed && (
-        <div className="space-y-1">
-          <SortableContext
-            items={tasks
-              .filter(task => task.groupId === group.id && !task.parentId)
-              .sort((a, b) => a.order - b.order)
-              .map(task => task.id.toString())}
-            strategy={verticalListSortingStrategy}
-          >
-            {tasks
-              .filter(task => task.groupId === group.id && !task.parentId)
-              .sort((a, b) => a.order - b.order)
-              .map(task => (
-                <DraggableTask
-                  key={task.id}
-                  task={task}
-                  editingTaskId={editingTaskId}
-                  addingSubtaskId={addingSubtaskId}
-                  setEditingTaskId={setEditingTaskId}
-                  setAddingSubtaskId={setAddingSubtaskId}
-                  toggleTask={toggleTask}
-                  updateTaskTitle={updateTaskTitle}
-                  deleteTask={deleteTask}
-                  newTask={newTask}
-                  setNewTask={setNewTask}
-                  addTask={addTask}
-                  onReorderSubtasks={onReorderSubtasks}
-                />
-              ))}
-          </SortableContext>
-        </div>
+        <GroupContent
+          groupId={group.id}
+          tasks={tasks}
+          editingTaskId={editingTaskId}
+          addingSubtaskId={addingSubtaskId}
+          setEditingTaskId={setEditingTaskId}
+          setAddingSubtaskId={setAddingSubtaskId}
+          toggleTask={toggleTask}
+          updateTaskTitle={updateTaskTitle}
+          deleteTask={deleteTask}
+          newTask={newTask}
+          setNewTask={setNewTask}
+          addTask={addTask}
+          onReorderSubtasks={onReorderSubtasks}
+        />
       )}
     </div>
   );
-}; 
+};
