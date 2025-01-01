@@ -55,33 +55,12 @@ export const useTaskManager = () => {
       }));
     };
 
-    const handleGroupAdded = (event: CustomEvent) => {
-      const { name } = event.detail;
-      const group: Group = {
-        id: Date.now(),
-        name,
-        order: groups.length,
-      };
-      setGroups(prevGroups => [...prevGroups, group]);
-
-      // グループ追加イベントを発火
-      window.dispatchEvent(new CustomEvent('taskActivity', {
-        detail: {
-          type: 'groupAdded',
-          group,
-          timestamp: new Date(),
-        }
-      }));
-    };
-
     window.addEventListener('taskAdded', handleTaskAdded as EventListener);
-    window.addEventListener('groupAdded', handleGroupAdded as EventListener);
 
     return () => {
       window.removeEventListener('taskAdded', handleTaskAdded as EventListener);
-      window.removeEventListener('groupAdded', handleGroupAdded as EventListener);
     };
-  }, [tasks.length, groups.length]);
+  }, [tasks.length, groups]);
 
   const toggleTask = (id: number, parentId?: number) => {
     setTasks(prevTasks => {
@@ -183,35 +162,6 @@ export const useTaskManager = () => {
     });
   };
 
-  const addTask = (groupId?: number, parentId?: number) => {
-    const task: Task = {
-      id: Date.now(),
-      title: newTask || "新しいタスク",
-      completed: false,
-      groupId,
-      parentId,
-      subtasks: [],
-      order: tasks.length,
-      addedAt: new Date(),
-    };
-    
-    setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
-    setNewTask("");
-    setEditingTaskId(task.id);
-
-    // タスク追加イベントを発火
-    window.dispatchEvent(new CustomEvent('taskActivity', {
-      detail: {
-        type: 'added',
-        task: {
-          ...task,
-          groupName: groups.find(g => g.id === groupId)?.name,
-        },
-        timestamp: new Date(),
-      }
-    }));
-  };
-
   const addGroup = () => {
     if (!newGroup.trim()) return;
     
@@ -221,10 +171,14 @@ export const useTaskManager = () => {
       order: groups.length,
     };
     
+    setGroups(prevGroups => [...prevGroups, group]);
+
     // グループ追加イベントを発火
-    window.dispatchEvent(new CustomEvent('groupAdded', {
+    window.dispatchEvent(new CustomEvent('taskActivity', {
       detail: {
-        name: newGroup,
+        type: 'groupAdded',
+        group,
+        timestamp: new Date(),
       }
     }));
 
