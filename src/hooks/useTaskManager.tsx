@@ -41,6 +41,18 @@ export const useTaskManager = () => {
         order: tasks.length,
         addedAt: new Date(),
       };
+
+      // タスク追加時のログ記録を追加
+      const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
+      const group = groupId ? groups.find(g => g.id === groupId) : undefined;
+      
+      emitTaskEvent(createTaskEvent(
+        parentId ? 'SUBTASK_ADDED' : groupId ? 'GROUP_TASK_ADDED' : 'TASK_ADDED',
+        title,
+        parentTask?.title,
+        group?.name
+      ));
+
       setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
     };
 
@@ -116,12 +128,17 @@ export const useTaskManager = () => {
     if (taskToToggle) {
       const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
       const group = taskToToggle.groupId ? groups.find(g => g.id === taskToToggle.groupId) : undefined;
+      const location = group ? `グループ「${group.name}」内の` : '';
+      const relation = parentTask ? `サブタスク「${taskToToggle.title}」` : `タスク「${taskToToggle.title}」`;
+      const message = `${location}${relation}を${taskToToggle.completed ? '未完了' : '完了'}に変更しました`;
 
+      console.log(message);
       emitTaskEvent(createTaskEvent(
         'TASK_COMPLETED',
         taskToToggle.title,
         parentTask?.title,
-        group?.name
+        group?.name,
+        message
       ));
     }
     setTasks(prevTasks => toggleTaskInState(prevTasks, id, parentId));
