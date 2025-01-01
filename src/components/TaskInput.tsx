@@ -90,7 +90,7 @@ export const TaskInput = ({
           </TooltipTrigger>
           <TooltipContent 
             side="bottom" 
-            className="bg-white/90 backdrop-blur-sm border border-notion-border text-xs"
+            className="bg-white/90 backdrop-blur-sm border border-notion-border text-xs whitespace-nowrap"
           >
             <p>{isGroupMode ? "タスクモードに切り替え" : "グループモードに切り替え"}</p>
           </TooltipContent>
