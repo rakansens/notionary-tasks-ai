@@ -51,15 +51,19 @@ export const useTaskManager = () => {
       state.tasks.length
     );
 
-    const parentTask = parentId ? findTaskById(state.tasks, parentId) : undefined;
-    const grandParentTask = parentTask?.parentId ? findTaskById(state.tasks, parentTask.parentId) : undefined;
-    const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
+    // 状態を更新
+    const updatedTasks = addTaskToState(state.tasks, task, parentId);
+    setters.setTasks(updatedTasks);
 
-    setters.setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
-    
-    // タスク追加イベントの発行を、状態更新後に移動
-    if (task.title) {
-      taskEvents.emitTaskAdded(task, parentTask, group, grandParentTask);
+    // 更新された状態から必要な情報を取得
+    const updatedTask = findTaskById(updatedTasks, task.id);
+    if (updatedTask && updatedTask.title) {
+      const parentTask = parentId ? findTaskById(updatedTasks, parentId) : undefined;
+      const grandParentTask = parentTask?.parentId ? findTaskById(updatedTasks, parentTask.parentId) : undefined;
+      const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
+
+      // イベントを発行
+      taskEvents.emitTaskAdded(updatedTask, parentTask, group, grandParentTask);
     }
     
     setters.setNewTask("");
@@ -187,7 +191,16 @@ export const useTaskManager = () => {
   };
 
   return {
-    ...state,
+    tasks: state.tasks,
+    groups: state.groups,
+    newTask: state.newTask,
+    newGroup: state.newGroup,
+    isAddingGroup: state.isAddingGroup,
+    editingTaskId: state.editingTaskId,
+    editingGroupId: state.editingGroupId,
+    addingSubtaskId: state.addingSubtaskId,
+    deleteTarget: state.deleteTarget,
+    collapsedGroups: state.collapsedGroups,
     setNewTask: setters.setNewTask,
     setNewGroup: setters.setNewGroup,
     setIsAddingGroup: setters.setIsAddingGroup,
@@ -195,13 +208,11 @@ export const useTaskManager = () => {
     setEditingGroupId: setters.setEditingGroupId,
     setAddingSubtaskId: setters.setAddingSubtaskId,
     addTask,
-    updateTaskTitle,
-    toggleTask,
-    deleteTask,
     addGroup,
-    updateTaskOrder,
-    updateGroupOrder,
+    toggleTask,
+    updateTaskTitle,
     updateGroupName,
+    deleteTask,
     deleteGroup,
     confirmDelete,
     cancelDelete,
