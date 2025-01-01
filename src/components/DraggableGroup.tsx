@@ -79,7 +79,7 @@ export const DraggableGroup = ({
       style={style}
       className={`bg-gray-50 rounded-lg p-4 ${isDragging ? "opacity-50" : ""} ${
         isOver ? "bg-gray-100" : ""
-      }`}
+      } min-h-[8rem]`}
       data-group-id={group.id}
     >
       <div className="flex items-center justify-between mb-2">
