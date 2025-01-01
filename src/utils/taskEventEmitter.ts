@@ -5,11 +5,28 @@ export const emitTaskEvent = (eventData: TaskEventData) => {
     detail: eventData
   });
   window.dispatchEvent(event);
-  if (eventData.message) {
-    console.log(eventData.message);
-  } else {
-    console.log('Task event emitted:', eventData);
+
+  let logMessage = '';
+  switch (eventData.type) {
+    case 'TASK_ADDED':
+      logMessage = `新しいタスク「${eventData.title}」を追加しました`;
+      break;
+    case 'SUBTASK_ADDED':
+      logMessage = `タスク「${eventData.parentTask}」に新しいサブタスク「${eventData.title}」を追加しました`;
+      break;
+    case 'GROUP_TASK_ADDED':
+      logMessage = `グループ「${eventData.groupName}」に新しいタスク「${eventData.title}」を追加しました`;
+      break;
+    case 'TASK_COMPLETED':
+      const location = eventData.groupName ? `グループ「${eventData.groupName}」内の` : '';
+      const relation = eventData.parentTask ? `サブタスク「${eventData.title}」` : `タスク「${eventData.title}」`;
+      logMessage = `${location}${relation}を${eventData.message?.includes('未完了') ? '未完了' : '完了'}に変更しました`;
+      break;
+    default:
+      logMessage = eventData.message || `Task event emitted: ${JSON.stringify(eventData)}`;
   }
+
+  console.log(logMessage);
 };
 
 export const createTaskEvent = (
