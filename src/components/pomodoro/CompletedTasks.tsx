@@ -12,6 +12,7 @@ import type { PomodoroSession } from "@/types/pomodoro";
 import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "@/components/ui/use-toast";
+import { TaskEventData } from "@/types/taskEvents";
 
 interface CompletedTasksProps {
   sessions: PomodoroSession[];
@@ -26,43 +27,62 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
   const [newTasks, setNewTasks] = useState<any[]>([]);
 
   useEffect(() => {
-    const handleNewTask = (event: CustomEvent) => {
-      console.log('New task added:', event.detail);
+    const handleTaskOperation = (event: CustomEvent<TaskEventData>) => {
+      console.log('Task operation detected:', event.detail);
       if (currentSession) {
+        const { type, title, parentTask, groupName } = event.detail;
+        let description = '';
+
+        switch (type) {
+          case 'TASK_ADDED':
+            description = `タスク「${title}」を追加しました`;
+            break;
+          case 'TASK_DELETED':
+            description = `タスク「${title}」を削除しました`;
+            break;
+          case 'SUBTASK_ADDED':
+            description = `「${parentTask}」のサブタスク「${title}」を追加しました`;
+            break;
+          case 'SUBTASK_DELETED':
+            description = `「${parentTask}」のサブタスク「${title}」を削除しました`;
+            break;
+          case 'GROUP_ADDED':
+            description = `グループ「${title}」を追加しました`;
+            break;
+          case 'GROUP_DELETED':
+            description = `グループ「${title}」を削除しました`;
+            break;
+          case 'GROUP_TASK_ADDED':
+            description = `グループ「${groupName}」にタスク「${title}」を追加しました`;
+            break;
+          case 'GROUP_TASK_DELETED':
+            description = `グループ「${groupName}」からタスク「${title}」を削除しました`;
+            break;
+        }
+
         const task = {
-          ...event.detail,
-          status: 'new',
-          sessionId: currentSession.id
+          id: Date.now(),
+          title: description,
+          completedAt: event.detail.timestamp,
+          sessionId: currentSession.id,
+          status: 'operation'
         };
+
         setNewTasks(prev => [...prev, task]);
         
-        // Show toast notification
         toast({
-          title: "新しいタスクが追加されました",
-          description: `${task.title}${task.groupName ? ` (グループ: ${task.groupName})` : ''}`,
+          title: "タスク操作",
+          description: description,
         });
       }
     };
 
-    const handleTaskCompleted = (event: CustomEvent) => {
-      if (currentSession) {
-        const task = {
-          ...event.detail,
-          status: 'completed',
-          sessionId: currentSession.id
-        };
-        onAddCompletedTask(task);
-      }
-    };
-
-    window.addEventListener('taskAdded', handleNewTask as EventListener);
-    window.addEventListener('taskCompleted', handleTaskCompleted as EventListener);
+    window.addEventListener('taskOperation', handleTaskOperation as EventListener);
     
     return () => {
-      window.removeEventListener('taskAdded', handleNewTask as EventListener);
-      window.removeEventListener('taskCompleted', handleTaskCompleted as EventListener);
+      window.removeEventListener('taskOperation', handleTaskOperation as EventListener);
     };
-  }, [currentSession, onAddCompletedTask]);
+  }, [currentSession]);
 
   const handleEditStart = (taskId: number, currentTitle: string) => {
     setEditingTaskId(taskId);

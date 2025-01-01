@@ -14,4 +14,5 @@ export interface CompletedTask {
   parentTaskTitle?: string | null;
   grandParentTaskTitle?: string | null;
   groupName?: string | null;
+  status?: 'new' | 'completed' | 'operation';
 }

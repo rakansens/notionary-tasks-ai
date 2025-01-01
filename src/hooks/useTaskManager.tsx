@@ -12,6 +12,7 @@ import {
   deleteGroupFromState,
   cleanupTasksAfterGroupDelete,
 } from './taskManager/groupOperations';
+import { emitTaskEvent, createTaskEvent } from '@/utils/taskEventEmitter';
 
 export type { Task, Group };
 
@@ -86,6 +87,16 @@ export const useTaskManager = () => {
       addedAt: new Date(),
     };
     
+    const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
+    const group = groupId ? groups.find(g => g.id === groupId) : undefined;
+    
+    emitTaskEvent(createTaskEvent(
+      parentId ? 'SUBTASK_ADDED' : groupId ? 'GROUP_TASK_ADDED' : 'TASK_ADDED',
+      task.title,
+      parentTask?.title,
+      group?.name
+    ));
+    
     setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
     setNewTask("");
     setEditingTaskId(task.id);
@@ -99,6 +110,8 @@ export const useTaskManager = () => {
       name: newGroup,
       order: groups.length,
     };
+    
+    emitTaskEvent(createTaskEvent('GROUP_ADDED', group.name));
     
     setGroups(prevGroups => [...prevGroups, group]);
     setNewGroup("");
@@ -130,6 +143,19 @@ export const useTaskManager = () => {
   };
 
   const deleteTask = (id: number, parentId?: number) => {
+    const taskToDelete = tasks.find(t => t.id === id);
+    if (!taskToDelete) return;
+
+    const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
+    const group = taskToDelete.groupId ? groups.find(g => g.id === taskToDelete.groupId) : undefined;
+
+    emitTaskEvent(createTaskEvent(
+      parentId ? 'SUBTASK_DELETED' : taskToDelete.groupId ? 'GROUP_TASK_DELETED' : 'TASK_DELETED',
+      taskToDelete.title,
+      parentTask?.title,
+      group?.name
+    ));
+
     if (parentId) {
       setTasks(prevTasks =>
         prevTasks.map(task => {
@@ -148,6 +174,10 @@ export const useTaskManager = () => {
   };
 
   const deleteGroup = (id: number) => {
+    const groupToDelete = groups.find(g => g.id === id);
+    if (groupToDelete) {
+      emitTaskEvent(createTaskEvent('GROUP_DELETED', groupToDelete.name));
+    }
     setDeleteTarget({ type: "group", id });
   };
 
