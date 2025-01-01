@@ -58,6 +58,13 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
           case 'GROUP_TASK_DELETED':
             description = `グループ「${groupName}」からタスク「${title}」を削除しました`;
             break;
+          case 'TASK_COMPLETED':
+            const location = groupName ? `グループ「${groupName}」内の` : '';
+            const relation = parentTask 
+              ? `「${parentTask}」のサブタスク「${title}」` 
+              : `タスク「${title}」`;
+            description = `${location}${relation}を${event.detail.message?.includes('未完了') ? '未完了' : '完了'}にしました`;
+            break;
         }
 
         const task = {
