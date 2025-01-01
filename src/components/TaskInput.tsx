@@ -60,12 +60,18 @@ export const TaskInput = ({
   };
 
   return (
-    <div className={cn("flex items-center gap-2 group", className)}>
+    <div className={cn("flex items-center gap-2 group relative", className)}>
       <Button
         variant="ghost"
         size="icon"
-        className="h-4 w-4 rounded-sm border border-notion-border group-hover:border-notion-primary/50 transition-colors duration-200"
+        className={cn(
+          "h-4 w-4 rounded-sm border transition-all duration-200",
+          isGroupMode 
+            ? "border-[#9b87f5] bg-[#9b87f5]/10 hover:bg-[#9b87f5]/20" 
+            : "border-notion-border group-hover:border-notion-primary/50"
+        )}
         onClick={onIconClick}
+        title={isGroupMode ? "タスクモードに切り替え" : "グループモードに切り替え"}
       >
         {isGroupMode ? (
           <FolderPlus className="h-3 w-3 text-[#9b87f5] group-hover:text-[#8a73f4] group-hover:scale-110 transition-all duration-200" />
@@ -82,10 +88,18 @@ export const TaskInput = ({
         className={cn(
           "flex-1 h-8 text-sm bg-transparent border-none focus:ring-0",
           "placeholder:text-notion-secondary",
-          "hover:bg-notion-hover/50 focus:bg-white transition-colors duration-200"
+          isGroupMode 
+            ? "bg-[#9b87f5]/5 hover:bg-[#9b87f5]/10 focus:bg-white" 
+            : "hover:bg-notion-hover/50 focus:bg-white",
+          "transition-colors duration-200"
         )}
         autoFocus={autoFocus}
       />
+      {isGroupMode && (
+        <span className="absolute -top-6 left-0 text-xs text-[#9b87f5] bg-[#9b87f5]/10 px-2 py-1 rounded-md animate-fade-in">
+          グループモード
+        </span>
+      )}
     </div>
   );
 };
