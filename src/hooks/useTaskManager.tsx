@@ -86,14 +86,17 @@ export const useTaskManager = () => {
     const grandParentTask = parentTask?.parentId ? findTaskById(tasks, parentTask.parentId) : undefined;
     const group = groupId ? groups.find(g => g.id === groupId) : undefined;
     
-    emitTaskEvent(createTaskEvent(
-      parentId ? 'SUBTASK_ADDED' : groupId ? 'GROUP_TASK_ADDED' : 'TASK_ADDED',
-      task.title,
-      parentTask?.title,
-      group?.name,
-      undefined,
-      grandParentTask?.title
-    ));
+    // タイトルが空でない場合のみログを記録
+    if (task.title) {
+      emitTaskEvent(createTaskEvent(
+        parentId ? 'SUBTASK_ADDED' : groupId ? 'GROUP_TASK_ADDED' : 'TASK_ADDED',
+        task.title,
+        parentTask?.title,
+        group?.name,
+        undefined,
+        grandParentTask?.title
+      ));
+    }
 
     setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
     setNewTask("");
