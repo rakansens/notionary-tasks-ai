@@ -112,6 +112,18 @@ export const useTaskManager = () => {
   };
 
   const toggleTask = (id: number, parentId?: number) => {
+    const taskToToggle = tasks.find(t => t.id === id);
+    if (taskToToggle) {
+      const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
+      const group = taskToToggle.groupId ? groups.find(g => g.id === taskToToggle.groupId) : undefined;
+
+      emitTaskEvent(createTaskEvent(
+        'TASK_COMPLETED',
+        taskToToggle.title,
+        parentTask?.title,
+        group?.name
+      ));
+    }
     setTasks(prevTasks => toggleTaskInState(prevTasks, id, parentId));
   };
 

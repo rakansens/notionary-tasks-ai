@@ -1,6 +1,7 @@
 export type TaskEventType = 
   | 'TASK_ADDED' 
   | 'TASK_DELETED'
+  | 'TASK_COMPLETED'
   | 'SUBTASK_ADDED'
   | 'SUBTASK_DELETED'
   | 'GROUP_ADDED'
