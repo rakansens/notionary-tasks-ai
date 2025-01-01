@@ -2,6 +2,12 @@ import { Plus, FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TaskInputProps {
   value: string;
@@ -61,24 +67,35 @@ export const TaskInput = ({
 
   return (
     <div className={cn("flex items-center gap-2 group relative", className)}>
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn(
-          "h-4 w-4 rounded-sm border transition-all duration-200",
-          isGroupMode 
-            ? "border-[#9b87f5] bg-[#9b87f5]/10 hover:bg-[#9b87f5]/20" 
-            : "border-notion-border group-hover:border-notion-primary/50"
-        )}
-        onClick={onIconClick}
-        title={isGroupMode ? "タスクモードに切り替え" : "グループモードに切り替え"}
-      >
-        {isGroupMode ? (
-          <FolderPlus className="h-3 w-3 text-[#9b87f5] group-hover:text-[#8a73f4] group-hover:scale-110 transition-all duration-200" />
-        ) : (
-          <Plus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
-        )}
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "h-4 w-4 rounded-sm border transition-all duration-200",
+                isGroupMode 
+                  ? "border-[#9b87f5] bg-[#9b87f5]/10 hover:bg-[#9b87f5]/20" 
+                  : "border-notion-border group-hover:border-notion-primary/50"
+              )}
+              onClick={onIconClick}
+            >
+              {isGroupMode ? (
+                <FolderPlus className="h-3 w-3 text-[#9b87f5] group-hover:text-[#8a73f4] group-hover:scale-110 transition-all duration-200" />
+              ) : (
+                <Plus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent 
+            side="bottom" 
+            className="bg-white/90 backdrop-blur-sm border border-notion-border text-xs"
+          >
+            <p>{isGroupMode ? "タスクモードに切り替え" : "グループモードに切り替え"}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
