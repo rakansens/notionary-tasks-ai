@@ -85,12 +85,12 @@ export const TaskHistoryItem = ({
                 onClick={() => onEditStart(task.id, task.title)}
               >
                 {task.title}
-                {isCurrentSession && (
-                  <span className="ml-2 text-xs text-[#3291FF]">
-                    (現在のセッション)
-                  </span>
-                )}
               </span>
+              {isCurrentSession && (
+                <span className="ml-2 text-xs text-[#3291FF]">
+                  (現在のセッション)
+                </span>
+              )}
               {(task.parentTaskTitle || task.groupName) && (
                 <Breadcrumb>
                   <BreadcrumbList className="text-xs text-notion-secondary">
