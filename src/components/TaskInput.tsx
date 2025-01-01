@@ -29,19 +29,31 @@ export const TaskInput = ({
   const handleSubmit = () => {
     const trimmedValue = value.trim();
     if (trimmedValue) {
-      window.dispatchEvent(new CustomEvent('taskAdded', {
-        detail: {
-          title: trimmedValue,
-          addedAt: new Date(),
-          groupId: groupId || null,
-          type: mode
-        },
-        bubbles: true,
-        composed: true
-      }));
+      if (mode === 'group') {
+        window.dispatchEvent(new CustomEvent('groupAdded', {
+          detail: {
+            name: trimmedValue,
+            addedAt: new Date(),
+          },
+          bubbles: true,
+          composed: true
+        }));
+      } else {
+        window.dispatchEvent(new CustomEvent('taskAdded', {
+          detail: {
+            title: trimmedValue,
+            addedAt: new Date(),
+            groupId: groupId || null,
+            type: 'task'
+          },
+          bubbles: true,
+          composed: true
+        }));
+      }
       onSubmit();
       onChange('');
       setIsActive(false);
+      setMode('task'); // モードをリセット
     }
   };
 
@@ -52,6 +64,7 @@ export const TaskInput = ({
     } else if (e.key === "Escape") {
       setIsActive(false);
       onChange('');
+      setMode('task'); // モードをリセット
       if (onCancel) {
         onCancel();
       }
@@ -62,14 +75,16 @@ export const TaskInput = ({
     if (!value.trim() && onCancel) {
       onCancel();
       setIsActive(false);
+      setMode('task'); // モードをリセット
     }
   };
 
   const handleButtonClick = () => {
-    if (isActive) {
-      setMode(mode === 'task' ? 'group' : 'task');
-    } else {
+    if (!isActive) {
       setIsActive(true);
+      setMode('task');
+    } else {
+      setMode(mode === 'task' ? 'group' : 'task');
     }
   };
 
