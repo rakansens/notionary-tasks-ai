@@ -62,6 +62,35 @@ export const useTaskManager = () => {
     };
   }, [tasks.length, groups]);
 
+  const addTask = (groupId?: number, parentId?: number) => {
+    const task: Task = {
+      id: Date.now(),
+      title: newTask || "新しいタスク",
+      completed: false,
+      groupId,
+      parentId,
+      subtasks: [],
+      order: tasks.length,
+      addedAt: new Date(),
+    };
+    
+    setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
+    setNewTask("");
+    setEditingTaskId(task.id);
+
+    // タスク追加イベントを発火
+    window.dispatchEvent(new CustomEvent('taskActivity', {
+      detail: {
+        type: 'added',
+        task: {
+          ...task,
+          groupName: groups.find(g => g.id === groupId)?.name,
+        },
+        timestamp: new Date(),
+      }
+    }));
+  };
+
   const toggleTask = (id: number, parentId?: number) => {
     setTasks(prevTasks => {
       const updatedTasks = toggleTaskInState(prevTasks, id, parentId);
