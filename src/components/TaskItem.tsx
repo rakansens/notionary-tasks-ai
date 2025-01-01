@@ -84,9 +84,12 @@ export const TaskItem = ({
               onChange={(e) => setNewTask(e.target.value)}
               onBlur={() => setAddingSubtaskId(null)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && newTask.trim()) {
-                  addTask(undefined, task.id);
-                  setAddingSubtaskId(null);
+                if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+                  e.preventDefault();
+                  if (newTask.trim()) {
+                    addTask(undefined, task.id);
+                    setAddingSubtaskId(null);
+                  }
                 }
               }}
               placeholder="新しいサブタスク"

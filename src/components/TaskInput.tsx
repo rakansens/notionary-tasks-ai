@@ -23,11 +23,12 @@ export const TaskInput = ({
   className
 }: TaskInputProps) => {
   const handleSubmit = () => {
-    if (value.trim()) {
+    const trimmedValue = value.trim();
+    if (trimmedValue) {
       // Dispatch new task added event
       window.dispatchEvent(new CustomEvent('taskAdded', {
         detail: {
-          title: value,
+          title: trimmedValue,
           addedAt: new Date(),
           groupId: groupId || null
         },
@@ -40,8 +41,9 @@ export const TaskInput = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    // 入力候補表示中（IME変換中）はエンターでの送信を防ぐ
-    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+    // IME入力中はエンターでの送信を防ぐ
+    if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+      e.preventDefault(); // エンターキーのデフォルト動作を防ぐ
       handleSubmit();
     } else if (e.key === "Escape" && onCancel) {
       onCancel();
