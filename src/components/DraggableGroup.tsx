@@ -3,6 +3,8 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Task, Group } from "@/hooks/useTaskManager";
 import { GroupHeader } from "./group/GroupHeader";
 import { GroupContent } from "./group/GroupContent";
+import { GroupContainer } from "./group/GroupContainer";
+import { GroupDragHandle } from "./group/GroupDragHandle";
 
 interface DraggableGroupProps {
   group: Group;
@@ -69,10 +71,10 @@ export const DraggableGroup = ({
   };
 
   return (
-    <div
-      ref={setNodeRef}
+    <GroupContainer
+      isDragging={isDragging}
       style={style}
-      className={`bg-gray-50 rounded-lg p-4 ${isDragging ? "opacity-50" : ""}`}
+      setNodeRef={setNodeRef}
     >
       <GroupHeader
         group={group}
@@ -105,6 +107,6 @@ export const DraggableGroup = ({
           onReorderSubtasks={onReorderSubtasks}
         />
       )}
-    </div>
+    </GroupContainer>
   );
 };
