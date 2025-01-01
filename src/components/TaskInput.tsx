@@ -49,6 +49,7 @@ export const TaskInput = ({
       handleSubmit();
     } else if (e.key === "Escape") {
       setIsActive(false);
+      onChange('');
       if (onCancel) {
         onCancel();
       }
@@ -70,7 +71,7 @@ export const TaskInput = ({
   };
 
   return (
-    <div className={cn("flex items-center gap-2 group", className)}>
+    <div className={cn("flex items-center gap-2 group relative", className)}>
       <Button
         variant="ghost"
         size="icon"
@@ -91,21 +92,21 @@ export const TaskInput = ({
           )} 
         />
       </Button>
-      <Input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyPress}
-        onBlur={handleBlur}
-        placeholder="新しいタスクを追加..."
-        className={cn(
-          "flex-1 h-8 text-sm bg-transparent border-none focus:ring-0",
-          "placeholder:text-notion-secondary",
-          isActive 
-            ? "bg-white" 
-            : "hover:bg-notion-hover/50 focus:bg-white transition-colors duration-200"
-        )}
-        autoFocus={autoFocus || isActive}
-      />
+      {isActive && (
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleKeyPress}
+          onBlur={handleBlur}
+          placeholder="新しいタスクを追加..."
+          className={cn(
+            "flex-1 h-8 text-sm bg-white border-none focus:ring-0",
+            "placeholder:text-notion-secondary",
+            "transition-all duration-200 ease-in-out"
+          )}
+          autoFocus
+        />
+      )}
     </div>
   );
 };
