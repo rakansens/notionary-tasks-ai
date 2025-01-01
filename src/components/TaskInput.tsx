@@ -29,8 +29,6 @@ export const TaskInput = ({
     const trimmedValue = value.trim();
     if (trimmedValue) {
       if (isGroupMode) {
-        // グループ追加のイベントを発火する前に、onSubmitを呼び出す
-        onSubmit();
         window.dispatchEvent(new CustomEvent('groupAdded', {
           detail: {
             title: trimmedValue,
