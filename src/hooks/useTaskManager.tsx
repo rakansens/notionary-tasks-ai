@@ -87,8 +87,8 @@ export const useTaskManager = () => {
       addedAt: new Date(),
     };
     
-    // タスクのタイトルが変更されている場合のみイベントを発行
-    if (newTask.trim() !== "") {
+    // グループ内のタスク追加の場合は常にイベントを発行
+    if (groupId || newTask.trim() !== "") {
       const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
       const group = groupId ? groups.find(g => g.id === groupId) : undefined;
       
