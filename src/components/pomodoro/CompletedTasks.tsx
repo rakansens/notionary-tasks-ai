@@ -98,11 +98,6 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
         };
 
         setNewTasks(prev => [...prev, task]);
-        
-        toast({
-          title: "タスク操作",
-          description: description,
-        });
       }
     };
 
