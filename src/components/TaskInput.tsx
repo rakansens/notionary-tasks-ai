@@ -33,6 +33,7 @@ export const TaskInput = ({
         window.dispatchEvent(new CustomEvent('groupAdded', {
           detail: {
             name: trimmedValue,
+            order: 0,
             addedAt: new Date(),
           },
           bubbles: true,
@@ -73,6 +74,14 @@ export const TaskInput = ({
 
   const toggleMode = () => {
     setIsGroupMode(!isGroupMode);
+    // グループモード切り替えイベントを発火
+    window.dispatchEvent(new CustomEvent('groupModeToggled', {
+      detail: {
+        isGroupMode: !isGroupMode
+      },
+      bubbles: true,
+      composed: true
+    }));
   };
 
   return (
