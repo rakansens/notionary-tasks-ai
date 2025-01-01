@@ -86,23 +86,33 @@ export const useTaskManager = () => {
       order: tasks.length,
       addedAt: new Date(),
     };
-    
-    // グループ内のタスク追加時は、エンターキーで確定した時のみイベントを発行
-    if (newTask.trim() !== "") {
-      const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
-      const group = groupId ? groups.find(g => g.id === groupId) : undefined;
-      
-      emitTaskEvent(createTaskEvent(
-        parentId ? 'SUBTASK_ADDED' : groupId ? 'GROUP_TASK_ADDED' : 'TASK_ADDED',
-        task.title,
-        parentTask?.title,
-        group?.name
-      ));
-    }
-    
+
     setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
     setNewTask("");
     setEditingTaskId(task.id);
+  };
+
+  const updateTaskTitle = (id: number, title: string, parentId?: number) => {
+    if (title.trim() !== "") {
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
+        const group = task.groupId ? groups.find(g => g.id === task.groupId) : undefined;
+
+        emitTaskEvent(createTaskEvent(
+          parentId ? 'SUBTASK_ADDED' : task.groupId ? 'GROUP_TASK_ADDED' : 'TASK_ADDED',
+          title,
+          parentTask?.title,
+          group?.name
+        ));
+      }
+    }
+    setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
+    setEditingTaskId(null);
+  };
+
+  const toggleTask = (id: number, parentId?: number) => {
+    setTasks(prevTasks => toggleTaskInState(prevTasks, id, parentId));
   };
 
   const deleteTask = (id: number, parentId?: number) => {
@@ -150,26 +160,6 @@ export const useTaskManager = () => {
     setGroups(prevGroups => [...prevGroups, group]);
     setNewGroup("");
     setIsAddingGroup(false);
-  };
-
-  const toggleTask = (id: number, parentId?: number) => {
-    setTasks(prevTasks => toggleTaskInState(prevTasks, id, parentId));
-  };
-
-  const updateTaskTitle = (id: number, title: string, parentId?: number) => {
-    setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
-  };
-
-  const updateTaskOrder = (updatedTasks: Task[]) => {
-    setTasks(updatedTasks);
-  };
-
-  const updateGroupOrder = (updatedGroups: Group[]) => {
-    setGroups(updatedGroups);
-  };
-
-  const handleReorderSubtasks = (startIndex: number, endIndex: number, parentId: number) => {
-    // Implementation of handleReorderSubtasks
   };
 
   const updateGroupName = (id: number, name: string) => {
