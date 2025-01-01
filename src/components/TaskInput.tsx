@@ -28,7 +28,6 @@ export const TaskInput = ({
   const handleSubmit = () => {
     const trimmedValue = value.trim();
     if (trimmedValue) {
-      // Dispatch new task/group added event
       window.dispatchEvent(new CustomEvent(isGroupMode ? 'groupAdded' : 'taskAdded', {
         detail: {
           title: trimmedValue,
@@ -64,9 +63,7 @@ export const TaskInput = ({
 
   const toggleMode = () => {
     setIsGroupMode(!isGroupMode);
-    if (value.trim() === '') {
-      onChange(isGroupMode ? '新しいタスクを追加...' : '新しいグループを追加...');
-    }
+    onChange(''); // Clear the input when toggling mode
   };
 
   return (
