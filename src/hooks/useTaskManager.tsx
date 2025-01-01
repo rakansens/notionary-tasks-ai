@@ -100,7 +100,9 @@ export const useTaskManager = () => {
 
     setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
     setNewTask("");
-    setEditingTaskId(task.id);
+    if (groupId) {
+      setEditingTaskId(task.id);
+    }
   };
 
   const toggleGroupCollapse = (groupId: number) => {
