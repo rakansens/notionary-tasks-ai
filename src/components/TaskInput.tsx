@@ -30,11 +30,14 @@ export const TaskInput = ({
     if (trimmedValue) {
       if (isGroupMode) {
         // グループ追加イベントを発火
+        const newGroup = {
+          id: Date.now(),
+          name: trimmedValue,
+          order: 0,
+        };
+        
         window.dispatchEvent(new CustomEvent('groupAdded', {
-          detail: {
-            name: trimmedValue,
-            addedAt: new Date(),
-          },
+          detail: newGroup,
           bubbles: true,
           composed: true
         }));
