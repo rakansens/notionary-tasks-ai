@@ -24,10 +24,11 @@ export const TaskInput = ({
   className
 }: TaskInputProps) => {
   const [isGroupMode, setIsGroupMode] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
-    if (trimmedValue || !isGroupMode) { // グループモードでない場合のみ空の値を許可
+    if (trimmedValue || !isGroupMode) {
       if (isGroupMode) {
         window.dispatchEvent(new CustomEvent('groupAdded', {
           detail: {
@@ -37,11 +38,12 @@ export const TaskInput = ({
           bubbles: true,
           composed: true
         }));
-      } else {
+      } else if (isEditing) {
         onSubmit();
       }
-      onChange(''); // 入力をクリア
-      setIsGroupMode(false); // タスクモードにリセット
+      onChange('');
+      setIsGroupMode(false);
+      setIsEditing(false);
     }
   };
 
@@ -52,6 +54,7 @@ export const TaskInput = ({
     } else if (e.key === "Escape" && onCancel) {
       onCancel();
       setIsGroupMode(false);
+      setIsEditing(false);
     }
   };
 
@@ -59,12 +62,17 @@ export const TaskInput = ({
     if (!value.trim() && onCancel) {
       onCancel();
       setIsGroupMode(false);
+      setIsEditing(false);
     }
   };
 
   const toggleMode = () => {
     setIsGroupMode(!isGroupMode);
-    onChange(''); // モード切替時に入力をクリア
+    onChange('');
+  };
+
+  const handleInputFocus = () => {
+    setIsEditing(true);
   };
 
   return (
@@ -86,6 +94,7 @@ export const TaskInput = ({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyPress}
         onBlur={handleBlur}
+        onFocus={handleInputFocus}
         placeholder={isGroupMode ? "新しいグループを追加..." : "新しいタスクを追加..."}
         className={cn(
           "flex-1 h-8 text-sm bg-transparent border-none focus:ring-0",
