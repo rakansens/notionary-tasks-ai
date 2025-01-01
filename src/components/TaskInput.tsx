@@ -1,13 +1,7 @@
-import { Plus, FolderPlus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface TaskInputProps {
   value: string;
@@ -17,8 +11,6 @@ interface TaskInputProps {
   groupId?: number;
   autoFocus?: boolean;
   className?: string;
-  isGroupMode?: boolean;
-  onIconClick?: () => void;
 }
 
 export const TaskInput = ({ 
@@ -28,31 +20,30 @@ export const TaskInput = ({
   onCancel,
   groupId,
   autoFocus,
-  className,
-  isGroupMode = false,
-  onIconClick
+  className
 }: TaskInputProps) => {
   const handleSubmit = () => {
     const trimmedValue = value.trim();
     if (trimmedValue) {
+      // Dispatch new task added event
       window.dispatchEvent(new CustomEvent('taskAdded', {
         detail: {
           title: trimmedValue,
           addedAt: new Date(),
-          groupId: groupId || null,
-          isGroup: isGroupMode
+          groupId: groupId || null
         },
         bubbles: true,
         composed: true
       }));
       onSubmit();
-      onChange('');
+      onChange(''); // Clear the input after submission
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    // IME入力中はエンターでの送信を防ぐ
     if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
-      e.preventDefault();
+      e.preventDefault(); // エンターキーのデフォルト動作を防ぐ
       handleSubmit();
     } else if (e.key === "Escape" && onCancel) {
       onCancel();
@@ -66,57 +57,28 @@ export const TaskInput = ({
   };
 
   return (
-    <div className={cn("flex items-center gap-2 group relative", className)}>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "h-4 w-4 rounded-sm border transition-all duration-200",
-                isGroupMode 
-                  ? "border-[#9b87f5] bg-[#9b87f5]/10 hover:bg-[#9b87f5]/20" 
-                  : "border-notion-border group-hover:border-notion-primary/50"
-              )}
-              onClick={onIconClick}
-            >
-              {isGroupMode ? (
-                <FolderPlus className="h-3 w-3 text-[#9b87f5] group-hover:text-[#8a73f4] group-hover:scale-110 transition-all duration-200" />
-              ) : (
-                <Plus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent 
-            side="bottom" 
-            className="bg-white/90 backdrop-blur-sm border border-notion-border text-xs whitespace-nowrap"
-          >
-            <p>{isGroupMode ? "タスク" : "グループ"}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+    <div className={cn("flex items-center gap-2 group", className)}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-4 w-4 rounded-sm border border-notion-border group-hover:border-notion-primary/50 transition-colors duration-200"
+        onClick={handleSubmit}
+      >
+        <Plus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
+      </Button>
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyPress}
         onBlur={handleBlur}
-        placeholder={isGroupMode ? "新しいグループを追加..." : "新しいタスクを追加..."}
+        placeholder="新しいタスクを追加..."
         className={cn(
           "flex-1 h-8 text-sm bg-transparent border-none focus:ring-0",
           "placeholder:text-notion-secondary",
-          isGroupMode 
-            ? "bg-[#9b87f5]/5 hover:bg-[#9b87f5]/10 focus:bg-white" 
-            : "hover:bg-notion-hover/50 focus:bg-white",
-          "transition-colors duration-200"
+          "hover:bg-notion-hover/50 focus:bg-white transition-colors duration-200"
         )}
         autoFocus={autoFocus}
       />
-      {isGroupMode && (
-        <span className="absolute -top-6 left-0 text-xs text-[#9b87f5] bg-[#9b87f5]/10 px-2 py-1 rounded-md animate-fade-in">
-          グループモード
-        </span>
-      )}
     </div>
   );
 };
