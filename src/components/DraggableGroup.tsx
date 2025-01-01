@@ -59,6 +59,7 @@ export const DraggableGroup = ({
     transform,
     transition,
     isDragging,
+    isOver,
   } = useSortable({
     id: `group-${group.id}`,
     data: {
@@ -76,7 +77,7 @@ export const DraggableGroup = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-gray-50 rounded-lg p-4 ${isDragging ? "opacity-50" : ""}`}
+      className={`bg-gray-50 rounded-lg p-4 ${isDragging ? "opacity-50" : ""} ${isOver ? "bg-gray-100" : ""}`}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -170,4 +171,4 @@ export const DraggableGroup = ({
       )}
     </div>
   );
-}; 
+};

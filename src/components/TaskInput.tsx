@@ -92,7 +92,7 @@ export const TaskInput = ({
             side="bottom" 
             className="bg-white/90 backdrop-blur-sm border border-notion-border text-xs whitespace-nowrap"
           >
-            <p>{isGroupMode ? "タスクに切り替え" : "グループに切り替え"}</p>
+            <p>{isGroupMode ? "タスク" : "グループ"}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
