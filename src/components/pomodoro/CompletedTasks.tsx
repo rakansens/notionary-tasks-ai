@@ -1,5 +1,5 @@
 import { History } from "lucide-react";
-import { format } from "date-fns"; // 追加
+import { format } from "date-fns";
 import {
   Collapsible,
   CollapsibleContent,
@@ -57,6 +57,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
             description = `グループ「${groupName}」からタスク「${title}」を削除しました`;
             break;
           case 'TASK_COMPLETED':
+          case 'SUBTASK_COMPLETED':
             const location = groupName ? `グループ「${groupName}」内の` : '';
             const relation = parentTask 
               ? `「${parentTask}」のサブタスク「${title}」` 
@@ -70,7 +71,10 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
           title: description,
           completedAt: event.detail.timestamp,
           sessionId: currentSession.id,
-          status: 'operation'
+          status: 'operation',
+          isSubtask: type === 'SUBTASK_COMPLETED',
+          parentTaskTitle: parentTask,
+          groupName: groupName
         };
 
         setNewTasks(prev => [...prev, task]);
