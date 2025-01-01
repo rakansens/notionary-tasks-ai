@@ -29,6 +29,8 @@ export const TaskInput = ({
     const trimmedValue = value.trim();
     if (trimmedValue) {
       if (isGroupMode) {
+        // グループ追加のイベントを発火する前に、onSubmitを呼び出す
+        onSubmit();
         window.dispatchEvent(new CustomEvent('groupAdded', {
           detail: {
             title: trimmedValue,
@@ -40,8 +42,8 @@ export const TaskInput = ({
       } else {
         onSubmit();
       }
-      onChange(''); // Clear the input after submission
-      setIsGroupMode(false); // Reset to task mode after submission
+      onChange(''); // 入力をクリア
+      setIsGroupMode(false); // タスクモードにリセット
     }
   };
 
@@ -64,7 +66,7 @@ export const TaskInput = ({
 
   const toggleMode = () => {
     setIsGroupMode(!isGroupMode);
-    onChange(''); // Clear the input when toggling mode
+    onChange(''); // モード切替時に入力をクリア
   };
 
   return (
