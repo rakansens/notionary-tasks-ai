@@ -35,18 +35,30 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
         };
         setActivities(prev => [...prev, activity]);
         
-        // Show toast notification based on activity type
-        const messages = {
-          added: `新しいタスクが追加されました: ${activity.task.title}`,
-          deleted: `タスクが削除されました: ${activity.task.title}`,
-          toggled: `タスクが${activity.task.completed ? '完了' : '未完了'}に変更されました: ${activity.task.title}`,
-          groupAdded: `新しいグループが追加されました: ${activity.group.name}`,
-          groupDeleted: `グループが削除されました: ${activity.group.name}`,
+        // メッセージの生成を安全に行う
+        const getActivityMessage = () => {
+          const type = activity.type;
+          if (type === 'added' && activity.task?.title) {
+            return `新しいタスクが追加されました: ${activity.task.title}`;
+          }
+          if (type === 'deleted' && activity.task?.title) {
+            return `タスクが削除されました: ${activity.task.title}`;
+          }
+          if (type === 'toggled' && activity.task?.title) {
+            return `タスクが${activity.task.completed ? '完了' : '未完了'}に変更されました: ${activity.task.title}`;
+          }
+          if (type === 'groupAdded' && activity.group?.name) {
+            return `新しいグループが追加されました: ${activity.group.name}`;
+          }
+          if (type === 'groupDeleted' && activity.group?.name) {
+            return `グループが削除されました: ${activity.group.name}`;
+          }
+          return 'アクティビティが記録されました';
         };
-        
+
         toast({
           title: "アクティビティ",
-          description: messages[activity.type as keyof typeof messages],
+          description: getActivityMessage(),
         });
       }
     };
@@ -133,7 +145,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                         {item.type === 'toggled' && (
                           <CheckCircle className={cn(
                             "h-4 w-4",
-                            item.task.completed ? "text-[#3291FF]" : "text-gray-400"
+                            item.task?.completed ? "text-[#3291FF]" : "text-gray-400"
                           )} />
                         )}
                         {item.type === 'groupAdded' && <Folder className="h-4 w-4 text-[#37A169]" />}
@@ -144,7 +156,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
                           </div>
                         )}
                         <span className="text-sm">
-                          {item.task?.title || item.group?.name}
+                          {item.task?.title || (item.group && item.group.name) || '不明なアイテム'}
                           {item.task?.groupName && (
                             <span className="ml-2 text-xs text-notion-secondary">
                               (グループ: {item.task.groupName})
