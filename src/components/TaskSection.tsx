@@ -1,7 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { useTaskManager } from "@/hooks/useTaskManager";
-import { Task } from "@/hooks/taskManager/types";
+import { Task, Group } from "@/hooks/taskManager/types";  // Added Group import
 import { TaskItem } from "./TaskItem";
 import { DraggableTask } from "./DraggableTask";
 import { GroupList } from "./GroupList";
