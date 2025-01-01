@@ -72,8 +72,7 @@ export const useTaskManager = () => {
       if (task) {
         const parentTask = parentId ? state.tasks.find(t => t.id === parentId) : undefined;
         const group = task.groupId ? state.groups.find(g => g.id === task.groupId) : undefined;
-
-        taskEvents.emitTaskCompleted(task, parentTask, group);
+        // タスク完了イベントの発行を削除
       }
     }
     setters.setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
@@ -204,6 +203,6 @@ export const useTaskManager = () => {
     deleteGroup,
     confirmDelete,
     cancelDelete,
-    toggleGroupCollapse, // 追加
+    toggleGroupCollapse,
   };
 };
