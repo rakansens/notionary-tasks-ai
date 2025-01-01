@@ -87,19 +87,53 @@ export const useTaskManager = () => {
       addedAt: new Date(),
     };
     
-    const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
-    const group = groupId ? groups.find(g => g.id === groupId) : undefined;
-    
-    emitTaskEvent(createTaskEvent(
-      parentId ? 'SUBTASK_ADDED' : groupId ? 'GROUP_TASK_ADDED' : 'TASK_ADDED',
-      task.title,
-      parentTask?.title,
-      group?.name
-    ));
+    // タスクのタイトルが変更されている場合のみイベントを発行
+    if (newTask.trim() !== "") {
+      const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
+      const group = groupId ? groups.find(g => g.id === groupId) : undefined;
+      
+      emitTaskEvent(createTaskEvent(
+        parentId ? 'SUBTASK_ADDED' : groupId ? 'GROUP_TASK_ADDED' : 'TASK_ADDED',
+        task.title,
+        parentTask?.title,
+        group?.name
+      ));
+    }
     
     setTasks(prevTasks => addTaskToState(prevTasks, task, parentId));
     setNewTask("");
     setEditingTaskId(task.id);
+  };
+
+  const deleteTask = (id: number, parentId?: number) => {
+    const taskToDelete = tasks.find(t => t.id === id);
+    if (!taskToDelete) return;
+
+    const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
+    const group = taskToDelete.groupId ? groups.find(g => g.id === taskToDelete.groupId) : undefined;
+
+    emitTaskEvent(createTaskEvent(
+      parentId ? 'SUBTASK_DELETED' : taskToDelete.groupId ? 'GROUP_TASK_DELETED' : 'TASK_DELETED',
+      taskToDelete.title,
+      parentTask?.title,
+      group?.name
+    ));
+
+    if (parentId) {
+      setTasks(prevTasks =>
+        prevTasks.map(task => {
+          if (task.id === parentId) {
+            return {
+              ...task,
+              subtasks: task.subtasks?.filter(subtask => subtask.id !== id),
+            };
+          }
+          return task;
+        })
+      );
+    } else {
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+    }
   };
 
   const addGroup = () => {
@@ -140,37 +174,6 @@ export const useTaskManager = () => {
 
   const updateGroupName = (id: number, name: string) => {
     setGroups(prevGroups => updateGroupNameInState(prevGroups, id, name));
-  };
-
-  const deleteTask = (id: number, parentId?: number) => {
-    const taskToDelete = tasks.find(t => t.id === id);
-    if (!taskToDelete) return;
-
-    const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
-    const group = taskToDelete.groupId ? groups.find(g => g.id === taskToDelete.groupId) : undefined;
-
-    emitTaskEvent(createTaskEvent(
-      parentId ? 'SUBTASK_DELETED' : taskToDelete.groupId ? 'GROUP_TASK_DELETED' : 'TASK_DELETED',
-      taskToDelete.title,
-      parentTask?.title,
-      group?.name
-    ));
-
-    if (parentId) {
-      setTasks(prevTasks =>
-        prevTasks.map(task => {
-          if (task.id === parentId) {
-            return {
-              ...task,
-              subtasks: task.subtasks?.filter(subtask => subtask.id !== id),
-            };
-          }
-          return task;
-        })
-      );
-    } else {
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
-    }
   };
 
   const deleteGroup = (id: number) => {
