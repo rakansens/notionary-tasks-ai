@@ -11,9 +11,18 @@ export const handleTaskDragEnd = (
   
   if (!activeTask) return tasks;
 
+  // グループへのドロップ処理
+  if (newGroupId !== undefined) {
+    activeTask.groupId = newGroupId;
+    activeTask.order = updatedTasks
+      .filter(t => t.groupId === newGroupId && !t.parentId)
+      .length;
+    return updatedTasks;
+  }
+
   const tasksInTargetArea = updatedTasks.filter(task => {
-    if (newGroupId) {
-      return task.groupId === newGroupId && !task.parentId;
+    if (activeTask.groupId) {
+      return task.groupId === activeTask.groupId && !task.parentId;
     }
     return !task.groupId && !task.parentId;
   }).sort((a, b) => a.order - b.order);
@@ -22,22 +31,19 @@ export const handleTaskDragEnd = (
   const targetIndex = tasksInTargetArea.findIndex(t => t.id === overTaskId);
 
   if (targetIndex >= 0) {
-    // Remove from current position
+    // 現在の位置から削除
     if (currentIndex >= 0) {
       tasksInTargetArea.splice(currentIndex, 1);
     }
 
-    // Insert at new position
+    // 新しい位置に挿入
     const insertIndex = currentIndex < targetIndex ? targetIndex - 1 : targetIndex;
     tasksInTargetArea.splice(insertIndex, 0, activeTask);
 
-    // Update orders
+    // 順序を更新
     tasksInTargetArea.forEach((task, index) => {
       task.order = index;
     });
-
-    // Update group
-    activeTask.groupId = newGroupId;
   }
 
   return updatedTasks;
