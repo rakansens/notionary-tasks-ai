@@ -76,6 +76,8 @@ export const TaskInput = ({
     onChange(newValue);
     if (newValue.trim() !== '') {
       setHasUserInput(true);
+    } else {
+      setHasUserInput(false); // 入力が空の場合はフラグをリセット
     }
   };
 
