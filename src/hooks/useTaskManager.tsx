@@ -38,6 +38,30 @@ export const useTaskManager = () => {
     }));
   };
 
+  const toggleTask = (id: number, parentId?: number) => {
+    setTasks(prevTasks => toggleTaskInState(prevTasks, id, parentId));
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+      dispatchTaskEvent('taskCompleted', {
+        type: parentId ? 'subtask_toggled' : 'task_toggled',
+        title: task.title,
+        completed: !task.completed,
+      });
+    }
+  };
+
+  const updateTaskTitle = (id: number, title: string, parentId?: number) => {
+    setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+      dispatchTaskEvent('taskCompleted', {
+        type: parentId ? 'subtask_updated' : 'task_updated',
+        title: title,
+        oldTitle: task.title,
+      });
+    }
+  };
+
   const addTask = (groupId?: number, parentId?: number) => {
     const task: Task = {
       id: Date.now(),
