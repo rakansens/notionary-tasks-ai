@@ -13,6 +13,8 @@ interface TaskHistorySessionProps {
   onEditComplete: () => void;
   onTimeEdit: (taskId: number, currentTime: Date) => void;
   onTimeUpdate: (taskId: number, newTime: string) => void;
+  setEditingTitle: (title: string) => void;
+  setEditingTime: (time: string) => void;
 }
 
 export const TaskHistorySession = ({
@@ -25,7 +27,9 @@ export const TaskHistorySession = ({
   onEditStart,
   onEditComplete,
   onTimeEdit,
-  onTimeUpdate
+  onTimeUpdate,
+  setEditingTitle,
+  setEditingTime
 }: TaskHistorySessionProps) => {
   const sessionNewTasks = newTasks.filter(task => task.sessionId === session.id);
   const allTasks = [
@@ -67,6 +71,8 @@ export const TaskHistorySession = ({
             onEditComplete={onEditComplete}
             onTimeEdit={onTimeEdit}
             onTimeUpdate={onTimeUpdate}
+            setEditingTitle={setEditingTitle}
+            setEditingTime={setEditingTime}
           />
         ))}
       </div>

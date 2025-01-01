@@ -1,4 +1,5 @@
 import { History } from "lucide-react";
+import { format } from "date-fns"; // 追加
 import {
   Collapsible,
   CollapsibleContent,
@@ -138,6 +139,8 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
               onEditComplete={handleEditComplete}
               onTimeEdit={handleTimeEdit}
               onTimeUpdate={handleTimeUpdate}
+              setEditingTitle={setEditingTitle}
+              setEditingTime={setEditingTime}
             />
           ))}
         </div>

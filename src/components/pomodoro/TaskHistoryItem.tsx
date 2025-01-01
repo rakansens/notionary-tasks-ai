@@ -15,6 +15,8 @@ interface TaskHistoryItemProps {
   onEditComplete: () => void;
   onTimeEdit: (taskId: number, currentTime: Date) => void;
   onTimeUpdate: (taskId: number, newTime: string) => void;
+  setEditingTitle: (title: string) => void;
+  setEditingTime: (time: string) => void;
 }
 
 export const TaskHistoryItem = ({
@@ -26,7 +28,9 @@ export const TaskHistoryItem = ({
   onEditStart,
   onEditComplete,
   onTimeEdit,
-  onTimeUpdate
+  onTimeUpdate,
+  setEditingTitle,
+  setEditingTime
 }: TaskHistoryItemProps) => {
   const getTaskIcon = (task: any) => {
     if (task.status === 'operation') {
