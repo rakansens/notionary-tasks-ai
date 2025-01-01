@@ -1,8 +1,9 @@
 import { Task } from "@/hooks/useTaskManager";
-import { Checkbox } from "@/components/ui/checkbox";
+import { TaskCheckbox } from "./task/TaskCheckbox";
+import { TaskTitle } from "./task/TaskTitle";
+import { TaskItemActions } from "./task/TaskItemActions";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { GripVertical, Plus, Trash2 } from "lucide-react";
+import { GripVertical } from "lucide-react";
 
 interface TaskItemProps {
   task: Task;
@@ -54,29 +55,23 @@ export const TaskItem = ({
           <GripVertical className="h-4 w-4 text-notion-secondary" />
         </div>
       )}
-      <Checkbox
-        checked={task.completed}
-        onCheckedChange={() => toggleTask(task.id, parentTask?.id)}
-        className="h-4 w-4"
+      
+      <TaskCheckbox
+        completed={task.completed}
+        onClick={() => toggleTask(task.id, parentTask?.id)}
       />
+
       <div className="flex-1 min-w-0">
-        {isEditing ? (
-          <Input
-            value={task.title}
-            onChange={(e) => updateTaskTitle(task.id, e.target.value, parentTask?.id)}
-            onBlur={() => setEditingTaskId(null)}
-            onKeyDown={handleKeyDown}
-            className="h-6 text-sm"
-            autoFocus
-          />
-        ) : (
-          <div
-            onClick={() => setEditingTaskId(task.id)}
-            className={`cursor-text text-sm ${task.completed ? "line-through text-notion-secondary" : ""}`}
-          >
-            {task.title}
-          </div>
-        )}
+        <TaskTitle
+          title={task.title}
+          completed={task.completed}
+          isEditing={isEditing}
+          onTitleChange={(title) => updateTaskTitle(task.id, title, parentTask?.id)}
+          onTitleClick={() => setEditingTaskId(task.id)}
+          onBlur={() => setEditingTaskId(null)}
+          onKeyPress={handleKeyDown}
+        />
+        
         {isAddingSubtask && (
           <div className="pl-6 mt-1">
             <Input
@@ -99,24 +94,12 @@ export const TaskItem = ({
           </div>
         )}
       </div>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
-          onClick={() => setAddingSubtaskId(task.id)}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
-          onClick={() => deleteTask(task.id, parentTask?.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
+
+      <TaskItemActions
+        onAddSubtask={() => setAddingSubtaskId(task.id)}
+        onDelete={() => deleteTask(task.id, parentTask?.id)}
+        onDropdownDelete={() => deleteTask(task.id, parentTask?.id)}
+      />
     </div>
   );
 };
