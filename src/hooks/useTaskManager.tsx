@@ -62,6 +62,7 @@ export const useTaskManager = () => {
     const group: Group = {
       id: Date.now(),
       name: newGroup,
+      order: groups.length, // Add the order property
     };
     
     setGroups(prevGroups => addGroupToState(prevGroups, group));

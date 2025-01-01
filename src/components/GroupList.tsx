@@ -1,5 +1,5 @@
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { Group } from "@/hooks/useTaskManager";
+import { Group, Task } from "@/hooks/taskManager/types";
 import { DraggableGroup } from "./DraggableGroup";
 
 interface GroupListProps {
