@@ -31,29 +31,31 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
       if (currentSession) {
         const activity = {
           ...event.detail,
-          sessionId: currentSession.id
+          sessionId: currentSession.id,
+          timestamp: new Date(),
         };
         setActivities(prev => [...prev, activity]);
         
         // メッセージの生成を安全に行う
         const getActivityMessage = () => {
           const type = activity.type;
-          if (type === 'added' && activity.task?.title) {
-            return `新しいタスクが追加されました: ${activity.task.title}`;
+          const task = activity.task;
+          const group = activity.group;
+
+          switch (type) {
+            case 'added':
+              return task?.title ? `新しいタスクが追加されました: ${task.title}` : 'タスクが追加されました';
+            case 'deleted':
+              return task?.title ? `タスクが削除されました: ${task.title}` : 'タスクが削除されました';
+            case 'toggled':
+              return task?.title ? `タスクが${task?.completed ? '完了' : '未完了'}に変更されました: ${task.title}` : 'タスクのステータスが変更されました';
+            case 'groupAdded':
+              return group?.name ? `新しいグループが追加されました: ${group.name}` : '新しいグループが追加されました';
+            case 'groupDeleted':
+              return group?.name ? `グループが削除されました: ${group.name}` : 'グループが削除されました';
+            default:
+              return 'アクティビティが記録されました';
           }
-          if (type === 'deleted' && activity.task?.title) {
-            return `タスクが削除されました: ${activity.task.title}`;
-          }
-          if (type === 'toggled' && activity.task?.title) {
-            return `タスクが${activity.task.completed ? '完了' : '未完了'}に変更されました: ${activity.task.title}`;
-          }
-          if (type === 'groupAdded' && activity.group?.name) {
-            return `新しいグループが追加されました: ${activity.group.name}`;
-          }
-          if (type === 'groupDeleted' && activity.group?.name) {
-            return `グループが削除されました: ${activity.group.name}`;
-          }
-          return 'アクティビティが記録されました';
         };
 
         toast({
