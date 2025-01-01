@@ -26,11 +26,12 @@ export const TaskInput = ({
   const [isGroupMode, setIsGroupMode] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [hasBeenEdited, setHasBeenEdited] = useState(false);
+  const [shouldEmitEvent, setShouldEmitEvent] = useState(false);
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
     if (trimmedValue || !isGroupMode) {
-      if (isGroupMode) {
+      if (isGroupMode && hasBeenEdited) {
         window.dispatchEvent(new CustomEvent('groupAdded', {
           detail: {
             title: trimmedValue,
@@ -39,25 +40,30 @@ export const TaskInput = ({
           bubbles: true,
           composed: true
         }));
-      } else if (isEditing && hasBeenEdited) {
+      } else if (isEditing && hasBeenEdited && shouldEmitEvent) {
         onSubmit();
       }
       onChange('');
       setIsGroupMode(false);
       setIsEditing(false);
       setHasBeenEdited(false);
+      setShouldEmitEvent(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
       e.preventDefault();
-      handleSubmit();
+      if (hasBeenEdited) {
+        setShouldEmitEvent(true);
+        handleSubmit();
+      }
     } else if (e.key === "Escape" && onCancel) {
       onCancel();
       setIsGroupMode(false);
       setIsEditing(false);
       setHasBeenEdited(false);
+      setShouldEmitEvent(false);
     }
   };
 
@@ -67,6 +73,7 @@ export const TaskInput = ({
       setIsGroupMode(false);
       setIsEditing(false);
       setHasBeenEdited(false);
+      setShouldEmitEvent(false);
     }
   };
 
@@ -74,6 +81,7 @@ export const TaskInput = ({
     setIsGroupMode(!isGroupMode);
     onChange('');
     setHasBeenEdited(false);
+    setShouldEmitEvent(false);
   };
 
   const handleInputFocus = () => {
