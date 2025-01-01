@@ -1,6 +1,7 @@
 import { Task } from "@/hooks/useTaskManager";
 import { DraggableTask } from "../DraggableTask";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { TaskInput } from "../TaskInput";
 
 interface GroupContentProps {
   groupId: number;
@@ -33,34 +34,34 @@ export const GroupContent = ({
   addTask,
   onReorderSubtasks,
 }: GroupContentProps) => {
-  const groupTasks = tasks
-    .filter(task => task.groupId === groupId && !task.parentId)
-    .sort((a, b) => a.order - b.order);
+  const groupTasks = tasks.filter(task => task.groupId === groupId);
 
   return (
-    <div className="space-y-1">
-      <SortableContext
-        items={groupTasks.map(task => task.id.toString())}
-        strategy={verticalListSortingStrategy}
-      >
-        {groupTasks.map(task => (
-          <DraggableTask
-            key={task.id}
-            task={task}
-            editingTaskId={editingTaskId}
-            addingSubtaskId={addingSubtaskId}
-            setEditingTaskId={setEditingTaskId}
-            setAddingSubtaskId={setAddingSubtaskId}
-            toggleTask={toggleTask}
-            updateTaskTitle={updateTaskTitle}
-            deleteTask={deleteTask}
-            newTask={newTask}
-            setNewTask={setNewTask}
-            addTask={addTask}
-            onReorderSubtasks={onReorderSubtasks}
-          />
-        ))}
-      </SortableContext>
+    <div className="pl-8 pr-2">
+      {groupTasks.map((task) => (
+        <DraggableTask
+          key={task.id}
+          task={task}
+          editingTaskId={editingTaskId}
+          addingSubtaskId={addingSubtaskId}
+          setEditingTaskId={setEditingTaskId}
+          setAddingSubtaskId={setAddingSubtaskId}
+          toggleTask={toggleTask}
+          updateTaskTitle={updateTaskTitle}
+          deleteTask={deleteTask}
+          newTask={newTask}
+          setNewTask={setNewTask}
+          addTask={addTask}
+          onReorderSubtasks={onReorderSubtasks}
+        />
+      ))}
+      <TaskInput
+        value={newTask}
+        onChange={setNewTask}
+        onSubmit={() => addTask(groupId)}
+        groupId={groupId}
+        className="pl-6"
+      />
     </div>
   );
 };

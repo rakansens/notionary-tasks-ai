@@ -28,23 +28,28 @@ export const TaskInput = ({
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
-    if (trimmedValue && hasUserInput) {
-      if (isGroupMode) {
-        window.dispatchEvent(new CustomEvent('groupAdded', {
-          detail: {
-            title: trimmedValue,
-            addedAt: new Date(),
-          },
-          bubbles: true,
-          composed: true
-        }));
-      } else {
-        onSubmit();
-      }
+    if (!trimmedValue) {
       onChange('');
-      setIsGroupMode(false);
       setHasUserInput(false);
+      return;
     }
+
+    if (isGroupMode) {
+      window.dispatchEvent(new CustomEvent('groupAdded', {
+        detail: {
+          title: trimmedValue,
+          addedAt: new Date(),
+        },
+        bubbles: true,
+        composed: true
+      }));
+    } else {
+      onSubmit();
+      console.log(`タスク「${trimmedValue}」を追加しました${groupId ? `（グループID: ${groupId}）` : ''}`);
+    }
+    onChange('');
+    setIsGroupMode(false);
+    setHasUserInput(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -83,18 +88,30 @@ export const TaskInput = ({
 
   return (
     <div className={cn("flex items-center gap-2 group", className)}>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-4 w-4 rounded-sm border border-notion-border group-hover:border-notion-primary/50 transition-colors duration-200"
-        onClick={toggleMode}
-      >
-        {isGroupMode ? (
-          <FolderPlus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
-        ) : (
+      {!groupId && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-4 w-4 rounded-sm border border-notion-border group-hover:border-notion-primary/50 transition-colors duration-200"
+          onClick={toggleMode}
+        >
+          {isGroupMode ? (
+            <FolderPlus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
+          ) : (
+            <Plus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
+          )}
+        </Button>
+      )}
+      {groupId && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-4 w-4 rounded-sm border border-notion-border group-hover:border-notion-primary/50 transition-colors duration-200"
+          onClick={handleSubmit}
+        >
           <Plus className="h-3 w-3 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
-        )}
-      </Button>
+        </Button>
+      )}
       <Input
         value={value}
         onChange={(e) => handleInputChange(e.target.value)}

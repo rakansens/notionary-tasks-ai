@@ -42,10 +42,11 @@ export const useTaskManager = () => {
   }, [state.groups.length]);
 
   const addTask = (groupId?: number, parentId?: number) => {
-    if (!groupId && !parentId && !state.newTask.trim()) return;
+    const trimmedTask = state.newTask.trim();
+    if (!trimmedTask) return;
 
     const task = createNewTask(
-      state.newTask,
+      trimmedTask,
       groupId,
       parentId,
       state.tasks.length
@@ -64,6 +65,11 @@ export const useTaskManager = () => {
 
       // イベントを発行
       taskEvents.emitTaskAdded(updatedTask, parentTask, group, grandParentTask);
+
+      // グループ内のタスク追加時のログ
+      if (group) {
+        console.log(`グループ「${group.name}」内にタスク「${trimmedTask}」を追加しました`);
+      }
     }
     
     setters.setNewTask("");
