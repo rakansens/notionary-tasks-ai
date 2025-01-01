@@ -1,7 +1,9 @@
-import { FolderPlus } from "lucide-react";
+import { FolderPlus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TaskInput } from "../TaskInput";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface TaskFooterProps {
   isAddingGroup: boolean;
@@ -24,19 +26,40 @@ export const TaskFooter = ({
   setNewTask,
   addTask,
 }: TaskFooterProps) => {
+  const [isGroupMode, setIsGroupMode] = useState(false);
+
+  const handleGroupButtonClick = () => {
+    if (isGroupMode) {
+      if (newGroup.trim()) {
+        addGroup();
+      }
+      setIsGroupMode(false);
+    } else {
+      setIsGroupMode(true);
+      setIsAddingGroup(true);
+    }
+  };
+
   return (
     <div className="p-6 border-t border-notion-border space-y-4 bg-white/50 backdrop-blur-sm">
-      {isAddingGroup ? (
+      {isGroupMode ? (
         <div className="flex items-center gap-2">
           <Input
             value={newGroup}
             onChange={(e) => setNewGroup(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && addGroup()}
+            onKeyPress={(e) => {
+              if (e.key === "Enter" && newGroup.trim()) {
+                addGroup();
+                setIsGroupMode(false);
+              }
+            }}
             onBlur={() => {
               if (newGroup.trim()) {
                 addGroup();
+                setIsGroupMode(false);
               } else {
                 setIsAddingGroup(false);
+                setIsGroupMode(false);
               }
             }}
             placeholder="新しいグループ名..."
@@ -48,11 +71,20 @@ export const TaskFooter = ({
         <Button
           variant="ghost"
           size="sm"
-          className="w-full flex items-center gap-2 text-notion-secondary hover:bg-notion-hover hover:text-notion-primary transition-colors duration-200 group"
-          onClick={() => setIsAddingGroup(true)}
+          className={cn(
+            "w-full flex items-center gap-2 transition-colors duration-200 group",
+            isGroupMode
+              ? "text-[#1EAEDB] hover:text-[#0FA0CE]"
+              : "text-[#9b87f5] hover:text-[#8a73f4]"
+          )}
+          onClick={handleGroupButtonClick}
         >
-          <FolderPlus className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-          グループを追加
+          {isGroupMode ? (
+            <Check className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+          ) : (
+            <FolderPlus className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+          )}
+          {isGroupMode ? "グループを追加" : "グループを追加"}
         </Button>
       )}
 
