@@ -24,6 +24,7 @@ export const TaskInput = ({
   className
 }: TaskInputProps) => {
   const [isActive, setIsActive] = useState(false);
+  const [mode, setMode] = useState<'task' | 'group'>('task');
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
@@ -32,7 +33,8 @@ export const TaskInput = ({
         detail: {
           title: trimmedValue,
           addedAt: new Date(),
-          groupId: groupId || null
+          groupId: groupId || null,
+          type: mode
         },
         bubbles: true,
         composed: true
@@ -64,9 +66,10 @@ export const TaskInput = ({
   };
 
   const handleButtonClick = () => {
-    setIsActive(!isActive);
-    if (!isActive) {
-      onChange('');
+    if (isActive) {
+      setMode(mode === 'task' ? 'group' : 'task');
+    } else {
+      setIsActive(true);
     }
   };
 
@@ -78,7 +81,9 @@ export const TaskInput = ({
         className={cn(
           "h-4 w-4 rounded-sm border transition-all duration-200",
           isActive 
-            ? "border-notion-primary bg-notion-primary/10 text-notion-primary scale-110" 
+            ? mode === 'task'
+              ? "border-notion-primary bg-notion-primary/10 text-notion-primary scale-110"
+              : "border-green-500 bg-green-500/10 text-green-500 scale-110"
             : "border-notion-border group-hover:border-notion-primary/50"
         )}
         onClick={handleButtonClick}
@@ -87,7 +92,9 @@ export const TaskInput = ({
           className={cn(
             "h-3 w-3 transition-all duration-200",
             isActive 
-              ? "text-notion-primary scale-110" 
+              ? mode === 'task'
+                ? "text-notion-primary scale-110"
+                : "text-green-500 scale-110"
               : "text-notion-secondary group-hover:text-notion-primary group-hover:scale-110"
           )} 
         />
@@ -98,14 +105,20 @@ export const TaskInput = ({
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyPress}
           onBlur={handleBlur}
-          placeholder="新しいタスクを追加..."
+          placeholder={mode === 'task' ? "新しいタスクを追加..." : "新しいグループを追加..."}
           className={cn(
             "flex-1 h-8 text-sm bg-white border-none focus:ring-0",
             "placeholder:text-notion-secondary",
-            "transition-all duration-200 ease-in-out"
+            "transition-all duration-200 ease-in-out",
+            mode === 'group' && "border-l-2 border-l-green-500"
           )}
           autoFocus
         />
+      )}
+      {isActive && (
+        <div className="absolute -top-6 left-0 text-xs text-notion-secondary bg-white px-2 py-1 rounded-md shadow-sm">
+          {mode === 'task' ? 'タスクモード' : 'グループモード'} (クリックで切り替え)
+        </div>
       )}
     </div>
   );
