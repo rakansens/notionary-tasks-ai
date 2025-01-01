@@ -7,7 +7,14 @@ export const handleTaskDragEnd = (
   newGroupId?: number
 ): Task[] => {
   const updatedTasks = [...tasks];
-  const activeTask = findTaskDeep(updatedTasks, activeTaskId);
+  
+  // まずルートレベルで検索
+  let activeTask = updatedTasks.find(task => task.id === activeTaskId);
+  
+  // ルートレベルで見つからない場合は再帰的に検索
+  if (!activeTask) {
+    activeTask = findTaskDeep(updatedTasks, activeTaskId);
+  }
   
   if (!activeTask) return tasks;
 
@@ -32,11 +39,18 @@ export const handleTaskDragEnd = (
     return removeTaskFromOldParent(updatedTasks, activeTaskId);
   }
 
-  const overTask = findTaskDeep(updatedTasks, overTaskId);
-  if (!overTask) return tasks;
+  // まずルートレベルで検索
+  let overTask = updatedTasks.find(task => task.id === overTaskId);
+  
+  // ルートレベルで見つからない場合は再帰的に検索
+  if (!overTask && overTaskId !== -1) {
+    overTask = findTaskDeep(updatedTasks, overTaskId);
+  }
+  
+  if (!overTask && overTaskId !== -1) return tasks;
 
   // サブタスク間の移動処理
-  if (overTask.parentId || activeTask.parentId) {
+  if (overTask && (overTask.parentId || activeTask.parentId)) {
     const parentTask = overTask.parentId 
       ? findTaskDeep(updatedTasks, overTask.parentId)
       : null;
@@ -81,7 +95,7 @@ export const handleTaskDragEnd = (
 
   // 同じエリア内での並び替え
   const tasksInTargetArea = updatedTasks.filter(task => {
-    if (overTask.groupId) {
+    if (overTask?.groupId) {
       return task.groupId === overTask.groupId && !task.parentId;
     }
     return !task.groupId && !task.parentId;
@@ -102,7 +116,7 @@ export const handleTaskDragEnd = (
     tasksInTargetArea.splice(insertIndex, 0, activeTask);
 
     // グループIDを更新
-    activeTask.groupId = overTask.groupId;
+    activeTask.groupId = overTask?.groupId;
     activeTask.parentId = undefined;
 
     // 順序を更新
