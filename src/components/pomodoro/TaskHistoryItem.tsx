@@ -4,6 +4,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Input } from "../ui/input";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface TaskHistoryItemProps {
   task: any;
@@ -69,7 +76,7 @@ export const TaskHistoryItem = ({
               autoFocus
             />
           ) : (
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               <span
                 className={cn(
                   "text-sm cursor-pointer hover:text-notion-primary",
@@ -85,28 +92,48 @@ export const TaskHistoryItem = ({
                 )}
               </span>
               {(task.parentTaskTitle || task.groupName) && (
-                <div className="text-xs text-notion-secondary flex items-center gap-2 flex-wrap">
-                  {task.parentTaskTitle && (
-                    <div className="flex items-center gap-1">
-                      <History className="h-3 w-3" />
-                      <span className="flex items-center gap-1">
-                        {task.parentTaskTitle}
-                        {task.grandParentTaskTitle && (
-                          <>
-                            <ArrowRight className="h-3 w-3" />
+                <Breadcrumb>
+                  <BreadcrumbList className="text-xs text-notion-secondary">
+                    {task.grandParentTaskTitle && (
+                      <>
+                        <BreadcrumbItem>
+                          <History className="h-3 w-3" />
+                          <BreadcrumbLink className="hover:text-notion-primary">
                             {task.grandParentTaskTitle}
-                          </>
+                          </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator>
+                          <ArrowRight className="h-3 w-3" />
+                        </BreadcrumbSeparator>
+                      </>
+                    )}
+                    {task.parentTaskTitle && (
+                      <>
+                        <BreadcrumbItem>
+                          <History className="h-3 w-3" />
+                          <BreadcrumbLink className="hover:text-notion-primary">
+                            {task.parentTaskTitle}
+                          </BreadcrumbLink>
+                        </BreadcrumbItem>
+                      </>
+                    )}
+                    {task.groupName && (
+                      <>
+                        {task.parentTaskTitle && (
+                          <BreadcrumbSeparator>
+                            <ArrowRight className="h-3 w-3" />
+                          </BreadcrumbSeparator>
                         )}
-                      </span>
-                    </div>
-                  )}
-                  {task.groupName && (
-                    <span className="flex items-center gap-1">
-                      <Folder className="h-3 w-3" />
-                      {task.groupName}
-                    </span>
-                  )}
-                </div>
+                        <BreadcrumbItem>
+                          <Folder className="h-3 w-3" />
+                          <BreadcrumbLink className="hover:text-notion-primary">
+                            {task.groupName}
+                          </BreadcrumbLink>
+                        </BreadcrumbItem>
+                      </>
+                    )}
+                  </BreadcrumbList>
+                </Breadcrumb>
               )}
             </div>
           )}
