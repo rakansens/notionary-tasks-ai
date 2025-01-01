@@ -25,6 +25,7 @@ export const emitTaskEvent = (eventData: TaskEventData) => {
       logMessage = `グループ「${eventData.groupName}」に新しいタスク「${eventData.title}」を追加しました`;
       break;
     case 'TASK_COMPLETED':
+    case 'SUBTASK_COMPLETED':
       const location = eventData.groupName ? `グループ「${eventData.groupName}」内の` : '';
       const taskHierarchy = [];
       if (eventData.grandParentTask) taskHierarchy.push(eventData.grandParentTask);
@@ -32,7 +33,7 @@ export const emitTaskEvent = (eventData: TaskEventData) => {
       taskHierarchy.push(eventData.title);
       
       const relation = taskHierarchy.length > 1 
-        ? `タスク「${taskHierarchy.join(' → ')}」`
+        ? `${eventData.isSubtask ? 'サブタスク' : 'タスク'}「${taskHierarchy.join(' → ')}」`
         : `タスク「${eventData.title}」`;
       
       logMessage = `${location}${relation}を${eventData.message?.includes('未完了') ? '未完了' : '完了'}にしました`;
@@ -50,7 +51,8 @@ export const createTaskEvent = (
   parentTask?: string,
   groupName?: string,
   message?: string,
-  grandParentTask?: string
+  grandParentTask?: string,
+  isSubtask?: boolean
 ): TaskEventData => ({
   type,
   title,
@@ -58,5 +60,6 @@ export const createTaskEvent = (
   groupName,
   message,
   grandParentTask,
+  isSubtask,
   timestamp: new Date()
 });

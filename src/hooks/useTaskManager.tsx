@@ -106,20 +106,22 @@ export const useTaskManager = () => {
   };
 
   const toggleTask = (id: number, parentId?: number) => {
-    const taskToToggle = tasks.find(t => t.id === id);
+    const taskToToggle = findTaskById(tasks, id);
     if (taskToToggle) {
-      const parentTask = parentId ? tasks.find(t => t.id === parentId) : undefined;
+      const parentTask = parentId ? findTaskById(tasks, parentId) : undefined;
+      const grandParentTask = parentTask?.parentId ? findTaskById(tasks, parentTask.parentId) : undefined;
       const group = taskToToggle.groupId ? groups.find(g => g.id === taskToToggle.groupId) : undefined;
       const location = group ? `グループ「${group.name}」内の` : '';
-      const relation = parentTask ? `サブタスク「${taskToToggle.title}」` : `タスク「${taskToToggle.title}」`;
-      const message = `${location}${relation}を${!taskToToggle.completed ? '完了' : '未完了'}に変更しました`;
+      const message = `${location}タスクを${!taskToToggle.completed ? '完了' : '未完了'}に変更しました`;
 
       emitTaskEvent(createTaskEvent(
-        'TASK_COMPLETED',
+        parentId ? 'SUBTASK_COMPLETED' : 'TASK_COMPLETED',
         taskToToggle.title,
         parentTask?.title,
         group?.name,
-        message
+        message,
+        grandParentTask?.title,
+        !!parentId
       ));
     }
     setTasks(prevTasks => toggleTaskInState(prevTasks, id, parentId));

@@ -4,6 +4,7 @@ export type TaskEventType =
   | 'TASK_COMPLETED'
   | 'SUBTASK_ADDED'
   | 'SUBTASK_DELETED'
+  | 'SUBTASK_COMPLETED'
   | 'GROUP_ADDED'
   | 'GROUP_DELETED'
   | 'GROUP_TASK_ADDED'
@@ -17,4 +18,5 @@ export interface TaskEventData {
   message?: string;
   timestamp: Date;
   grandParentTask?: string;
+  isSubtask?: boolean;
 }
