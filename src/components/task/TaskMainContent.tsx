@@ -28,7 +28,6 @@ interface TaskMainContentProps {
   editingGroupId: number | null;
   addingSubtaskId: number | null;
   collapsedGroups: Set<number>;
-  dragAndDropState: { activeId: string | null };
   setNewTask: (value: string) => void;
   setEditingTaskId: (id: number | null) => void;
   setEditingGroupId: (id: number | null) => void;
@@ -40,11 +39,8 @@ interface TaskMainContentProps {
   deleteTask: (taskId: number) => void;
   deleteGroup: (groupId: number) => void;
   updateTaskOrder: (tasks: Task[]) => void;
-  handleReorderSubtasks: (startIndex: number, endIndex: number, parentId: number) => void;
+  updateGroupOrder: (groups: Group[]) => void;
   toggleGroupCollapse: (groupId: number) => void;
-  handleDragStart: (event: any) => void;
-  handleDragEnd: (event: any) => void;
-  handleDragCancel: () => void;
 }
 
 export const TaskMainContent = ({
@@ -55,7 +51,6 @@ export const TaskMainContent = ({
   editingGroupId,
   addingSubtaskId,
   collapsedGroups,
-  dragAndDropState,
   setNewTask,
   setEditingTaskId,
   setEditingGroupId,
@@ -67,18 +62,68 @@ export const TaskMainContent = ({
   deleteTask,
   deleteGroup,
   updateTaskOrder,
-  handleReorderSubtasks,
+  updateGroupOrder,
   toggleGroupCollapse,
-  handleDragStart,
-  handleDragEnd,
-  handleDragCancel,
 }: TaskMainContentProps) => {
+  const [dragAndDropState, setDragAndDropState] = useState<{ activeId: string | null }>({ activeId: null });
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setDragAndDropState({ activeId: String(event.active.id) });
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over) {
+      setDragAndDropState({ activeId: null });
+      return;
+    }
+
+    const activeId = active.id.toString();
+    const overId = over.id.toString();
+    
+    if (activeId === overId) {
+      setDragAndDropState({ activeId: null });
+      return;
+    }
+
+    if (activeId.startsWith('group-') && overId.startsWith('group-')) {
+      const startIndex = groups.findIndex(g => g.id === Number(activeId.replace('group-', '')));
+      const endIndex = groups.findIndex(g => g.id === Number(overId.replace('group-', '')));
+      
+      if (startIndex !== -1 && endIndex !== -1) {
+        const reorderedGroups = [...groups];
+        const [movedGroup] = reorderedGroups.splice(startIndex, 1);
+        reorderedGroups.splice(endIndex, 0, movedGroup);
+        
+        updateGroupOrder(reorderedGroups);
+      }
+    } else {
+      const startIndex = tasks.findIndex(t => t.id === Number(activeId));
+      const endIndex = tasks.findIndex(t => t.id === Number(overId));
+      
+      if (startIndex !== -1 && endIndex !== -1) {
+        const reorderedTasks = [...tasks];
+        const [movedTask] = reorderedTasks.splice(startIndex, 1);
+        reorderedTasks.splice(endIndex, 0, movedTask);
+        
+        updateTaskOrder(reorderedTasks);
+      }
+    }
+
+    setDragAndDropState({ activeId: null });
+  };
+
+  const handleDragCancel = () => {
+    setDragAndDropState({ activeId: null });
+  };
 
   const nonGroupTasks = tasks
     .filter(task => !task.groupId && !task.parentId)
@@ -114,7 +159,29 @@ export const TaskMainContent = ({
             deleteTask={deleteTask}
             deleteGroup={deleteGroup}
             updateTaskOrder={updateTaskOrder}
-            onReorderSubtasks={handleReorderSubtasks}
+            onReorderSubtasks={(startIndex, endIndex, parentId) => {
+              const parent = tasks.find(t => t.id === parentId);
+              if (!parent || !parent.subtasks) return;
+              
+              const updatedSubtasks = [...parent.subtasks];
+              const [movedTask] = updatedSubtasks.splice(startIndex, 1);
+              updatedSubtasks.splice(endIndex, 0, movedTask);
+              
+              const updatedTasks = tasks.map(task => {
+                if (task.id === parentId) {
+                  return {
+                    ...task,
+                    subtasks: updatedSubtasks.map((subtask, index) => ({
+                      ...subtask,
+                      order: index,
+                    })),
+                  };
+                }
+                return task;
+              });
+              
+              updateTaskOrder(updatedTasks);
+            }}
             toggleGroupCollapse={toggleGroupCollapse}
           />
 
@@ -136,7 +203,29 @@ export const TaskMainContent = ({
                 newTask={newTask}
                 setNewTask={setNewTask}
                 addTask={addTask}
-                onReorderSubtasks={handleReorderSubtasks}
+                onReorderSubtasks={(startIndex, endIndex, parentId) => {
+                  const parent = tasks.find(t => t.id === parentId);
+                  if (!parent || !parent.subtasks) return;
+                  
+                  const updatedSubtasks = [...parent.subtasks];
+                  const [movedTask] = updatedSubtasks.splice(startIndex, 1);
+                  updatedSubtasks.splice(endIndex, 0, movedTask);
+                  
+                  const updatedTasks = tasks.map(task => {
+                    if (task.id === parentId) {
+                      return {
+                        ...task,
+                        subtasks: updatedSubtasks.map((subtask, index) => ({
+                          ...subtask,
+                          order: index,
+                        })),
+                      };
+                    }
+                    return task;
+                  });
+                  
+                  updateTaskOrder(updatedTasks);
+                }}
               />
             ))}
           </SortableContext>

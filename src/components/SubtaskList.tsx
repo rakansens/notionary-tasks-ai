@@ -19,6 +19,7 @@ interface SubtaskListProps {
   setNewTask: (value: string) => void;
   addTask: (groupId?: number, parentId?: number) => void;
   isCollapsed?: boolean;
+  onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
 }
 
 export const SubtaskList = ({
@@ -35,6 +36,7 @@ export const SubtaskList = ({
   setNewTask,
   addTask,
   isCollapsed,
+  onReorderSubtasks,
 }: SubtaskListProps) => {
   const { isCollapsed: localIsCollapsed, toggleCollapse } = useCollapsedState();
   const { reorderSubtasks } = useTaskSort();
@@ -68,6 +70,7 @@ export const SubtaskList = ({
             addTask={addTask}
             isCollapsed={localIsCollapsed(subtask.id)}
             onToggleCollapse={() => toggleCollapse(subtask.id)}
+            onReorderSubtasks={onReorderSubtasks}
           />
         ))}
       </SubtaskDndProvider>
