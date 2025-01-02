@@ -34,13 +34,7 @@ export const SubtaskList = ({
   addTask,
   onReorderSubtasks,
 }: SubtaskListProps) => {
-  console.log('Rendering subtasks for parent:', parentTask.id, 'subtasks:', subtasks);
-  
-  // サブタスクの存在チェックを修正
-  if (!Array.isArray(subtasks) || subtasks.length === 0) {
-    console.log('No subtasks found for parent:', parentTask.id);
-    return null;
-  }
+  if (!subtasks || subtasks.length === 0) return null;
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>

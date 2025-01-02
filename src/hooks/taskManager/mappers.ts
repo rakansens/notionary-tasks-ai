@@ -10,7 +10,6 @@ export const mapSupabaseTaskToTask = (task: Tables<"tasks">): Task => ({
   parentId: task.parent_id,
   hierarchyLevel: task.hierarchy_level,
   addedAt: new Date(task.created_at),
-  subtasks: [], // 初期値として空の配列を設定
 });
 
 export const mapSupabaseGroupToGroup = (group: Tables<"groups">): Group => ({

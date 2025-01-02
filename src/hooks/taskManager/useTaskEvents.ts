@@ -1,88 +1,48 @@
-import { Task, Group } from "./types";
-import { useEffect } from "react";
-import { taskEventEmitter } from "@/utils/taskEventEmitter";
-import { TaskEventType } from "@/types/taskEvents";
+import { Task, Group } from './types';
+import { emitTaskEvent, createTaskEvent } from '@/utils/taskEventEmitter';
 
 export const useTaskEvents = () => {
-  useEffect(() => {
-    const handleGroupAdded = (event: CustomEvent) => {
-      console.log('Group added event received:', event.detail);
-      taskEventEmitter.emit('GROUP_ADDED', {
-        type: 'GROUP_ADDED' as const,
-        title: event.detail.name,
-        timestamp: event.detail.addedAt,
-      });
-    };
-
-    window.addEventListener('groupAdded', handleGroupAdded as EventListener);
-
-    return () => {
-      window.removeEventListener('groupAdded', handleGroupAdded as EventListener);
-    };
-  }, []);
-
-  const emitTaskAdded = (task: Task, parentTask?: Task, group?: Group) => {
-    const eventData = {
-      type: 'TASK_ADDED' as const,
-      title: task.title,
-      parentTask: parentTask?.title,
-      groupName: group?.name,
-      timestamp: new Date(),
-    };
-
-    console.log('Task operation detected:', eventData);
-    taskEventEmitter.emit('TASK_ADDED', eventData);
-
-    if (parentTask) {
-      console.log(`サブタスク「${parentTask.title} → ${task.title}」を追加しました`);
-    } else {
-      console.log(`タスク「${task.title}」を追加しました${group ? `（グループ: ${group.name}）` : ''}`);
-    }
+  const emitTaskAdded = (task: Task, parentTask?: Task, group?: Group, grandParentTask?: Task) => {
+    emitTaskEvent(createTaskEvent(
+      parentTask ? 'SUBTASK_ADDED' : group ? 'GROUP_TASK_ADDED' : 'TASK_ADDED',
+      task.title,
+      parentTask?.title,
+      group?.name,
+      undefined,
+      grandParentTask?.title
+    ));
   };
 
-  const emitTaskCompleted = (task: Task, parentTask?: Task, group?: Group) => {
-    const eventData = {
-      type: 'TASK_COMPLETED' as const,
-      title: task.title,
-      parentTask: parentTask?.title,
-      groupName: group?.name,
-      timestamp: new Date(),
-    };
+  const emitTaskCompleted = (task: Task, parentTask?: Task, group?: Group, grandParentTask?: Task) => {
+    const location = group ? `グループ「${group.name}」内の` : '';
+    const message = `${location}タスクを${!task.completed ? '完了' : '未完了'}に変更しました`;
 
-    taskEventEmitter.emit('TASK_COMPLETED', eventData);
+    emitTaskEvent(createTaskEvent(
+      parentTask ? 'SUBTASK_COMPLETED' : 'TASK_COMPLETED',
+      task.title,
+      parentTask?.title,
+      group?.name,
+      message,
+      grandParentTask?.title,
+      !!parentTask
+    ));
   };
 
   const emitTaskDeleted = (task: Task, parentTask?: Task, group?: Group) => {
-    const eventData = {
-      type: 'TASK_DELETED' as const,
-      title: task.title,
-      timestamp: new Date(),
-    };
-
-    console.log('Task event emitted:', eventData);
-    taskEventEmitter.emit('TASK_DELETED', eventData);
+    emitTaskEvent(createTaskEvent(
+      parentTask ? 'SUBTASK_DELETED' : task.groupId ? 'GROUP_TASK_DELETED' : 'TASK_DELETED',
+      task.title,
+      parentTask?.title,
+      group?.name
+    ));
   };
 
   const emitGroupAdded = (group: Group) => {
-    const eventData = {
-      type: 'GROUP_ADDED' as const,
-      title: group.name,
-      timestamp: new Date(),
-    };
-
-    console.log('Group event emitted:', eventData);
-    taskEventEmitter.emit('GROUP_ADDED', eventData);
+    emitTaskEvent(createTaskEvent('GROUP_ADDED', group.name));
   };
 
   const emitGroupDeleted = (group: Group) => {
-    const eventData = {
-      type: 'GROUP_DELETED' as const,
-      title: group.name,
-      timestamp: new Date(),
-    };
-
-    console.log('Group event emitted:', eventData);
-    taskEventEmitter.emit('GROUP_DELETED', eventData);
+    emitTaskEvent(createTaskEvent('GROUP_DELETED', group.name));
   };
 
   return {

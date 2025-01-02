@@ -1,90 +1,46 @@
-import { Group, Task } from "./types";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { Group, Task } from './types';
+
+export const addGroupToState = (
+  prevGroups: Group[],
+  newGroup: Group
+): Group[] => {
+  return [...prevGroups, { ...newGroup, order: prevGroups.length }];
+};
+
+export const updateGroupNameInState = (
+  prevGroups: Group[],
+  id: number,
+  name: string
+): Group[] => {
+  return prevGroups.map(group =>
+    group.id === id ? { ...group, name } : group
+  );
+};
+
+export const deleteGroupFromState = (
+  prevGroups: Group[],
+  id: number
+): Group[] => {
+  return prevGroups.filter(group => group.id !== id);
+};
+
+export const cleanupTasksAfterGroupDelete = (
+  tasks: Task[],
+  groupId: number
+): Task[] => {
+  return tasks.filter(task => task.groupId !== groupId);
+};
 
 export const updateGroupOrder = async (groups: Group[], setGroups: (groups: Group[]) => void) => {
   try {
+    // Update the order of each group based on its position in the array
     const updatedGroups = groups.map((group, index) => ({
       ...group,
       order: index,
     }));
-
-    for (const group of updatedGroups) {
-      const { error } = await supabase
-        .from('groups')
-        .update({ 
-          order_position: group.order,
-        })
-        .eq('id', group.id);
-
-      if (error) throw error;
-    }
-
     setGroups(updatedGroups);
   } catch (error) {
     console.error('Error updating group order:', error);
-    toast({
-      title: "エラー",
-      description: "グループの順序の更新に失敗しました",
-      variant: "destructive",
-    });
+    throw error;
   }
-};
-
-export const addGroupToSupabase = async (
-  newGroup: string,
-  currentGroupsLength: number
-): Promise<Group | null> => {
-  try {
-    const { data: savedGroup, error } = await supabase
-      .from('groups')
-      .insert({
-        name: newGroup,
-        order_position: currentGroupsLength,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error adding group:', error);
-      toast({
-        title: "エラー",
-        description: "グループの追加に失敗しました",
-        variant: "destructive",
-      });
-      return null;
-    }
-
-    if (savedGroup) {
-      const group = { 
-        id: savedGroup.id, 
-        name: savedGroup.name,
-        order: savedGroup.order_position 
-      };
-      
-      toast({
-        title: "成功",
-        description: "グループを追加しました",
-      });
-      
-      return group;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error adding group:', error);
-    toast({
-      title: "エラー",
-      description: "グループの追加に失敗しました",
-      variant: "destructive",
-    });
-    return null;
-  }
-};
-
-export const deleteGroupFromState = (groups: Group[], groupId: number): Group[] => {
-  return groups.filter(group => group.id !== groupId);
-};
-
-export const cleanupTasksAfterGroupDelete = (tasks: Task[], groupId: number): Task[] => {
-  return tasks.filter(task => task.groupId !== groupId);
 };

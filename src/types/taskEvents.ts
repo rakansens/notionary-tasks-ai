@@ -8,10 +8,7 @@ export type TaskEventType =
   | 'GROUP_ADDED'
   | 'GROUP_DELETED'
   | 'GROUP_TASK_ADDED'
-  | 'GROUP_TASK_DELETED'
-  | 'taskOperation'
-  | 'groupOperation'
-  | 'groupAdded';
+  | 'GROUP_TASK_DELETED';
 
 export interface TaskEventData {
   type: TaskEventType;

@@ -26,7 +26,7 @@ export const useTaskStateManager = () => {
       deleteTarget,
       collapsedGroups,
     },
-    actions: {
+    setters: {
       setTasks,
       setGroups,
       setNewTask,
