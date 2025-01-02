@@ -60,7 +60,7 @@ export const DraggableTask = ({
     touchAction: "none",
   };
 
-  const subtasks = task.subtasks || [];
+  console.log('DraggableTask rendering:', task.id, 'subtasks:', task.subtasks);
 
   return (
     <div 
@@ -83,10 +83,10 @@ export const DraggableTask = ({
         addTask={addTask}
         dragHandleProps={{ ...attributes, ...listeners }}
       />
-      {subtasks.length > 0 && (
+      {task.subtasks && task.subtasks.length > 0 && (
         <SubtaskList
           parentTask={task}
-          subtasks={subtasks}
+          subtasks={task.subtasks}
           editingTaskId={editingTaskId}
           addingSubtaskId={addingSubtaskId}
           setEditingTaskId={setEditingTaskId}
