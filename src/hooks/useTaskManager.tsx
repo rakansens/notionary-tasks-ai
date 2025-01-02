@@ -17,6 +17,30 @@ import {
 
 export type { Task, Group };
 
+const mapSupabaseTaskToTask = (task: any): Task => ({
+  id: task.id,
+  title: task.title,
+  completed: task.completed,
+  order: task.order_position,
+  groupId: task.group_id,
+  parentId: task.parent_id,
+  addedAt: new Date(task.created_at),
+});
+
+const mapSupabaseGroupToGroup = (group: any): Group => ({
+  id: group.id,
+  name: group.name,
+  order: group.order_position,
+});
+
+const deleteGroupFromState = (groups: Group[], groupId: number): Group[] => {
+  return groups.filter(group => group.id !== groupId);
+};
+
+const cleanupTasksAfterGroupDelete = (tasks: Task[], groupId: number): Task[] => {
+  return tasks.filter(task => task.groupId !== groupId);
+};
+
 export const useTaskManager = (): TaskManagerOperations & {
   tasks: Task[];
   groups: Group[];
@@ -45,8 +69,8 @@ export const useTaskManager = (): TaskManagerOperations & {
     const loadInitialData = async () => {
       try {
         const { tasks, groups } = await fetchInitialData();
-        setters.setTasks(tasks);
-        setters.setGroups(groups);
+        setters.setTasks(tasks.map(mapSupabaseTaskToTask));
+        setters.setGroups(groups.map(mapSupabaseGroupToGroup));
       } catch (error) {
         console.error('Error loading initial data:', error);
         toast({
@@ -169,6 +193,34 @@ export const useTaskManager = (): TaskManagerOperations & {
       toast({
         title: "エラー",
         description: "タスクの削除に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateTaskOrder = async (tasks: Task[]) => {
+    try {
+      // Implement task order update logic here
+      setters.setTasks(tasks);
+    } catch (error) {
+      console.error('Error updating task order:', error);
+      toast({
+        title: "エラー",
+        description: "タスクの順序の更新に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateGroupOrder = async (groups: Group[]) => {
+    try {
+      // Implement group order update logic here
+      setters.setGroups(groups);
+    } catch (error) {
+      console.error('Error updating group order:', error);
+      toast({
+        title: "エラー",
+        description: "グループの順序の更新に失敗しました",
         variant: "destructive",
       });
     }
