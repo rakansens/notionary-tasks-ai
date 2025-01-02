@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 export const useTaskCrud = (
   tasks: Task[],
   groups: Group[],
-  setTasks: (tasks: Task[]) => void,
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
   setEditingTaskId: (id: number | null) => void,
   setNewTask: (value: string) => void,
 ) => {
@@ -36,10 +36,9 @@ export const useTaskCrud = (
       });
 
       const taskWithId: Task = { ...newTask, id: savedTask.id };
-      const updatedTasks = [...tasks, taskWithId];
-      setTasks(updatedTasks);
+      setTasks(prevTasks => [...prevTasks, taskWithId]);
 
-      const parentTask = parentId ? taskOperations.findTaskById(updatedTasks, parentId) : undefined;
+      const parentTask = parentId ? taskOperations.findTaskById(tasks, parentId) : undefined;
       const group = groupId ? groups.find(g => g.id === groupId) : undefined;
 
       taskEvents.emitTaskAdded(taskWithId, parentTask, group);

@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 export const useGroupCrud = (
   groups: Group[],
-  setGroups: (groups: Group[]) => void,
+  setGroups: React.Dispatch<React.SetStateAction<Group[]>>,
   newGroup: string,
   setNewGroup: (value: string) => void,
   setIsAddingGroup: (value: boolean) => void,

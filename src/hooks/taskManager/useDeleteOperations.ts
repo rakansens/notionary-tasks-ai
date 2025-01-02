@@ -1,4 +1,4 @@
-import { Task, Group } from "./types";
+import { Task, Group, DeleteTarget } from "./types";
 import { useGroupOperations } from "./useGroupOperations";
 import { useTaskEvents } from "./useTaskEvents";
 import { deleteGroupFromState, cleanupTasksAfterGroupDelete } from "./groupOperations";
@@ -6,9 +6,9 @@ import { deleteGroupFromState, cleanupTasksAfterGroupDelete } from "./groupOpera
 export const useDeleteOperations = (
   tasks: Task[],
   groups: Group[],
-  setTasks: (tasks: Task[]) => void,
-  setGroups: (groups: Group[]) => void,
-  setDeleteTarget: (target: { type: string; id: number } | null) => void,
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
+  setGroups: React.Dispatch<React.SetStateAction<Group[]>>,
+  setDeleteTarget: React.Dispatch<React.SetStateAction<DeleteTarget | null>>,
 ) => {
   const groupOperations = useGroupOperations();
   const taskEvents = useTaskEvents();
@@ -26,11 +26,11 @@ export const useDeleteOperations = (
     }
   };
 
-  const confirmDelete = (deleteTarget: { type: string; id: number } | null) => {
+  const confirmDelete = () => {
     if (!deleteTarget) return;
 
     if (deleteTarget.type === "task") {
-      setTasks(tasks.filter(task => task.id !== deleteTarget.id));
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== deleteTarget.id));
     } else {
       setGroups(prevGroups => deleteGroupFromState(prevGroups, deleteTarget.id));
       setTasks(prevTasks => cleanupTasksAfterGroupDelete(prevTasks, deleteTarget.id));
