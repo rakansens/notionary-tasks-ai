@@ -1,5 +1,12 @@
 import { useEffect } from 'react';
-import { Task, Group, TaskManagerOperations, TaskEventData } from './types';
+import { 
+  Task, 
+  Group, 
+  TaskManagerOperations, 
+  TaskEventData,
+  SubtaskInsertData,
+  TaskInsertData 
+} from './types';
 import { useTaskStateManager } from './taskStateManager';
 import { useTaskEvents } from './useTaskEvents';
 import { useToast } from "@/components/ui/use-toast";
@@ -73,17 +80,19 @@ export const useTaskManager = (): TaskManagerOperations & {
       );
 
       if (parentId) {
+        const subtaskData: SubtaskInsertData = {
+          title: newTask.title,
+          completed: newTask.completed,
+          order_position: newTask.order,
+          group_id: newTask.groupId,
+          parent_id: parentId,
+          hierarchy_level: hierarchyLevel,
+          parent_title: parentTask?.title || null
+        };
+
         const { data: savedSubtask, error } = await supabase
           .from('subtasks')
-          .insert({
-            title: newTask.title,
-            completed: newTask.completed,
-            order_position: newTask.order,
-            group_id: newTask.groupId,
-            parent_id: parentId,
-            hierarchy_level: hierarchyLevel,
-            parent_title: parentTask?.title || ''
-          })
+          .insert(subtaskData)
           .select()
           .single();
 
@@ -99,23 +108,20 @@ export const useTaskManager = (): TaskManagerOperations & {
         const updatedTasks = [...state.tasks, taskWithId];
         setters.setTasks(updatedTasks);
 
-        const eventData: TaskEventData = {
-          taskId: taskWithId.id,
-          parentTaskId: parentTask?.id,
-          groupId: groupId
-        };
-        taskEvents.emitTaskAdded(eventData);
+        taskEvents.emitTaskAdded(taskWithId);
       } else {
+        const taskData: TaskInsertData = {
+          title: newTask.title,
+          completed: newTask.completed,
+          order_position: newTask.order,
+          group_id: newTask.groupId,
+          parent_id: newTask.parentId,
+          hierarchy_level: hierarchyLevel
+        };
+
         const { data: savedTask, error } = await supabase
           .from('tasks')
-          .insert({
-            title: newTask.title,
-            completed: newTask.completed,
-            order_position: newTask.order,
-            group_id: newTask.groupId,
-            parent_id: newTask.parentId,
-            hierarchy_level: hierarchyLevel
-          })
+          .insert(taskData)
           .select()
           .single();
 
@@ -131,12 +137,7 @@ export const useTaskManager = (): TaskManagerOperations & {
         const updatedTasks = [...state.tasks, taskWithId];
         setters.setTasks(updatedTasks);
 
-        const eventData: TaskEventData = {
-          taskId: taskWithId.id,
-          parentTaskId: parentTask?.id,
-          groupId: groupId
-        };
-        taskEvents.emitTaskAdded(eventData);
+        taskEvents.emitTaskAdded(taskWithId);
       }
 
       setters.setNewTask("");
