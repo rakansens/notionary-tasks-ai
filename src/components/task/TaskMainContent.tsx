@@ -17,9 +17,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { TaskDragOverlay } from "./TaskDragOverlay";
-import { useState } from "react";
-import { useTaskSort } from "@/contexts/TaskSortContext";
+import { TaskItem } from "../TaskItem";
+import { Folder } from "lucide-react";
 
 interface TaskMainContentProps {
   tasks: Task[];
@@ -29,6 +28,7 @@ interface TaskMainContentProps {
   editingGroupId: number | null;
   addingSubtaskId: number | null;
   collapsedGroups: Set<number>;
+  dragAndDropState: { activeId: string | null };
   setNewTask: (value: string) => void;
   setEditingTaskId: (id: number | null) => void;
   setEditingGroupId: (id: number | null) => void;
@@ -40,8 +40,11 @@ interface TaskMainContentProps {
   deleteTask: (taskId: number) => void;
   deleteGroup: (groupId: number) => void;
   updateTaskOrder: (tasks: Task[]) => void;
-  updateGroupOrder: (groups: Group[]) => void;
+  handleReorderSubtasks: (startIndex: number, endIndex: number, parentId: number) => void;
   toggleGroupCollapse: (groupId: number) => void;
+  handleDragStart: (event: any) => void;
+  handleDragEnd: (event: any) => void;
+  handleDragCancel: () => void;
 }
 
 export const TaskMainContent = ({
@@ -52,6 +55,7 @@ export const TaskMainContent = ({
   editingGroupId,
   addingSubtaskId,
   collapsedGroups,
+  dragAndDropState,
   setNewTask,
   setEditingTaskId,
   setEditingGroupId,
@@ -63,18 +67,14 @@ export const TaskMainContent = ({
   deleteTask,
   deleteGroup,
   updateTaskOrder,
-  updateGroupOrder,
+  handleReorderSubtasks,
   toggleGroupCollapse,
+  handleDragStart,
+  handleDragEnd,
+  handleDragCancel,
 }: TaskMainContentProps) => {
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const { reorderTasks } = useTaskSort();
-
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
+    useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -84,31 +84,6 @@ export const TaskMainContent = ({
     .filter(task => !task.groupId && !task.parentId)
     .sort((a, b) => a.order - b.order);
 
-  const handleDragStart = (event: any) => {
-    console.log('Drag Start:', event);
-    setActiveId(event.active.id.toString());
-  };
-
-  const handleDragEnd = (event: any) => {
-    console.log('Drag End:', event);
-    const { active, over } = event;
-    
-    if (!over) {
-      setActiveId(null);
-      return;
-    }
-
-    if (active.id !== over.id) {
-      const oldIndex = nonGroupTasks.findIndex(task => task.id.toString() === active.id.toString());
-      const newIndex = nonGroupTasks.findIndex(task => task.id.toString() === over.id.toString());
-      
-      console.log('Reordering tasks:', { oldIndex, newIndex });
-      reorderTasks(oldIndex, newIndex);
-    }
-
-    setActiveId(null);
-  };
-
   return (
     <ScrollArea className="flex-1">
       <div className="p-4 space-y-1">
@@ -117,6 +92,7 @@ export const TaskMainContent = ({
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
           modifiers={[restrictToVerticalAxis]}
         >
           <GroupList
@@ -138,10 +114,7 @@ export const TaskMainContent = ({
             deleteTask={deleteTask}
             deleteGroup={deleteGroup}
             updateTaskOrder={updateTaskOrder}
-            onReorderSubtasks={(startIndex, endIndex, parentId) => {
-              console.log('Reorder Subtasks:', { startIndex, endIndex, parentId });
-              reorderTasks(startIndex, endIndex, parentId);
-            }}
+            onReorderSubtasks={handleReorderSubtasks}
             toggleGroupCollapse={toggleGroupCollapse}
           />
 
@@ -163,10 +136,7 @@ export const TaskMainContent = ({
                 newTask={newTask}
                 setNewTask={setNewTask}
                 addTask={addTask}
-                onReorderSubtasks={(startIndex, endIndex, parentId) => {
-                  console.log('Reorder Subtasks in DraggableTask:', { startIndex, endIndex, parentId });
-                  reorderTasks(startIndex, endIndex, parentId);
-                }}
+                onReorderSubtasks={handleReorderSubtasks}
               />
             ))}
           </SortableContext>
@@ -175,22 +145,37 @@ export const TaskMainContent = ({
             duration: 150,
             easing: "cubic-bezier(0.25, 1, 0.5, 1)",
           }}>
-            {activeId ? (
-              <TaskDragOverlay
-                activeId={activeId}
-                tasks={tasks}
-                groups={groups}
-                editingTaskId={editingTaskId}
-                addingSubtaskId={addingSubtaskId}
-                setEditingTaskId={setEditingTaskId}
-                setAddingSubtaskId={setAddingSubtaskId}
-                toggleTask={toggleTask}
-                updateTaskTitle={updateTaskTitle}
-                deleteTask={deleteTask}
-                newTask={newTask}
-                setNewTask={setNewTask}
-                addTask={addTask}
-              />
+            {dragAndDropState.activeId ? (
+              dragAndDropState.activeId.startsWith('group-') ? (
+                <div className="shadow-lg rounded-md bg-gray-50 p-4">
+                  {(() => {
+                    const groupId = Number(dragAndDropState.activeId.replace('group-', ''));
+                    const group = groups.find(g => g.id === groupId);
+                    return group ? (
+                      <div className="flex items-center gap-2">
+                        <Folder className="h-5 w-5 text-gray-500" />
+                        <h3 className="font-medium text-gray-900">{group.name}</h3>
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
+              ) : (
+                <div className="shadow-lg rounded-md bg-white">
+                  <TaskItem
+                    task={tasks.find(t => t.id.toString() === dragAndDropState.activeId) || tasks[0]}
+                    editingTaskId={editingTaskId}
+                    addingSubtaskId={addingSubtaskId}
+                    setEditingTaskId={setEditingTaskId}
+                    setAddingSubtaskId={setAddingSubtaskId}
+                    toggleTask={toggleTask}
+                    updateTaskTitle={updateTaskTitle}
+                    deleteTask={deleteTask}
+                    newTask={newTask}
+                    setNewTask={setNewTask}
+                    addTask={addTask}
+                  />
+                </div>
+              )
             ) : null}
           </DragOverlay>
         </DndContext>

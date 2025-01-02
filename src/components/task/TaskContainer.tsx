@@ -15,6 +15,7 @@ interface TaskContainerProps {
   addingSubtaskId: number | null;
   deleteTarget: { type: string; id: number } | null;
   collapsedGroups: Set<number>;
+  dragAndDropState: { activeId: string | null };
   setNewTask: (value: string) => void;
   setNewGroup: (value: string) => void;
   setIsAddingGroup: (value: boolean) => void;
@@ -31,8 +32,11 @@ interface TaskContainerProps {
   confirmDelete: () => void;
   cancelDelete: () => void;
   updateTaskOrder: (tasks: Task[]) => void;
-  updateGroupOrder: (groups: Group[]) => void;
+  handleReorderSubtasks: (startIndex: number, endIndex: number, parentId: number) => void;
   toggleGroupCollapse: (groupId: number) => void;
+  handleDragStart: (event: any) => void;
+  handleDragEnd: (event: any) => void;
+  handleDragCancel: () => void;
 }
 
 export const TaskContainer = ({
@@ -46,6 +50,7 @@ export const TaskContainer = ({
   addingSubtaskId,
   deleteTarget,
   collapsedGroups,
+  dragAndDropState,
   setNewTask,
   setNewGroup,
   setIsAddingGroup,
@@ -62,8 +67,11 @@ export const TaskContainer = ({
   confirmDelete,
   cancelDelete,
   updateTaskOrder,
-  updateGroupOrder,
+  handleReorderSubtasks,
   toggleGroupCollapse,
+  handleDragStart,
+  handleDragEnd,
+  handleDragCancel,
 }: TaskContainerProps) => {
   return (
     <div className="flex flex-col h-full bg-white">
@@ -77,6 +85,7 @@ export const TaskContainer = ({
         editingGroupId={editingGroupId}
         addingSubtaskId={addingSubtaskId}
         collapsedGroups={collapsedGroups}
+        dragAndDropState={dragAndDropState}
         setNewTask={setNewTask}
         setEditingTaskId={setEditingTaskId}
         setEditingGroupId={setEditingGroupId}
@@ -88,8 +97,11 @@ export const TaskContainer = ({
         deleteTask={deleteTask}
         deleteGroup={deleteGroup}
         updateTaskOrder={updateTaskOrder}
-        updateGroupOrder={updateGroupOrder}
+        handleReorderSubtasks={handleReorderSubtasks}
         toggleGroupCollapse={toggleGroupCollapse}
+        handleDragStart={handleDragStart}
+        handleDragEnd={handleDragEnd}
+        handleDragCancel={handleDragCancel}
       />
       
       <TaskFooter

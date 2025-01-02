@@ -19,8 +19,6 @@ export const handleTaskDragEnd = (
   tasks: Task[],
   updateTaskOrder: UpdateTaskOrderFn
 ) => {
-  console.log('handleTaskDragEnd:', { activeId, overId });
-  
   const activeTaskId = Number(activeId);
   const overTaskId = overId.startsWith('group-') ? undefined : Number(overId);
   const overGroupId = overId.startsWith('group-') ? Number(overId.replace('group-', '')) : undefined;
@@ -30,42 +28,67 @@ export const handleTaskDragEnd = (
   
   if (!activeTask) return;
 
+  const isMovingOutOfGroup = activeTask.groupId && (!overTask?.groupId && !overGroupId);
+  const isMovingToGroup = overGroupId !== undefined;
+
+  const newGroupId = isMovingToGroup ? overGroupId : (overTask?.groupId || undefined);
+
   const updatedTasks = [...tasks];
-  const taskToMove = { ...activeTask };
+  const taskToMove = { ...activeTask }; 
+
   const filteredTasks = updatedTasks.filter(t => t.id !== activeTaskId);
 
-  // グループ関連の移動を処理
-  if (overGroupId !== undefined) {
-    taskToMove.groupId = overGroupId;
-    const tasksInGroup = filteredTasks.filter(t => t.groupId === overGroupId && !t.parentId);
-    taskToMove.order = tasksInGroup.length;
+  taskToMove.groupId = newGroupId;
+
+  const tasksInTargetArea = filteredTasks.filter(task => {
+    if (newGroupId) {
+      return task.groupId === newGroupId && !task.parentId;
+    } else {
+      return !task.groupId && !task.parentId;
+    }
+  }).sort((a, b) => a.order - b.order);
+
+  if (isMovingOutOfGroup || isMovingToGroup) {
+    taskToMove.order = tasksInTargetArea.length > 0
+      ? Math.max(...tasksInTargetArea.map(t => t.order)) + 1
+      : 0;
   } else if (overTask) {
-    // 同じレベルでの並び替え
-    const targetTasks = filteredTasks.filter(t => {
-      if (overTask.groupId) {
-        return t.groupId === overTask.groupId && !t.parentId;
-      }
-      return !t.groupId && !t.parentId;
-    });
+    const currentIndex = tasksInTargetArea.findIndex(t => t.id === activeTaskId);
+    const targetIndex = tasksInTargetArea.findIndex(t => t.id === overTask.id);
 
-    const overTaskIndex = targetTasks.findIndex(t => t.id === overTask.id);
-    taskToMove.groupId = overTask.groupId;
-    taskToMove.order = overTask.order;
+    if (currentIndex === -1) {
+      taskToMove.order = overTask.order;
+      tasksInTargetArea.forEach(task => {
+        if (task.order >= overTask.order) {
+          task.order += 1;
+        }
+      });
+    } else {
+      const direction = currentIndex < targetIndex ? 1 : -1;
+      taskToMove.order = overTask.order;
 
-    // 他のタスクの順序を更新
-    targetTasks.forEach(task => {
-      if (task.order >= overTask.order) {
-        task.order += 1;
-      }
-    });
+      tasksInTargetArea.forEach(task => {
+        if (direction > 0) {
+          if (task.order > activeTask.order && task.order <= overTask.order) {
+            task.order -= 1;
+          }
+        } else {
+          if (task.order >= overTask.order && task.order < activeTask.order) {
+            task.order += 1;
+          }
+        }
+      });
+    }
+  } else {
+    taskToMove.order = tasksInTargetArea.length > 0
+      ? Math.max(...tasksInTargetArea.map(t => t.order)) + 1
+      : 0;
   }
 
-  // 更新されたタスクを配列に追加
   filteredTasks.push(taskToMove);
 
   // サブタスクの構造を維持しながらタスクの順序を更新
   const finalTasks = preserveSubtasks(tasks, filteredTasks);
   
-  console.log('Updated tasks:', finalTasks);
   updateTaskOrder(finalTasks);
 };

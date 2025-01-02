@@ -2,8 +2,7 @@ import { Task } from "@/hooks/taskManager/types";
 import { DraggableTask } from "./DraggableTask";
 import { SubtaskDndProvider } from "./subtask/SubtaskDndContext";
 import { SubtaskContainer } from "./subtask/SubtaskContainer";
-import { useCollapsedState } from "@/hooks/taskManager/useCollapsedState";
-import { useTaskSort } from "@/contexts/TaskSortContext";
+import { useState } from "react";
 
 interface SubtaskListProps {
   parentTask: Task;
@@ -18,8 +17,8 @@ interface SubtaskListProps {
   newTask: string;
   setNewTask: (value: string) => void;
   addTask: (groupId?: number, parentId?: number) => void;
-  isCollapsed?: boolean;
   onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
+  isCollapsed?: boolean;
 }
 
 export const SubtaskList = ({
@@ -35,23 +34,20 @@ export const SubtaskList = ({
   newTask,
   setNewTask,
   addTask,
-  isCollapsed,
   onReorderSubtasks,
+  isCollapsed: propIsCollapsed,
 }: SubtaskListProps) => {
-  const { isCollapsed: localIsCollapsed, toggleCollapse } = useCollapsedState();
-  const { reorderSubtasks } = useTaskSort();
+  const [isCollapsed, setIsCollapsed] = useState(propIsCollapsed || false);
   
+  if (isCollapsed) return null;
   if (!subtasks || subtasks.length === 0) return null;
-  if (isCollapsed || localIsCollapsed(parentTask.id)) return null;
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
       <SubtaskDndProvider
         subtasks={subtasks}
         parentTask={parentTask}
-        onReorderSubtasks={(startIndex, endIndex) => 
-          reorderSubtasks(startIndex, endIndex, parentTask.id)
-        }
+        onReorderSubtasks={onReorderSubtasks}
       >
         {subtasks.map(subtask => (
           <DraggableTask
@@ -68,9 +64,9 @@ export const SubtaskList = ({
             newTask={newTask}
             setNewTask={setNewTask}
             addTask={addTask}
-            isCollapsed={localIsCollapsed(subtask.id)}
-            onToggleCollapse={() => toggleCollapse(subtask.id)}
             onReorderSubtasks={onReorderSubtasks}
+            isCollapsed={isCollapsed}
+            onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
           />
         ))}
       </SubtaskDndProvider>
