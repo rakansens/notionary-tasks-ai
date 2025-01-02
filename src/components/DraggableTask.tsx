@@ -1,8 +1,8 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Task } from "@/hooks/useTaskManager";
 import { TaskItem } from "./TaskItem";
 import { SubtaskList } from "./SubtaskList";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 interface DraggableTaskProps {
   task: Task;
@@ -42,7 +42,7 @@ export const DraggableTask = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
+  } = useSortable({
     id: task.id.toString(),
     transition: {
       duration: 150,
@@ -59,8 +59,6 @@ export const DraggableTask = ({
     backgroundColor: isDragging ? "white" : "transparent",
     touchAction: "none",
   };
-
-  console.log('DraggableTask rendering:', task.id, 'subtasks:', task.subtasks);
 
   return (
     <div 

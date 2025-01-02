@@ -34,10 +34,7 @@ export const SubtaskList = ({
   addTask,
   onReorderSubtasks,
 }: SubtaskListProps) => {
-  console.log('Rendering subtasks for parent:', parentTask.id, subtasks);
-  
   if (!subtasks || subtasks.length === 0) {
-    console.log('No subtasks found for parent:', parentTask.id);
     return null;
   }
 
