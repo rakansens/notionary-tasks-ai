@@ -84,13 +84,33 @@ export const ChatSection = () => {
   const parseTaskAnalysis = (text: string) => {
     const tasks: any[] = [];
     
+    // 緊急タスクの抽出
+    const urgentMatch = text.match(/緊急タスク：([\s\S]*?)(?=高|優先度の高いタスク|$)/);
+    if (urgentMatch) {
+      const urgentTasks = urgentMatch[1].match(/\* ([^\n]+)/g);
+      urgentTasks?.forEach(task => {
+        const title = task.replace('* ', '').trim();
+        tasks.push({ title, priority: 'urgent' });
+      });
+    }
+
     // 高優先度タスクの抽出
-    const highPriorityMatch = text.match(/優先度の高いタスク：([\s\S]*?)(?=優先度の低いタスク|$)/);
+    const highPriorityMatch = text.match(/優先度の高いタスク：([\s\S]*?)(?=中|優先度の中程度のタスク|優先度の低いタスク|$)/);
     if (highPriorityMatch) {
       const highPriorityTasks = highPriorityMatch[1].match(/\* ([^\n]+)/g);
       highPriorityTasks?.forEach(task => {
         const title = task.replace('* ', '').trim();
         tasks.push({ title, priority: 'high' });
+      });
+    }
+
+    // 中優先度タスクの抽出
+    const mediumPriorityMatch = text.match(/優先度の中程度のタスク：([\s\S]*?)(?=低|優先度の低いタスク|$)/);
+    if (mediumPriorityMatch) {
+      const mediumPriorityTasks = mediumPriorityMatch[1].match(/\* ([^\n]+)/g);
+      mediumPriorityTasks?.forEach(task => {
+        const title = task.replace('* ', '').trim();
+        tasks.push({ title, priority: 'medium' });
       });
     }
 
@@ -115,6 +135,50 @@ export const ChatSection = () => {
         if (task) {
           task.dependencies = task.dependencies || [];
           task.dependencies.push(dependsOn.replace('後に', '').replace('する必要があります。', ''));
+        }
+      });
+    }
+
+    // コンテキストの抽出
+    const workMatch = text.match(/仕事：([\s\S]*?)(?=個人|$)/);
+    if (workMatch) {
+      const workTasks = workMatch[1].match(/\* ([^\n]+)/g);
+      workTasks?.forEach(taskText => {
+        const title = taskText.replace('* ', '').trim();
+        const task = tasks.find(t => t.title === title);
+        if (task) {
+          task.context = 'work';
+        }
+      });
+    }
+
+    const personalMatch = text.match(/個人：([\s\S]*?)(?=優先度|$)/);
+    if (personalMatch) {
+      const personalTasks = personalMatch[1].match(/\* ([^\n]+)/g);
+      personalTasks?.forEach(taskText => {
+        const title = taskText.replace('* ', '').trim();
+        const task = tasks.find(t => t.title === title);
+        if (task) {
+          task.context = 'personal';
+        }
+      });
+    }
+
+    // グループの抽出
+    const projectMatch = text.match(/プロジェクト：([\s\S]*?)(?=コンテキスト別|$)/);
+    if (projectMatch) {
+      let currentGroup = '';
+      const lines = projectMatch[1].split('\n');
+      lines.forEach(line => {
+        if (line.startsWith('* ')) {
+          const groupName = line.replace('* ', '').trim();
+          currentGroup = groupName;
+        } else if (line.startsWith('  * ')) {
+          const title = line.replace('  * ', '').trim();
+          const task = tasks.find(t => t.title === title);
+          if (task) {
+            task.group = currentGroup;
+          }
         }
       });
     }
