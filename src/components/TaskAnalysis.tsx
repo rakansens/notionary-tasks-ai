@@ -53,7 +53,7 @@ export const TaskAnalysis = ({ tasks }: TaskAnalysisProps) => {
   };
 
   const handleAddTask = (task: Task) => {
-    addTask(undefined, undefined, task.title);
+    addTask(task.title); // 修正：引数を1つだけにしました
     toast({
       title: "タスクを追加しました",
       description: `「${task.title}」を追加しました`,
