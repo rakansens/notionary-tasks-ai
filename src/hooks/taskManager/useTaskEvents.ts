@@ -6,8 +6,8 @@ export const useTaskEvents = () => {
   useEffect(() => {
     const handleGroupAdded = (event: CustomEvent) => {
       console.log('Group added event received:', event.detail);
-      taskEventEmitter.emit('groupAdded', {
-        type: 'groupAdded',
+      taskEventEmitter.emit('GROUP_ADDED', {
+        type: 'GROUP_ADDED',
         title: event.detail.name,
         timestamp: event.detail.addedAt,
       });
@@ -22,7 +22,7 @@ export const useTaskEvents = () => {
 
   const emitTaskAdded = (task: Task, parentTask?: Task, group?: Group) => {
     const eventData = {
-      type: parentTask ? 'SUBTASK_ADDED' : 'TASK_ADDED',
+      type: 'TASK_ADDED',
       title: task.title,
       parentTask: parentTask?.title,
       groupName: group?.name,
@@ -30,7 +30,7 @@ export const useTaskEvents = () => {
     };
 
     console.log('Task operation detected:', eventData);
-    taskEventEmitter.emit('taskOperation', eventData);
+    taskEventEmitter.emit('TASK_ADDED', eventData);
 
     if (parentTask) {
       console.log(`サブタスク「${parentTask.title} → ${task.title}」を追加しました`);
@@ -48,7 +48,7 @@ export const useTaskEvents = () => {
       timestamp: new Date(),
     };
 
-    taskEventEmitter.emit('taskOperation', eventData);
+    taskEventEmitter.emit('TASK_COMPLETED', eventData);
   };
 
   const emitTaskDeleted = (task: Task, parentTask?: Task, group?: Group) => {
@@ -59,7 +59,7 @@ export const useTaskEvents = () => {
     };
 
     console.log('Task event emitted:', eventData);
-    taskEventEmitter.emit('taskOperation', eventData);
+    taskEventEmitter.emit('TASK_DELETED', eventData);
   };
 
   const emitGroupAdded = (group: Group) => {
@@ -70,7 +70,7 @@ export const useTaskEvents = () => {
     };
 
     console.log('Group event emitted:', eventData);
-    taskEventEmitter.emit('groupOperation', eventData);
+    taskEventEmitter.emit('GROUP_ADDED', eventData);
   };
 
   const emitGroupDeleted = (group: Group) => {
@@ -81,7 +81,7 @@ export const useTaskEvents = () => {
     };
 
     console.log('Group event emitted:', eventData);
-    taskEventEmitter.emit('groupOperation', eventData);
+    taskEventEmitter.emit('GROUP_DELETED', eventData);
   };
 
   return {
