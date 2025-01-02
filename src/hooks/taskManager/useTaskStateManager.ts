@@ -13,6 +13,18 @@ export const useTaskStateManager = () => {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
 
+  const toggleGroupCollapse = (groupId: number) => {
+    setCollapsedGroups(prev => {
+      const newCollapsed = new Set(prev);
+      if (newCollapsed.has(groupId)) {
+        newCollapsed.delete(groupId);
+      } else {
+        newCollapsed.add(groupId);
+      }
+      return newCollapsed;
+    });
+  };
+
   return {
     state: {
       tasks,
@@ -37,6 +49,7 @@ export const useTaskStateManager = () => {
       setAddingSubtaskId,
       setDeleteTarget,
       setCollapsedGroups,
+      toggleGroupCollapse,
     }
   };
 };

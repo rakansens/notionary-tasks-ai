@@ -152,13 +152,21 @@ export const useTaskManager = (): TaskManagerOperations & {
   };
 
   const addGroup = async () => {
-    if (!state.newGroup.trim()) return;
+    const trimmedGroupName = state.newGroup.trim();
+    if (!trimmedGroupName) {
+      toast({
+        title: "エラー",
+        description: "グループ名を入力してください",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      console.log('Adding new group:', state.newGroup);
+      console.log('Adding new group:', trimmedGroupName);
       
       const newGroup: Omit<Group, "id"> = {
-        name: state.newGroup,
+        name: trimmedGroupName,
         order: state.groups.length,
       };
 
