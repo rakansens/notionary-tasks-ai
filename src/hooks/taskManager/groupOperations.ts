@@ -1,6 +1,42 @@
+import { Group, Task } from "./types";
 import { supabase } from "@/integrations/supabase/client";
-import { Group } from "./types";
 import { toast } from "@/components/ui/use-toast";
+
+export const deleteGroupFromState = (groups: Group[], groupId: number): Group[] => {
+  return groups.filter(group => group.id !== groupId);
+};
+
+export const cleanupTasksAfterGroupDelete = (tasks: Task[], groupId: number): Task[] => {
+  return tasks.filter(task => task.groupId !== groupId);
+};
+
+export const updateGroupOrder = async (groups: Group[], setGroups: (groups: Group[]) => void) => {
+  try {
+    const updatedGroups = groups.map((group, index) => ({
+      ...group,
+      order: index,
+    }));
+
+    const { error } = await supabase
+      .from('groups')
+      .upsert(
+        updatedGroups.map(group => ({
+          id: group.id,
+          order_position: group.order,
+        }))
+      );
+
+    if (error) throw error;
+    setGroups(updatedGroups);
+  } catch (error) {
+    console.error('Error updating group order:', error);
+    toast({
+      title: "エラー",
+      description: "グループの順序の更新に失敗しました",
+      variant: "destructive",
+    });
+  }
+};
 
 export const addGroupToSupabase = async (
   newGroup: string,

@@ -7,10 +7,9 @@ import { useTaskOperations } from './taskManager/useTaskOperations';
 import { useGroupOperations } from './taskManager/useGroupOperations';
 import { fetchInitialData } from './taskManager/supabaseOperations';
 import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './taskManager/mappers';
-import { deleteGroupFromState, cleanupTasksAfterGroupDelete, updateGroupOrder } from './taskManager/groupOperations';
+import { deleteGroupFromState, cleanupTasksAfterGroupDelete, updateGroupOrder, addGroupToSupabase } from './taskManager/groupOperations';
 import { updateTaskOrder } from './taskManager/taskOperations';
 import { supabase } from "@/integrations/supabase/client";
-import { addGroupToSupabase } from './taskManager/groupOperations';
 
 export type { Task, Group };
 
