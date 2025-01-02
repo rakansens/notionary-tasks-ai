@@ -2,6 +2,7 @@ import { Task } from "@/hooks/useTaskManager";
 import { DraggableTask } from "./DraggableTask";
 import { SubtaskDndContext } from "./subtask/SubtaskDndContext";
 import { SubtaskContainer } from "./subtask/SubtaskContainer";
+import { useState } from "react";
 
 interface SubtaskListProps {
   parentTask: Task;
@@ -34,9 +35,12 @@ export const SubtaskList = ({
   setNewTask,
   addTask,
   onReorderSubtasks,
-  isCollapsed,
+  isCollapsed: propIsCollapsed,
 }: SubtaskListProps) => {
+  const [isCollapsed, setIsCollapsed] = useState(propIsCollapsed || false);
+  
   console.log('SubtaskList - parentTask:', parentTask.id, 'subtasks:', subtasks);
+  console.log('SubtaskList - isCollapsed:', isCollapsed); // デバッグ用
   
   if (isCollapsed) return null;
   if (!subtasks || subtasks.length === 0) return null;
@@ -64,6 +68,11 @@ export const SubtaskList = ({
             setNewTask={setNewTask}
             addTask={addTask}
             onReorderSubtasks={onReorderSubtasks}
+            isCollapsed={isCollapsed}
+            onToggleCollapse={() => {
+              console.log('Toggling collapse state from:', isCollapsed, 'to:', !isCollapsed); // デバッグ用
+              setIsCollapsed(!isCollapsed);
+            }}
           />
         ))}
       </SubtaskDndContext>
