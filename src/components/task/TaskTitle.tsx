@@ -36,6 +36,13 @@ export const TaskTitle = ({
     setInputValue(title);
   }, [title]);
 
+  const handleCollapseClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Collapse button clicked, current state:", isCollapsed); // デバッグ用
+    onToggleCollapse();
+  };
+
   if (isEditing) {
     return (
       <Input
@@ -58,11 +65,7 @@ export const TaskTitle = ({
       {hasSubtasks && isHovered && (
         <button
           type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onToggleCollapse();
-          }}
+          onClick={handleCollapseClick}
           className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
           aria-label={isCollapsed ? "展開" : "折りたたむ"}
         >
