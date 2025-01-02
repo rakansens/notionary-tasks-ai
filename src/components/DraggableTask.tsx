@@ -18,6 +18,8 @@ interface DraggableTaskProps {
   setNewTask: (value: string) => void;
   addTask: (groupId?: number, parentId?: number) => void;
   onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const DraggableTask = ({
@@ -34,6 +36,8 @@ export const DraggableTask = ({
   setNewTask,
   addTask,
   onReorderSubtasks,
+  isCollapsed,
+  onToggleCollapse,
 }: DraggableTaskProps) => {
   const {
     attributes,
@@ -82,6 +86,8 @@ export const DraggableTask = ({
         setNewTask={setNewTask}
         addTask={addTask}
         dragHandleProps={{ ...attributes, ...listeners }}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={onToggleCollapse}
       />
       {subtasks.length > 0 && (
         <SubtaskList
@@ -98,6 +104,7 @@ export const DraggableTask = ({
           setNewTask={setNewTask}
           addTask={addTask}
           onReorderSubtasks={onReorderSubtasks}
+          isCollapsed={isCollapsed}
         />
       )}
     </div>
