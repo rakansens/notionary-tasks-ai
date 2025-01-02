@@ -1,12 +1,12 @@
 import { Task, Group } from "./types";
 import { useTaskEvents } from "./useTaskEvents";
 import { useTaskOperations } from "./useTaskOperations";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export const useTaskCore = (
   tasks: Task[],
   groups: Group[],
-  setTasks: (tasks: Task[]) => void,
+  setTasks: (tasks: Task[] | ((prev: Task[]) => Task[])) => void,
   setDeleteTarget: (target: { type: string; id: number } | null) => void
 ) => {
   const taskEvents = useTaskEvents();
@@ -35,10 +35,9 @@ export const useTaskCore = (
       });
 
       const taskWithId: Task = { ...newTask, id: savedTask.id };
-      const updatedTasks = [...tasks, taskWithId];
-      setTasks(updatedTasks);
+      setTasks((prevTasks: Task[]) => [...prevTasks, taskWithId]);
 
-      const parentTask = parentId ? taskOperations.findTaskById(updatedTasks, parentId) : undefined;
+      const parentTask = parentId ? taskOperations.findTaskById(tasks, parentId) : undefined;
       const group = groupId ? groups.find(g => g.id === groupId) : undefined;
 
       taskEvents.emitTaskAdded(taskWithId, parentTask, group);
@@ -59,10 +58,11 @@ export const useTaskCore = (
 
       await taskOperations.toggleTaskInSupabase(id, !taskToToggle.completed);
       
-      const updatedTasks = tasks.map(task =>
-        task.id === id ? { ...task, completed: !task.completed } : task
+      setTasks((prevTasks: Task[]) => 
+        prevTasks.map(task =>
+          task.id === id ? { ...task, completed: !task.completed } : task
+        )
       );
-      setTasks(updatedTasks);
 
       const parentTask = parentId ? taskOperations.findTaskById(tasks, parentId) : undefined;
       const group = taskToToggle.groupId ? groups.find(g => g.id === taskToToggle.groupId) : undefined;
@@ -84,10 +84,11 @@ export const useTaskCore = (
     try {
       await taskOperations.updateTaskTitleInSupabase(id, title);
       
-      const updatedTasks = tasks.map(task =>
-        task.id === id ? { ...task, title } : task
+      setTasks((prevTasks: Task[]) =>
+        prevTasks.map(task =>
+          task.id === id ? { ...task, title } : task
+        )
       );
-      setTasks(updatedTasks);
     } catch (error) {
       console.error('Error updating task title:', error);
       toast({
@@ -110,7 +111,7 @@ export const useTaskCore = (
 
       taskEvents.emitTaskDeleted(taskToDelete, parentTask, group);
 
-      setTasks(tasks.filter(task => task.id !== id));
+      setTasks((prevTasks: Task[]) => prevTasks.filter(task => task.id !== id));
     } catch (error) {
       console.error('Error deleting task:', error);
       toast({
