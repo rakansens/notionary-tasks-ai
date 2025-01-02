@@ -20,3 +20,5 @@ export interface DragAndDropOptions {
 }
 
 export type UpdateOrderFn = (items: DraggableItem[]) => void;
+export type UpdateTaskOrderFn = (tasks: Task[]) => void;
+export type UpdateGroupOrderFn = (groups: Group[]) => void;

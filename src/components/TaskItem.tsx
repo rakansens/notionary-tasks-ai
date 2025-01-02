@@ -4,6 +4,7 @@ import { TaskTitle } from "./task/TaskTitle";
 import { TaskItemActions } from "./task/TaskItemActions";
 import { Input } from "@/components/ui/input";
 import { GripVertical } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface TaskItemProps {
   task: Task;
@@ -40,6 +41,7 @@ export const TaskItem = ({
   isCollapsed,
   onToggleCollapse,
 }: TaskItemProps) => {
+  const { toast } = useToast();
   const isEditing = editingTaskId === task.id;
   const isAddingSubtask = addingSubtaskId === task.id;
 

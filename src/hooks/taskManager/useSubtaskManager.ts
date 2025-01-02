@@ -64,11 +64,14 @@ export const useSubtaskManager = () => {
       const updates = subtasks.map((task, index) => ({
         id: task.id,
         order_position: index,
+        title: task.title, // Supabaseの要件を満たすために必要なフィールド
       }));
 
       const { error } = await supabase
         .from('tasks')
-        .upsert(updates);
+        .upsert(updates, {
+          onConflict: 'id'
+        });
 
       if (error) throw error;
     } catch (error) {
