@@ -91,8 +91,40 @@ export const useTaskOperations = () => {
     }
   };
 
+  const deleteChildTasksFromSupabase = async (parentId: number) => {
+    try {
+      // 子タスクを取得
+      const { data: childTasks, error: fetchError } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('parent_id', parentId);
+
+      if (fetchError) throw fetchError;
+
+      // 各子タスクに対して再帰的に削除を実行
+      for (const childTask of childTasks || []) {
+        await deleteChildTasksFromSupabase(childTask.id);
+      }
+
+      // 子タスクを削除
+      const { error: deleteError } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('parent_id', parentId);
+
+      if (deleteError) throw deleteError;
+    } catch (error) {
+      console.error('Error deleting child tasks:', error);
+      throw error;
+    }
+  };
+
   const deleteTaskFromSupabase = async (id: number) => {
     try {
+      // 最初に子タスクを削除
+      await deleteChildTasksFromSupabase(id);
+
+      // 親タスクを削除
       const { error } = await supabase
         .from('tasks')
         .delete()
