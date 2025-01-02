@@ -18,20 +18,23 @@ export const useTaskStateManager = () => {
     
     // First pass: Create task objects and maintain existing subtasks
     const taskMap = new Map<number, Task>();
+    
+    // まず、すべてのタスクをマップに追加
     flatTasks.forEach(task => {
-      const existingTask = taskMap.get(task.id);
-      const taskWithSubtasks = { 
-        ...task, 
-        subtasks: existingTask ? existingTask.subtasks : [],
-        order: task.order || 0,
-        hierarchyLevel: task.hierarchyLevel || 0,
-        completed: task.completed || false,
-      };
-      taskMap.set(task.id, taskWithSubtasks);
+      if (!taskMap.has(task.id)) {
+        taskMap.set(task.id, {
+          ...task,
+          subtasks: [],
+          order: task.order || 0,
+          hierarchyLevel: task.hierarchyLevel || 0,
+          completed: task.completed || false,
+        });
+      }
     });
 
-    // Second pass: Build the tree structure while preserving existing subtasks
+    // Second pass: Build the tree structure
     const rootTasks: Task[] = [];
+    
     flatTasks.forEach(task => {
       const currentTask = taskMap.get(task.id);
       if (!currentTask) return;
@@ -39,14 +42,14 @@ export const useTaskStateManager = () => {
       if (task.parentId) {
         const parentTask = taskMap.get(task.parentId);
         if (parentTask) {
-          // 既存のサブタスクを保持
+          // 親タスクのサブタスク配列を取得または初期化
           const existingSubtasks = parentTask.subtasks || [];
           
-          // 現在のタスクが既に存在するか確認
-          const existingIndex = existingSubtasks.findIndex(st => st.id === currentTask.id);
+          // 現在のタスクが既に親タスクのサブタスクとして存在するか確認
+          const existingIndex = existingSubtasks.findIndex(st => st.id === task.id);
           
           if (existingIndex === -1) {
-            // 存在しない場合のみ追加
+            // 存在しない場合は追加
             parentTask.subtasks = [...existingSubtasks, currentTask];
           } else {
             // 存在する場合は更新（既存のサブタスクは保持）
@@ -64,7 +67,8 @@ export const useTaskStateManager = () => {
           console.log(`Updated subtasks for parent ${task.parentId}:`, parentTask.subtasks);
         }
       } else {
-        if (!rootTasks.some(rt => rt.id === currentTask.id)) {
+        // ルートタスクの場合
+        if (!rootTasks.some(rt => rt.id === task.id)) {
           rootTasks.push(currentTask);
         }
       }
