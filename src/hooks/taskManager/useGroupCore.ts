@@ -1,4 +1,4 @@
-import { Group } from "./types";
+import { Group, Task } from "./types";
 import { useToast } from "@/components/ui/use-toast";
 import { useGroupOperations } from "./useGroupOperations";
 import { deleteGroup } from "./groupOperations";
