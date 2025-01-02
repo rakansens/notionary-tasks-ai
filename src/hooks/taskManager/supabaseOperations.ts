@@ -79,7 +79,8 @@ export const deleteGroupFromSupabase = async (id: number) => {
 };
 
 export const fetchInitialData = async () => {
-  const { data: tasks, error: tasksError } = await supabase
+  // まず、すべてのタスクを取得
+  const { data: allTasks, error: tasksError } = await supabase
     .from("tasks")
     .select("*")
     .order("order_position");
@@ -92,5 +93,47 @@ export const fetchInitialData = async () => {
   if (tasksError) throw tasksError;
   if (groupsError) throw groupsError;
 
+  // タスクの階層構造を構築
+  const tasks = buildTaskHierarchy(allTasks || []);
+
   return { tasks, groups };
+};
+
+// タスクの階層構造を構築するヘルパー関数
+const buildTaskHierarchy = (tasks: any[]): any[] => {
+  const taskMap = new Map();
+  const rootTasks: any[] = [];
+
+  // まず、すべてのタスクをマップに追加
+  tasks.forEach(task => {
+    taskMap.set(task.id, { ...task, subtasks: [] });
+  });
+
+  // 親子関係を構築
+  tasks.forEach(task => {
+    const taskWithSubtasks = taskMap.get(task.id);
+    if (task.parent_id === null) {
+      rootTasks.push(taskWithSubtasks);
+    } else {
+      const parentTask = taskMap.get(task.parent_id);
+      if (parentTask) {
+        parentTask.subtasks.push(taskWithSubtasks);
+      }
+    }
+  });
+
+  // サブタスクを順序で並び替え
+  const sortSubtasks = (tasks: any[]) => {
+    tasks.sort((a, b) => a.order_position - b.order_position);
+    tasks.forEach(task => {
+      if (task.subtasks.length > 0) {
+        sortSubtasks(task.subtasks);
+      }
+    });
+  };
+
+  sortSubtasks(rootTasks);
+  
+  console.log('Hierarchical tasks:', rootTasks);
+  return rootTasks;
 };
