@@ -168,7 +168,7 @@ export const useTaskManager = (): TaskManagerOperations & {
       if (parentId) {
         const { error } = await supabase
           .from('subtasks')
-          .update({ completed: newCompleted })
+          .update({ completed: newCompleted } as SubtaskInsertData)
           .eq('id', id)
           .select()
           .maybeSingle();
@@ -177,7 +177,7 @@ export const useTaskManager = (): TaskManagerOperations & {
       } else {
         const { error } = await supabase
           .from('tasks')
-          .update({ completed: newCompleted })
+          .update({ completed: newCompleted } as TaskInsertData)
           .eq('id', id)
           .select()
           .maybeSingle();
@@ -205,7 +205,7 @@ export const useTaskManager = (): TaskManagerOperations & {
       if (parentId) {
         const { error } = await supabase
           .from('subtasks')
-          .update({ title })
+          .update({ title } as SubtaskInsertData)
           .eq('id', id)
           .select()
           .maybeSingle();
@@ -214,7 +214,7 @@ export const useTaskManager = (): TaskManagerOperations & {
       } else {
         const { error } = await supabase
           .from('tasks')
-          .update({ title })
+          .update({ title } as TaskInsertData)
           .eq('id', id)
           .select()
           .maybeSingle();
