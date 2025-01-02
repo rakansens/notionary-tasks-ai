@@ -20,7 +20,8 @@ export const useTaskOperations = () => {
     title: string,
     groupId?: number,
     parentId?: number,
-    order?: number
+    order?: number,
+    hierarchyLevel: number = 0
   ): Task => ({
     id: Date.now(),
     title,
@@ -28,11 +29,12 @@ export const useTaskOperations = () => {
     groupId,
     parentId,
     order: order || 0,
-    hierarchyLevel: parentId ? 1 : 0,
+    hierarchyLevel,
     addedAt: new Date(),
+    subtasks: [],
   });
 
-  const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt">) => {
+  const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt" | "subtasks">) => {
     try {
       const { data, error } = await supabase
         .from('tasks')
