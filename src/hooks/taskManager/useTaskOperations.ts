@@ -36,11 +36,22 @@ export const useTaskOperations = () => {
     try {
       const { data, error } = await supabase
         .from('tasks')
-        .insert([task])
+        .insert({
+          title: task.title,
+          completed: task.completed,
+          order_position: task.order,
+          group_id: task.groupId,
+          parent_id: task.parentId,
+          hierarchy_level: task.hierarchyLevel,
+        })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
       return data;
     } catch (error) {
       console.error('Error adding task:', error);
@@ -93,7 +104,6 @@ export const useTaskOperations = () => {
 
   const deleteChildTasksFromSupabase = async (parentId: number) => {
     try {
-      // 子タスクを取得
       const { data: childTasks, error: fetchError } = await supabase
         .from('tasks')
         .select('id')
@@ -101,12 +111,10 @@ export const useTaskOperations = () => {
 
       if (fetchError) throw fetchError;
 
-      // 各子タスクに対して再帰的に削除を実行
       for (const childTask of childTasks || []) {
         await deleteChildTasksFromSupabase(childTask.id);
       }
 
-      // 子タスクを削除
       const { error: deleteError } = await supabase
         .from('tasks')
         .delete()
@@ -121,10 +129,8 @@ export const useTaskOperations = () => {
 
   const deleteTaskFromSupabase = async (id: number) => {
     try {
-      // 最初に子タスクを削除
       await deleteChildTasksFromSupabase(id);
 
-      // 親タスクを削除
       const { error } = await supabase
         .from('tasks')
         .delete()
