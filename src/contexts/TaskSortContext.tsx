@@ -24,47 +24,36 @@ interface TaskSortProviderProps {
 
 export const TaskSortProvider = ({ children, updateTaskOrder, tasks }: TaskSortProviderProps) => {
   const reorderTasks = useCallback((startIndex: number, endIndex: number, parentId?: number) => {
-    const targetTasks = tasks.filter(task => 
-      parentId ? task.parentId === parentId : !task.parentId
-    ).sort((a, b) => a.order - b.order);
+    console.log('Reordering tasks:', { startIndex, endIndex, parentId });
+    
+    const targetTasks = parentId
+      ? tasks.filter(task => task.parentId === parentId)
+      : tasks.filter(task => !task.parentId && !task.groupId);
 
-    const [movedTask] = targetTasks.splice(startIndex, 1);
-    targetTasks.splice(endIndex, 0, movedTask);
+    const orderedTasks = [...targetTasks].sort((a, b) => a.order - b.order);
+    const [movedTask] = orderedTasks.splice(startIndex, 1);
+    orderedTasks.splice(endIndex, 0, movedTask);
 
     const updatedTasks = tasks.map(task => {
-      const index = targetTasks.findIndex(t => t.id === task.id);
-      if (index !== -1) {
-        return { ...task, order: index };
+      if (parentId) {
+        if (task.parentId === parentId) {
+          const index = orderedTasks.findIndex(t => t.id === task.id);
+          return index !== -1 ? { ...task, order: index } : task;
+        }
+      } else if (!task.parentId && !task.groupId) {
+        const index = orderedTasks.findIndex(t => t.id === task.id);
+        return index !== -1 ? { ...task, order: index } : task;
       }
       return task;
     });
 
+    console.log('Updated tasks:', updatedTasks);
     updateTaskOrder(updatedTasks);
   }, [tasks, updateTaskOrder]);
 
   const reorderSubtasks = useCallback((startIndex: number, endIndex: number, parentId: number) => {
-    const parent = tasks.find(t => t.id === parentId);
-    if (!parent || !parent.subtasks) return;
-
-    const updatedSubtasks = [...parent.subtasks];
-    const [movedTask] = updatedSubtasks.splice(startIndex, 1);
-    updatedSubtasks.splice(endIndex, 0, movedTask);
-
-    const updatedTasks = tasks.map(task => {
-      if (task.id === parentId) {
-        return {
-          ...task,
-          subtasks: updatedSubtasks.map((subtask, index) => ({
-            ...subtask,
-            order: index,
-          })),
-        };
-      }
-      return task;
-    });
-
-    updateTaskOrder(updatedTasks);
-  }, [tasks, updateTaskOrder]);
+    reorderTasks(startIndex, endIndex, parentId);
+  }, [reorderTasks]);
 
   return (
     <TaskSortContext.Provider value={{ reorderTasks, reorderSubtasks }}>

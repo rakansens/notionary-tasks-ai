@@ -17,9 +17,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { useTaskDragAndDrop } from "@/hooks/useTaskDragAndDrop";
 import { TaskDragOverlay } from "./TaskDragOverlay";
 import { useState } from "react";
+import { useTaskSort } from "@/contexts/TaskSortContext";
 
 interface TaskMainContentProps {
   tasks: Task[];
@@ -66,17 +66,13 @@ export const TaskMainContent = ({
   updateGroupOrder,
   toggleGroupCollapse,
 }: TaskMainContentProps) => {
-  const {
-    dragAndDropState,
-    handleDragStart,
-    handleDragEnd,
-    handleDragCancel,
-  } = useTaskDragAndDrop(tasks, groups, updateTaskOrder, updateGroupOrder);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const { reorderTasks } = useTaskSort();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // 8ピクセル以上動かさないとドラッグ開始しない
+        distance: 8,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -88,7 +84,30 @@ export const TaskMainContent = ({
     .filter(task => !task.groupId && !task.parentId)
     .sort((a, b) => a.order - b.order);
 
-  console.log('DragAndDrop State:', dragAndDropState); // デバッグ用
+  const handleDragStart = (event: any) => {
+    console.log('Drag Start:', event);
+    setActiveId(event.active.id.toString());
+  };
+
+  const handleDragEnd = (event: any) => {
+    console.log('Drag End:', event);
+    const { active, over } = event;
+    
+    if (!over) {
+      setActiveId(null);
+      return;
+    }
+
+    if (active.id !== over.id) {
+      const oldIndex = nonGroupTasks.findIndex(task => task.id.toString() === active.id.toString());
+      const newIndex = nonGroupTasks.findIndex(task => task.id.toString() === over.id.toString());
+      
+      console.log('Reordering tasks:', { oldIndex, newIndex });
+      reorderTasks(oldIndex, newIndex);
+    }
+
+    setActiveId(null);
+  };
 
   return (
     <ScrollArea className="flex-1">
@@ -96,18 +115,8 @@ export const TaskMainContent = ({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
-          onDragStart={(event) => {
-            console.log('Drag Start:', event); // デバッグ用
-            handleDragStart(event);
-          }}
-          onDragEnd={(event) => {
-            console.log('Drag End:', event); // デバッグ用
-            handleDragEnd(event);
-          }}
-          onDragCancel={() => {
-            console.log('Drag Cancel'); // デバッグ用
-            handleDragCancel();
-          }}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
           modifiers={[restrictToVerticalAxis]}
         >
           <GroupList
@@ -130,28 +139,8 @@ export const TaskMainContent = ({
             deleteGroup={deleteGroup}
             updateTaskOrder={updateTaskOrder}
             onReorderSubtasks={(startIndex, endIndex, parentId) => {
-              console.log('Reorder Subtasks:', { startIndex, endIndex, parentId }); // デバッグ用
-              const parent = tasks.find(t => t.id === parentId);
-              if (!parent || !parent.subtasks) return;
-              
-              const updatedSubtasks = [...parent.subtasks];
-              const [movedTask] = updatedSubtasks.splice(startIndex, 1);
-              updatedSubtasks.splice(endIndex, 0, movedTask);
-              
-              const updatedTasks = tasks.map(task => {
-                if (task.id === parentId) {
-                  return {
-                    ...task,
-                    subtasks: updatedSubtasks.map((subtask, index) => ({
-                      ...subtask,
-                      order: index,
-                    })),
-                  };
-                }
-                return task;
-              });
-              
-              updateTaskOrder(updatedTasks);
+              console.log('Reorder Subtasks:', { startIndex, endIndex, parentId });
+              reorderTasks(startIndex, endIndex, parentId);
             }}
             toggleGroupCollapse={toggleGroupCollapse}
           />
@@ -175,28 +164,8 @@ export const TaskMainContent = ({
                 setNewTask={setNewTask}
                 addTask={addTask}
                 onReorderSubtasks={(startIndex, endIndex, parentId) => {
-                  console.log('Reorder Subtasks in DraggableTask:', { startIndex, endIndex, parentId }); // デバッグ用
-                  const parent = tasks.find(t => t.id === parentId);
-                  if (!parent || !parent.subtasks) return;
-                  
-                  const updatedSubtasks = [...parent.subtasks];
-                  const [movedTask] = updatedSubtasks.splice(startIndex, 1);
-                  updatedSubtasks.splice(endIndex, 0, movedTask);
-                  
-                  const updatedTasks = tasks.map(task => {
-                    if (task.id === parentId) {
-                      return {
-                        ...task,
-                        subtasks: updatedSubtasks.map((subtask, index) => ({
-                          ...subtask,
-                          order: index,
-                        })),
-                      };
-                    }
-                    return task;
-                  });
-                  
-                  updateTaskOrder(updatedTasks);
+                  console.log('Reorder Subtasks in DraggableTask:', { startIndex, endIndex, parentId });
+                  reorderTasks(startIndex, endIndex, parentId);
                 }}
               />
             ))}
@@ -206,9 +175,9 @@ export const TaskMainContent = ({
             duration: 150,
             easing: "cubic-bezier(0.25, 1, 0.5, 1)",
           }}>
-            {dragAndDropState.activeId ? (
+            {activeId ? (
               <TaskDragOverlay
-                activeId={dragAndDropState.activeId}
+                activeId={activeId}
                 tasks={tasks}
                 groups={groups}
                 editingTaskId={editingTaskId}
