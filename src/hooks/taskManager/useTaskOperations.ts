@@ -1,33 +1,31 @@
-import { Task } from './types';
+import { Task } from "./types";
 
 export const useTaskOperations = () => {
-  const findTaskById = (tasks: Task[], targetId: number): Task | undefined => {
+  const findTaskById = (tasks: Task[], id: number): Task | undefined => {
     for (const task of tasks) {
-      if (task.id === targetId) {
-        return task;
-      }
+      if (task.id === id) return task;
       if (task.subtasks) {
-        const found = findTaskById(task.subtasks, targetId);
-        if (found) {
-          return found;
-        }
+        const found = findTaskById(task.subtasks, id);
+        if (found) return found;
       }
     }
     return undefined;
   };
 
-  const createNewTask = (title: string, groupId?: number, parentId?: number, order?: number): Task => {
-    return {
-      id: Date.now(),
-      title: title.trim(),
-      completed: false,
-      groupId,
-      parentId,
-      subtasks: [],
-      order: order ?? 0,
-      addedAt: new Date(),
-    };
-  };
+  const createNewTask = (
+    title: string,
+    groupId?: number,
+    parentId?: number,
+    order?: number
+  ): Task => ({
+    id: Date.now(),
+    title,
+    completed: false,
+    groupId,
+    parentId,
+    order: order || 0,
+    addedAt: new Date(),
+  });
 
   return {
     findTaskById,
