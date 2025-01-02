@@ -60,6 +60,8 @@ export const DraggableTask = ({
     touchAction: "none",
   };
 
+  console.log('Rendering task:', task.id, 'with subtasks:', task.subtasks);
+
   return (
     <div 
       ref={setNodeRef} 
