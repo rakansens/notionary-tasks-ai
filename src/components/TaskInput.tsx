@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { emitTaskEvent, createTaskEvent } from "@/utils/taskEventEmitter";
+import { useToast } from "@/components/ui/use-toast";
 
 interface TaskInputProps {
   value: string;
@@ -26,10 +27,15 @@ export const TaskInput = ({
 }: TaskInputProps) => {
   const [isGroupMode, setIsGroupMode] = useState(false);
   const [hasUserInput, setHasUserInput] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
     if (!trimmedValue) {
+      toast({
+        description: "タスクのタイトルを入力してください",
+        variant: "destructive",
+      });
       onChange('');
       setHasUserInput(false);
       return;
