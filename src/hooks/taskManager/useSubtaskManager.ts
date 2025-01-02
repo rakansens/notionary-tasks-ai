@@ -64,7 +64,10 @@ export const useSubtaskManager = () => {
       const updates = subtasks.map((task, index) => ({
         id: task.id,
         order_position: index,
-        title: task.title, // Supabaseの要件を満たすために必要なフィールド
+        title: task.title,
+        completed: task.completed,
+        parent_id: task.parentId,
+        hierarchy_level: task.hierarchyLevel
       }));
 
       const { error } = await supabase

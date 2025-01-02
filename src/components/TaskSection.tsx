@@ -21,7 +21,7 @@ export const TaskSection = () => {
     setEditingGroupId,
     setAddingSubtaskId,
     addTask,
-    addGroup,
+    addGroup: addGroupFn,
     toggleTask,
     updateTaskTitle,
     updateGroupName,
@@ -113,6 +113,13 @@ export const TaskSection = () => {
       }
     }
   );
+
+  // グループ追加のラッパー関数
+  const addGroup = () => {
+    if (newGroup.trim()) {
+      addGroupFn(newGroup.trim());
+    }
+  };
 
   return (
     <TaskContainer
