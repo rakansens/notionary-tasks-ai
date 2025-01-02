@@ -36,11 +36,8 @@ export const useTaskOperations = () => {
 
   const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt" | "subtasks">) => {
     try {
-      // サブタスクの場合は subtasks テーブルに保存
-      const tableName = task.parentId ? 'subtasks' : 'tasks';
-      
       const { data, error } = await supabase
-        .from(tableName)
+        .from('tasks')
         .insert({
           title: task.title,
           completed: task.completed,
@@ -48,7 +45,6 @@ export const useTaskOperations = () => {
           group_id: task.groupId,
           parent_id: task.parentId,
           hierarchy_level: task.hierarchyLevel,
-          parent_title: task.parentId ? await getParentTaskTitle(task.parentId) : null,
         })
         .select()
         .single();
@@ -67,22 +63,6 @@ export const useTaskOperations = () => {
         variant: "destructive",
       });
       throw error;
-    }
-  };
-
-  const getParentTaskTitle = async (parentId: number) => {
-    try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('title')
-        .eq('id', parentId)
-        .single();
-
-      if (error) throw error;
-      return data?.title || null;
-    } catch (error) {
-      console.error('Error fetching parent task title:', error);
-      return null;
     }
   };
 
@@ -127,7 +107,7 @@ export const useTaskOperations = () => {
   const deleteChildTasksFromSupabase = async (parentId: number) => {
     try {
       const { data: childTasks, error: fetchError } = await supabase
-        .from('subtasks')
+        .from('tasks')
         .select('id')
         .eq('parent_id', parentId);
 
@@ -138,7 +118,7 @@ export const useTaskOperations = () => {
       }
 
       const { error: deleteError } = await supabase
-        .from('subtasks')
+        .from('tasks')
         .delete()
         .eq('parent_id', parentId);
 
