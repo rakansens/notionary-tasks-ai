@@ -61,6 +61,8 @@ export const useTaskManager = (): TaskManagerOperations & {
     if (!trimmedTask) return;
 
     try {
+      console.log('Adding task with groupId:', groupId, 'parentId:', parentId);
+      
       const newTask = taskOperations.createNewTask(
         trimmedTask,
         groupId,
@@ -72,8 +74,8 @@ export const useTaskManager = (): TaskManagerOperations & {
         title: newTask.title,
         completed: newTask.completed,
         order: newTask.order,
-        groupId: newTask.groupId,
-        parentId: newTask.parentId,
+        groupId: groupId || null,  // 明示的にnullを設定
+        parentId: parentId || null,  // 明示的にnullを設定
         hierarchyLevel: newTask.hierarchyLevel,
       });
 

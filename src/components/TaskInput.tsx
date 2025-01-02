@@ -35,18 +35,22 @@ export const TaskInput = ({
     }
 
     if (isGroupMode) {
-      window.dispatchEvent(new CustomEvent('groupAdded', {
+      // グループ追加イベントを発火
+      const event = new CustomEvent('groupAdded', {
         detail: {
-          title: trimmedValue,
+          name: trimmedValue,
           addedAt: new Date(),
         },
         bubbles: true,
         composed: true
-      }));
+      });
+      window.dispatchEvent(event);
+      console.log(`グループ「${trimmedValue}」を追加しました`);
     } else {
       onSubmit();
       console.log(`タスク「${trimmedValue}」を追加しました${groupId ? `（グループID: ${groupId}）` : ''}`);
     }
+    
     onChange('');
     setIsGroupMode(false);
     setHasUserInput(false);
@@ -82,7 +86,7 @@ export const TaskInput = ({
     if (newValue.trim() !== '') {
       setHasUserInput(true);
     } else {
-      setHasUserInput(false); // 入力が空の場合はフラグをリセット
+      setHasUserInput(false);
     }
   };
 
