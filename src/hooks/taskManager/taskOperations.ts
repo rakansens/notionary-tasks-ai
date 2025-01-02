@@ -29,7 +29,7 @@ export const createNewTask = (
   parentId?: number,
   order?: number
 ): Task => ({
-  id: Date.now(), // 一時的なIDを生成
+  id: Date.now(),
   title,
   completed: false,
   order: order || 0,
@@ -44,18 +44,22 @@ export const updateTaskTitle = async (
   title: string,
   parentId?: number
 ): Promise<Task[]> => {
-  return tasks.map(task => {
-    if (task.id === id) {
-      return { ...task, title };
-    }
-    if (task.subtasks) {
-      return {
-        ...task,
-        subtasks: updateTaskTitle(task.subtasks, id, title, parentId),
-      };
-    }
-    return task;
-  });
+  const updateTaskTitleRecursive = (tasks: Task[]): Task[] => {
+    return tasks.map(task => {
+      if (task.id === id) {
+        return { ...task, title };
+      }
+      if (task.subtasks) {
+        return {
+          ...task,
+          subtasks: updateTaskTitleRecursive(task.subtasks),
+        };
+      }
+      return task;
+    });
+  };
+
+  return updateTaskTitleRecursive(tasks);
 };
 
 export const deleteTask = async (
@@ -63,22 +67,26 @@ export const deleteTask = async (
   id: number,
   parentId?: number
 ): Promise<Task[]> => {
-  if (parentId) {
-    return tasks.map(task => {
-      if (task.id === parentId) {
-        return {
-          ...task,
-          subtasks: task.subtasks?.filter(subtask => subtask.id !== id),
-        };
-      }
-      if (task.subtasks) {
-        return {
-          ...task,
-          subtasks: deleteTask(task.subtasks, id, parentId),
-        };
-      }
-      return task;
-    });
-  }
-  return tasks.filter(task => task.id !== id);
+  const deleteTaskRecursive = (tasks: Task[]): Task[] => {
+    if (parentId) {
+      return tasks.map(task => {
+        if (task.id === parentId) {
+          return {
+            ...task,
+            subtasks: task.subtasks?.filter(subtask => subtask.id !== id) || [],
+          };
+        }
+        if (task.subtasks) {
+          return {
+            ...task,
+            subtasks: deleteTaskRecursive(task.subtasks),
+          };
+        }
+        return task;
+      });
+    }
+    return tasks.filter(task => task.id !== id);
+  };
+
+  return deleteTaskRecursive(tasks);
 };
