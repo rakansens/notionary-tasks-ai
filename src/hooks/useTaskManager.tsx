@@ -41,8 +41,8 @@ export const useTaskManager = () => {
     };
   }, [state.groups.length]);
 
-  const addTask = (groupId?: number, parentId?: number) => {
-    const trimmedTask = state.newTask.trim();
+  const addTask = (groupId?: number, parentId?: number, title?: string) => {
+    const trimmedTask = title || state.newTask.trim();
     if (!trimmedTask) return;
 
     const task = createNewTask(
@@ -222,8 +222,8 @@ export const useTaskManager = () => {
     deleteGroup,
     confirmDelete,
     cancelDelete,
-    updateTaskOrder,  // 追加
-    updateGroupOrder, // 追加
+    updateTaskOrder,
+    updateGroupOrder,
     toggleGroupCollapse,
   };
 };
