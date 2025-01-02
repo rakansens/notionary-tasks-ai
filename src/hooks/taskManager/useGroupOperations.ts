@@ -7,8 +7,6 @@ export const useGroupOperations = () => {
 
   const addGroupToSupabase = async (group: Omit<Group, "id">) => {
     try {
-      console.log('Adding group to Supabase:', group);
-      
       const { data, error } = await supabase
         .from('groups')
         .insert([{
