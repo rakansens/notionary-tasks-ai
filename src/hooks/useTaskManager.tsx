@@ -101,5 +101,6 @@ export const useTaskManager = (): TaskManagerOperations & {
     },
     confirmDelete,
     cancelDelete,
+    toggleGroupCollapse: actions.toggleGroupCollapse,
   };
 };
