@@ -19,7 +19,7 @@ export const useTaskOperations = () => {
   const createNewTask = (title: string, groupId?: number, parentId?: number, order?: number): Task => {
     return {
       id: Date.now(),
-      title: title.trim(),
+      title: title || "",
       completed: false,
       groupId,
       parentId,
