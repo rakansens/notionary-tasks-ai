@@ -1,4 +1,4 @@
-import { Task } from "@/hooks/useTaskManager";
+import { Task } from "@/hooks/taskManager/types";
 import { TaskItem } from "./TaskItem";
 import { SubtaskList } from "./SubtaskList";
 import { useSortable } from "@dnd-kit/sortable";
