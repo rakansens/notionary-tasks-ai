@@ -185,7 +185,7 @@ export const useTaskManager = (): TaskManagerOperations & {
         
         toast({
           title: "成功",
-          description: "グループを追加しました",
+          description: `グループ「${trimmedGroupName}」を追加しました`,
         });
         
         setters.setNewGroup("");

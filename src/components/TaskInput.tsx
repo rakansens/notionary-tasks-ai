@@ -30,17 +30,7 @@ export const TaskInput = ({
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
-    if (!trimmedValue) {
-      onChange('');
-      setHasUserInput(false);
-      toast({
-        title: "エラー",
-        description: isGroupMode ? "グループ名を入力してください" : "タスク名を入力してください",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    
     if (isGroupMode) {
       // グループ追加のイベントを発火
       window.dispatchEvent(new CustomEvent('addGroup', {
@@ -50,11 +40,12 @@ export const TaskInput = ({
       }));
     } else {
       onSubmit();
-      console.log(`タスク「${trimmedValue}」を追加しました${groupId ? `（グループID: ${groupId}）` : ''}`);
     }
+
+    // 入力値をクリア
     onChange('');
-    setIsGroupMode(false);
     setHasUserInput(false);
+    setIsGroupMode(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
