@@ -60,5 +60,31 @@ export const useTaskManager = (): TaskManagerOperations & {
         });
       }
     },
+    deleteGroup: async (id: number) => {
+      try {
+        await groupOperations.deleteGroup(id);
+        setters.setGroups(prevGroups => prevGroups.filter(g => g.id !== id));
+        setters.setTasks(prevTasks => prevTasks.filter(t => t.groupId !== id));
+      } catch (error) {
+        console.error('Error deleting group:', error);
+        toast({
+          title: "エラー",
+          description: "グループの削除に失敗しました",
+          variant: "destructive",
+        });
+      }
+    },
+    confirmDelete: () => {
+      if (!state.deleteTarget) return;
+      if (state.deleteTarget.type === "task") {
+        taskOperations.deleteTaskFromSupabase(state.deleteTarget.id);
+      } else {
+        groupOperations.deleteGroup(state.deleteTarget.id);
+      }
+      setters.setDeleteTarget(null);
+    },
+    cancelDelete: () => {
+      setters.setDeleteTarget(null);
+    }
   };
 };

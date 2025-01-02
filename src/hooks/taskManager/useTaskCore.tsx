@@ -2,8 +2,10 @@ import { Task, Group } from "./types";
 import { useToast } from "@/components/ui/use-toast";
 import { useTaskOperations } from './useTaskOperations';
 import { useGroupOperations } from './useGroupOperations';
-import { updateGroupOrder, deleteGroup } from './groupOperations';
+import { updateGroupOrder } from './groupOperations';
 import { updateTaskOrder } from './taskOperations';
+import { useTaskState } from './useTaskState';
+import { useTaskEvents } from './useTaskEvents';
 
 export const useTaskCore = (
   state: ReturnType<typeof useTaskState>['state'],
