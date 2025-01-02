@@ -80,21 +80,20 @@ export const useTaskManager = (): TaskManagerOperations & {
       );
 
       if (parentId) {
-        const subtaskData: SubtaskInsertData = {
+        const taskData: TaskInsertData = {
           title: newTask.title,
           completed: newTask.completed,
           order_position: newTask.order,
           group_id: newTask.groupId,
           parent_id: parentId,
           hierarchy_level: hierarchyLevel,
-          parent_title: parentTask?.title || null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
 
         const { data: savedSubtask, error } = await supabase
           .from('subtasks')
-          .insert(subtaskData)
+          .insert(taskData)
           .select('*')
           .maybeSingle();
 
@@ -164,11 +163,19 @@ export const useTaskManager = (): TaskManagerOperations & {
       if (!task) return;
 
       const newCompleted = !task.completed;
+      const updateData: TaskInsertData = {
+        completed: newCompleted,
+        title: task.title,
+        order_position: task.order,
+        group_id: task.groupId,
+        parent_id: task.parentId,
+        hierarchy_level: task.hierarchyLevel,
+      };
 
       if (parentId) {
         const { error } = await supabase
           .from('subtasks')
-          .update({ completed: newCompleted } as SubtaskInsertData)
+          .update(updateData)
           .eq('id', id)
           .select()
           .maybeSingle();
@@ -177,7 +184,7 @@ export const useTaskManager = (): TaskManagerOperations & {
       } else {
         const { error } = await supabase
           .from('tasks')
-          .update({ completed: newCompleted } as TaskInsertData)
+          .update(updateData)
           .eq('id', id)
           .select()
           .maybeSingle();
@@ -202,10 +209,22 @@ export const useTaskManager = (): TaskManagerOperations & {
 
   const updateTaskTitle = async (id: number, title: string, parentId?: number) => {
     try {
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+
+      const updateData: TaskInsertData = {
+        title,
+        completed: task.completed,
+        order_position: task.order,
+        group_id: task.groupId,
+        parent_id: task.parentId,
+        hierarchy_level: task.hierarchyLevel,
+      };
+
       if (parentId) {
         const { error } = await supabase
           .from('subtasks')
-          .update({ title } as SubtaskInsertData)
+          .update(updateData)
           .eq('id', id)
           .select()
           .maybeSingle();
@@ -214,7 +233,7 @@ export const useTaskManager = (): TaskManagerOperations & {
       } else {
         const { error } = await supabase
           .from('tasks')
-          .update({ title } as TaskInsertData)
+          .update(updateData)
           .eq('id', id)
           .select()
           .maybeSingle();

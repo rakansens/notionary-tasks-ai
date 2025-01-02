@@ -51,28 +51,8 @@ export interface TaskEventData {
 type Tables = Database['public']['Tables']
 type Views = Database['public']['Views']
 
-export type SubtaskInsertData = {
-  title: string;
-  completed: boolean;
-  order_position: number;
-  group_id?: number;
-  parent_id?: number;
-  hierarchy_level: number;
-  parent_title?: string | null;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export type TaskInsertData = {
-  title: string;
-  completed: boolean;
-  order_position: number;
-  group_id?: number;
-  parent_id?: number;
-  hierarchy_level: number;
-  created_at?: string;
-  updated_at?: string;
-}
+export type SubtaskInsertData = Tables['tasks']['Insert']
+export type TaskInsertData = Tables['tasks']['Insert']
 
 export type SubtaskRow = Views['subtasks']['Row']
 export type TaskRow = Tables['tasks']['Row']
