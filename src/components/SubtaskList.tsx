@@ -2,7 +2,7 @@ import { Task } from "@/hooks/taskManager/types";
 import { DraggableTask } from "./DraggableTask";
 import { SubtaskDndProvider } from "./subtask/SubtaskDndContext";
 import { SubtaskContainer } from "./subtask/SubtaskContainer";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface SubtaskListProps {
   parentTask: Task;
@@ -38,23 +38,18 @@ export const SubtaskList = ({
   isCollapsed: propIsCollapsed,
 }: SubtaskListProps) => {
   const [isCollapsed, setIsCollapsed] = useState(propIsCollapsed || false);
-  const [localSubtasks, setLocalSubtasks] = useState<Task[]>(subtasks);
   
-  useEffect(() => {
-    setLocalSubtasks(subtasks);
-  }, [subtasks]);
-
   if (isCollapsed) return null;
-  if (!localSubtasks || localSubtasks.length === 0) return null;
+  if (!subtasks || subtasks.length === 0) return null;
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
       <SubtaskDndProvider
-        subtasks={localSubtasks}
+        subtasks={subtasks}
         parentTask={parentTask}
         onReorderSubtasks={onReorderSubtasks}
       >
-        {localSubtasks.map(subtask => (
+        {subtasks.map(subtask => (
           <DraggableTask
             key={subtask.id}
             task={subtask}
