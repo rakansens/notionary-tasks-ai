@@ -7,8 +7,8 @@ export const useTaskEvents = () => {
     const handleGroupAdded = (event: CustomEvent) => {
       console.log('Group added event received:', event.detail);
       taskEventEmitter.emit('groupAdded', {
-        type: 'GROUP_ADDED',
-        name: event.detail.name,
+        type: 'groupAdded',
+        title: event.detail.name,
         timestamp: event.detail.addedAt,
       });
     };
@@ -65,7 +65,7 @@ export const useTaskEvents = () => {
   const emitGroupAdded = (group: Group) => {
     const eventData = {
       type: 'GROUP_ADDED',
-      name: group.name,
+      title: group.name,
       timestamp: new Date(),
     };
 
@@ -76,7 +76,7 @@ export const useTaskEvents = () => {
   const emitGroupDeleted = (group: Group) => {
     const eventData = {
       type: 'GROUP_DELETED',
-      name: group.name,
+      title: group.name,
       timestamp: new Date(),
     };
 
