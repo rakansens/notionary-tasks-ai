@@ -1,6 +1,7 @@
 import { useTaskManager, Task } from "@/hooks/useTaskManager";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import { TaskContainer } from "./task/TaskContainer";
+import { useEffect } from "react";
 
 export const TaskSection = () => {
   const {
@@ -33,6 +34,20 @@ export const TaskSection = () => {
     updateGroupOrder,
     toggleGroupCollapse,
   } = useTaskManager();
+
+  useEffect(() => {
+    const handleAddGroup = (event: CustomEvent) => {
+      const { name } = event.detail;
+      setNewGroup(name);
+      addGroup();
+    };
+
+    window.addEventListener('addGroup', handleAddGroup as EventListener);
+
+    return () => {
+      window.removeEventListener('addGroup', handleAddGroup as EventListener);
+    };
+  }, [addGroup, setNewGroup]);
 
   const handleReorderSubtasks = (startIndex: number, endIndex: number, parentId: number) => {
     console.log(`Reordering subtasks for parentId: ${parentId}, from ${startIndex} to ${endIndex}`);
