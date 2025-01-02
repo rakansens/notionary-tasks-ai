@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Message {
   id: number;
@@ -14,28 +16,46 @@ interface Message {
 export const ChatSection = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
     
-    const newMessage: Message = {
+    const userMessage: Message = {
       id: Date.now(),
       text: input,
       isUser: true,
     };
     
-    setMessages([...messages, newMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInput("");
+    setIsLoading(true);
     
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-with-gemini', {
+        body: { message: input }
+      });
+
+      if (error) throw error;
+
       const aiResponse: Message = {
         id: Date.now() + 1,
-        text: "申し訳ありませんが、現在AIレスポンスは実装されていません。",
+        text: data.response,
         isUser: false,
       };
+      
       setMessages(prev => [...prev, aiResponse]);
-    }, 1000);
+    } catch (error) {
+      console.error('Error calling Gemini API:', error);
+      toast({
+        title: "エラーが発生しました",
+        description: "AIアシスタントとの通信中にエラーが発生しました。",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -74,11 +94,16 @@ export const ChatSection = () => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSend()}
+            onKeyPress={(e) => e.key === "Enter" && !isLoading && handleSend()}
             placeholder="メッセージを入力..."
             className="flex-1"
+            disabled={isLoading}
           />
-          <Button onClick={handleSend} size="icon">
+          <Button 
+            onClick={handleSend} 
+            size="icon"
+            disabled={isLoading}
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>
