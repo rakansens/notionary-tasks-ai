@@ -14,7 +14,7 @@ export const useTaskStateManager = () => {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
 
   const structureTasks = (flatTasks: Task[]): Task[] => {
-    console.log('Structuring tasks:', flatTasks);
+    console.log('Structuring tasks input:', flatTasks);
     
     const taskMap = new Map<number, Task>();
     const rootTasks: Task[] = [];
@@ -24,7 +24,6 @@ export const useTaskStateManager = () => {
       const taskWithSubtasks = { 
         ...task, 
         subtasks: [],
-        // 必要なプロパティが欠落している場合のデフォルト値を設定
         order: task.order || 0,
         hierarchyLevel: task.hierarchyLevel || 0,
         completed: task.completed || false,
@@ -34,32 +33,43 @@ export const useTaskStateManager = () => {
 
     // Second pass: Build the tree structure
     flatTasks.forEach(task => {
+      const currentTask = taskMap.get(task.id);
+      if (!currentTask) return;
+
       if (task.parentId) {
         const parentTask = taskMap.get(task.parentId);
-        const currentTask = taskMap.get(task.id);
-        
-        if (parentTask && currentTask) {
-          // サブタスクを親タスクのsubtasks配列に追加
-          parentTask.subtasks = [...(parentTask.subtasks || []), currentTask];
+        if (parentTask) {
+          // 既存のサブタスクを保持しながら新しいサブタスクを追加
+          const existingSubtasks = parentTask.subtasks || [];
+          const updatedSubtasks = [...existingSubtasks];
           
-          // サブタスクの順序を保持
-          parentTask.subtasks.sort((a, b) => (a.order || 0) - (b.order || 0));
+          // 現在のタスクが既に存在するか確認
+          const existingIndex = updatedSubtasks.findIndex(st => st.id === currentTask.id);
+          if (existingIndex === -1) {
+            // 存在しない場合のみ追加
+            updatedSubtasks.push(currentTask);
+          } else {
+            // 存在する場合は更新
+            updatedSubtasks[existingIndex] = currentTask;
+          }
           
-          console.log(`Added subtask ${task.id} to parent ${task.parentId}`, parentTask.subtasks);
+          // サブタスクの順序でソート
+          parentTask.subtasks = updatedSubtasks.sort((a, b) => (a.order || 0) - (b.order || 0));
+          
+          console.log(`Updated subtasks for parent ${task.parentId}:`, parentTask.subtasks);
         }
       } else {
-        const rootTask = taskMap.get(task.id);
-        if (rootTask) {
-          rootTasks.push(rootTask);
+        if (!rootTasks.some(rt => rt.id === currentTask.id)) {
+          rootTasks.push(currentTask);
         }
       }
     });
 
-    // ルートタスクも順序でソート
-    rootTasks.sort((a, b) => (a.order || 0) - (b.order || 0));
-
-    console.log('Structured tasks:', rootTasks);
-    return rootTasks;
+    // ルートタスクを順序でソート
+    const sortedRootTasks = rootTasks.sort((a, b) => (a.order || 0) - (b.order || 0));
+    console.log('Structured tasks output:', sortedRootTasks);
+    
+    return sortedRootTasks;
   };
 
   const setStructuredTasks = (tasksOrUpdater: Task[] | ((prev: Task[]) => Task[])) => {
