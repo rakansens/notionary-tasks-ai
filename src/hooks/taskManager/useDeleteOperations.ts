@@ -26,17 +26,19 @@ export const useDeleteOperations = (
     }
   };
 
-  const confirmDelete = (target: DeleteTarget | null) => {
-    if (!target) return;
+  const confirmDelete = () => {
+    const currentTarget = setDeleteTarget((prev) => {
+      if (!prev) return null;
 
-    if (target.type === "task") {
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== target.id));
-    } else {
-      setGroups(prevGroups => deleteGroupFromState(prevGroups, target.id));
-      setTasks(prevTasks => cleanupTasksAfterGroupDelete(prevTasks, target.id));
-    }
-    
-    setDeleteTarget(null);
+      if (prev.type === "task") {
+        setTasks(prevTasks => prevTasks.filter(task => task.id !== prev.id));
+      } else {
+        setGroups(prevGroups => deleteGroupFromState(prevGroups, prev.id));
+        setTasks(prevTasks => cleanupTasksAfterGroupDelete(prevTasks, prev.id));
+      }
+      
+      return null;
+    });
   };
 
   const cancelDelete = () => {
