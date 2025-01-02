@@ -12,6 +12,35 @@ export const updateTaskOrder = async (tasks: Task[], setTasks: (tasks: Task[]) =
   }
 };
 
+export const buildTaskHierarchy = (tasks: Task[]): Task[] => {
+  const taskMap = new Map<number, Task>();
+  const rootTasks: Task[] = [];
+
+  // まず、すべてのタスクをマップに追加
+  tasks.forEach(task => {
+    taskMap.set(task.id, { ...task, subtasks: [] });
+  });
+
+  // 階層構造を構築
+  tasks.forEach(task => {
+    const currentTask = taskMap.get(task.id);
+    if (currentTask) {
+      if (task.parentId && taskMap.has(task.parentId)) {
+        const parentTask = taskMap.get(task.parentId);
+        if (parentTask && parentTask.subtasks) {
+          parentTask.subtasks.push(currentTask);
+          parentTask.subtasks.sort((a, b) => a.order - b.order);
+        }
+      } else {
+        rootTasks.push(currentTask);
+      }
+    }
+  });
+
+  // ルートタスクを順序で並び替え
+  return rootTasks.sort((a, b) => a.order - b.order);
+};
+
 export const findTaskById = (tasks: Task[], id: number): Task | undefined => {
   for (const task of tasks) {
     if (task.id === id) return task;
@@ -29,7 +58,7 @@ export const createNewTask = (
   parentId?: number,
   order?: number
 ): Task => {
-  const hierarchyLevel = parentId ? 1 : 0; // 親タスクがある場合は階層レベル1、ない場合は0
+  const hierarchyLevel = parentId ? 1 : 0;
   
   return {
     id: Date.now(),
@@ -40,6 +69,7 @@ export const createNewTask = (
     parentId,
     hierarchyLevel,
     addedAt: new Date(),
+    subtasks: [],
   };
 };
 
