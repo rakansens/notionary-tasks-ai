@@ -3,6 +3,20 @@ import { DraggableTask } from "./DraggableTask";
 import { SubtaskDndProvider } from "./subtask/SubtaskDndContext";
 import { SubtaskContainer } from "./subtask/SubtaskContainer";
 import { useState } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface SubtaskListProps {
   parentTask: Task;
@@ -39,37 +53,64 @@ export const SubtaskList = ({
 }: SubtaskListProps) => {
   const [isCollapsed, setIsCollapsed] = useState(propIsCollapsed || false);
   
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    if (active.id !== over.id) {
+      const oldIndex = subtasks.findIndex(task => task.id.toString() === active.id);
+      const newIndex = subtasks.findIndex(task => task.id.toString() === over.id);
+      
+      if (onReorderSubtasks) {
+        onReorderSubtasks(oldIndex, newIndex, parentTask.id);
+      }
+    }
+  };
+  
   if (isCollapsed) return null;
   if (!subtasks || subtasks.length === 0) return null;
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
-      <SubtaskDndProvider
-        subtasks={subtasks}
-        parentTask={parentTask}
-        onReorderSubtasks={onReorderSubtasks}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
       >
-        {subtasks.map(subtask => (
-          <DraggableTask
-            key={subtask.id}
-            task={subtask}
-            parentTask={parentTask}
-            editingTaskId={editingTaskId}
-            addingSubtaskId={addingSubtaskId}
-            setEditingTaskId={setEditingTaskId}
-            setAddingSubtaskId={setAddingSubtaskId}
-            toggleTask={toggleTask}
-            updateTaskTitle={updateTaskTitle}
-            deleteTask={deleteTask}
-            newTask={newTask}
-            setNewTask={setNewTask}
-            addTask={addTask}
-            onReorderSubtasks={onReorderSubtasks}
-            isCollapsed={isCollapsed}
-            onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
-          />
-        ))}
-      </SubtaskDndProvider>
+        <SortableContext
+          items={subtasks.map(task => task.id.toString())}
+          strategy={verticalListSortingStrategy}
+        >
+          {subtasks.map(subtask => (
+            <DraggableTask
+              key={subtask.id}
+              task={subtask}
+              parentTask={parentTask}
+              editingTaskId={editingTaskId}
+              addingSubtaskId={addingSubtaskId}
+              setEditingTaskId={setEditingTaskId}
+              setAddingSubtaskId={setAddingSubtaskId}
+              toggleTask={toggleTask}
+              updateTaskTitle={updateTaskTitle}
+              deleteTask={deleteTask}
+              newTask={newTask}
+              setNewTask={setNewTask}
+              addTask={addTask}
+              onReorderSubtasks={onReorderSubtasks}
+              isCollapsed={isCollapsed}
+              onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+            />
+          ))}
+        </SortableContext>
+      </DndContext>
     </SubtaskContainer>
   );
 };
