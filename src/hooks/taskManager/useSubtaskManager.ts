@@ -62,7 +62,6 @@ export const useSubtaskManager = () => {
   const updateSubtaskOrder = async (subtasks: Task[]) => {
     try {
       const updates = subtasks.map((task, index) => ({
-        id: task.id,
         order_position: index,
         title: task.title,
         completed: task.completed,
@@ -72,9 +71,16 @@ export const useSubtaskManager = () => {
 
       const { error } = await supabase
         .from('tasks')
-        .upsert(updates, {
-          onConflict: 'id'
-        });
+        .upsert(
+          updates.map((update, index) => ({
+            ...update,
+            id: subtasks[index].id
+          })),
+          { 
+            onConflict: 'id',
+            ignoreDuplicates: false
+          }
+        );
 
       if (error) throw error;
     } catch (error) {
