@@ -77,7 +77,6 @@ export const useTaskManager = (): TaskManagerOperations & {
 
       console.log('New task to be saved:', newTask);
 
-      // サブタスクの場合は subtasks テーブルに保存
       if (parentId) {
         const { data: savedSubtask, error } = await supabase
           .from('subtasks')
@@ -88,8 +87,8 @@ export const useTaskManager = (): TaskManagerOperations & {
             group_id: newTask.groupId,
             parent_id: parentId,
             hierarchy_level: hierarchyLevel,
-            parent_title: parentTask?.title
-          })
+            parent_title: parentTask?.title || ''
+          } as any)
           .select()
           .single();
 
@@ -107,7 +106,6 @@ export const useTaskManager = (): TaskManagerOperations & {
 
         taskEvents.emitTaskAdded(taskWithId, parentTask);
       } else {
-        // 通常のタスクは tasks テーブルに保存
         const { data: savedTask, error } = await supabase
           .from('tasks')
           .insert({
@@ -158,16 +156,14 @@ export const useTaskManager = (): TaskManagerOperations & {
 
       const newCompleted = !task.completed;
 
-      // サブタスクの場合は subtasks テーブルを更新
       if (parentId) {
         const { error } = await supabase
           .from('subtasks')
-          .update({ completed: newCompleted })
+          .update({ completed: newCompleted } as any)
           .eq('id', id);
 
         if (error) throw error;
       } else {
-        // 通常のタスクは tasks テーブルを更新
         const { error } = await supabase
           .from('tasks')
           .update({ completed: newCompleted })
@@ -193,16 +189,14 @@ export const useTaskManager = (): TaskManagerOperations & {
 
   const updateTaskTitle = async (id: number, title: string, parentId?: number) => {
     try {
-      // サブタスクの場合は subtasks テーブルを更新
       if (parentId) {
         const { error } = await supabase
           .from('subtasks')
-          .update({ title })
+          .update({ title } as any)
           .eq('id', id);
 
         if (error) throw error;
       } else {
-        // 通常のタスクは tasks テーブルを更新
         const { error } = await supabase
           .from('tasks')
           .update({ title })
