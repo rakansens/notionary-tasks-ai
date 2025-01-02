@@ -1,66 +1,29 @@
-import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { Task } from "@/hooks/useTaskManager";
-import { useDragAndDrop } from "@/hooks/dragAndDrop/useDragAndDrop";
+import { Task } from "@/hooks/taskManager/types";
+import { createContext, useContext } from "react";
+import { DndContext } from "@dnd-kit/core";
 
 interface SubtaskDndContextProps {
-  children: React.ReactNode;
   subtasks: Task[];
   parentTask: Task;
   onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
 }
 
-export const SubtaskDndContext = ({
-  children,
-  subtasks,
-  parentTask,
-  onReorderSubtasks,
-}: SubtaskDndContextProps) => {
-  const mouseSensor = useSensor(MouseSensor, {
-    activationConstraint: {
-      distance: 10,
-    },
-  });
-  
-  const touchSensor = useSensor(TouchSensor, {
-    activationConstraint: {
-      delay: 250,
-      tolerance: 5,
-    },
-  });
-  
-  const sensors = useSensors(mouseSensor, touchSensor);
+const SubtaskDndContext = createContext<SubtaskDndContextProps | undefined>(undefined);
 
-  const { handleDragStart, handleDragEnd, handleDragCancel } = useDragAndDrop(
-    subtasks,
-    (updatedItems) => {
-      const oldIndex = subtasks.findIndex(task => task.id === updatedItems[0].id);
-      const newIndex = updatedItems[0].order;
-      if (oldIndex !== -1 && onReorderSubtasks) {
-        onReorderSubtasks(oldIndex, newIndex, parentTask.id);
-      }
-    },
-    {
-      parentId: parentTask.id,
-    }
-  );
-
+export const SubtaskDndProvider: React.FC<SubtaskDndContextProps> = ({ children, subtasks, parentTask, onReorderSubtasks }) => {
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-      modifiers={[restrictToVerticalAxis]}
-    >
-      <SortableContext
-        items={subtasks.map(task => task.id.toString())}
-        strategy={verticalListSortingStrategy}
-      >
+    <SubtaskDndContext.Provider value={{ subtasks, parentTask, onReorderSubtasks }}>
+      <DndContext>
         {children}
-      </SortableContext>
-    </DndContext>
+      </DndContext>
+    </SubtaskDndContext.Provider>
   );
+};
+
+export const useSubtaskDndContext = () => {
+  const context = useContext(SubtaskDndContext);
+  if (!context) {
+    throw new Error("useSubtaskDndContext must be used within a SubtaskDndProvider");
+  }
+  return context;
 };

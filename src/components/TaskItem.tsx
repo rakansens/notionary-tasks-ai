@@ -1,4 +1,4 @@
-import { Task } from "@/hooks/useTaskManager";
+import { Task } from "@/hooks/taskManager/types";
 import { TaskCheckbox } from "./task/TaskCheckbox";
 import { TaskTitle } from "./task/TaskTitle";
 import { TaskItemActions } from "./task/TaskItemActions";
@@ -139,3 +139,4 @@ export const TaskItem = ({
     </div>
   );
 };
+
