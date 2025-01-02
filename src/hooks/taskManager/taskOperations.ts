@@ -1,56 +1,65 @@
 import { Task } from './types';
 
-export const addTaskToState = (tasks: Task[], newTask: Task, parentId?: number): Task[] => {
-  if (!parentId) {
-    return [...tasks, newTask];
+export const updateTaskOrder = async (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
+  try {
+    const updatedTasks = tasks.map((task, index) => ({
+      ...task,
+      order: index,
+    }));
+    setTasks(updatedTasks);
+  } catch (error) {
+    console.error('Error updating task order:', error);
   }
+};
 
-  return tasks.map(task => {
-    if (task.id === parentId) {
-      return {
-        ...task,
-        subtasks: [...(task.subtasks || []), newTask],
-      };
+export const findTaskById = (tasks: Task[], id: number): Task | undefined => {
+  for (const task of tasks) {
+    if (task.id === id) return task;
+    if (task.subtasks) {
+      const found = findTaskById(task.subtasks, id);
+      if (found) return found;
     }
-    if (task.subtasks && task.subtasks.length > 0) {
+  }
+  return undefined;
+};
+
+export const createNewTask = (
+  title: string,
+  groupId?: number,
+  parentId?: number,
+  order?: number
+): Omit<Task, "id"> => ({
+  title,
+  completed: false,
+  order: order || 0,
+  groupId,
+  parentId,
+  addedAt: new Date(),
+});
+
+export const updateTaskTitle = async (
+  tasks: Task[],
+  id: number,
+  title: string,
+  parentId?: number
+): Task[] => {
+  return tasks.map(task => {
+    if (task.id === id) {
+      return { ...task, title };
+    }
+    if (task.subtasks) {
       return {
         ...task,
-        subtasks: addTaskToState(task.subtasks, newTask, parentId),
+        subtasks: updateTaskTitle(task.subtasks, id, title, parentId),
       };
     }
     return task;
   });
 };
 
-export const toggleTaskInState = (tasks: Task[], id: number, parentId?: number): Task[] => {
-  if (parentId) {
-    return tasks.map(task => {
-      if (task.id === parentId) {
-        return {
-          ...task,
-          subtasks: task.subtasks?.map(subtask =>
-            subtask.id === id ? { ...subtask, completed: !subtask.completed } : subtask
-          ),
-        };
-      }
-      if (task.subtasks && task.subtasks.length > 0) {
-        return {
-          ...task,
-          subtasks: toggleTaskInState(task.subtasks, id, parentId),
-        };
-      }
-      return task;
-    });
-  }
-  return tasks.map(task =>
-    task.id === id ? { ...task, completed: !task.completed } : task
-  );
-};
-
-export const updateTaskTitleInState = (
+export const deleteTask = async (
   tasks: Task[],
   id: number,
-  title: string,
   parentId?: number
 ): Task[] => {
   if (parentId) {
@@ -58,66 +67,17 @@ export const updateTaskTitleInState = (
       if (task.id === parentId) {
         return {
           ...task,
-          subtasks: task.subtasks?.map(subtask =>
-            subtask.id === id ? { ...subtask, title } : subtask
-          ),
+          subtasks: task.subtasks?.filter(subtask => subtask.id !== id),
         };
       }
-      if (task.subtasks && task.subtasks.length > 0) {
+      if (task.subtasks) {
         return {
           ...task,
-          subtasks: updateTaskTitleInState(task.subtasks, id, title, parentId),
+          subtasks: deleteTask(task.subtasks, id, parentId),
         };
       }
       return task;
     });
   }
-  return tasks.map(task => (task.id === id ? { ...task, title } : task));
-};
-
-export const updateTaskOrderInState = (tasks: Task[], taskId: number, newGroupId?: number, newIndex?: number): Task[] => {
-  const updatedTasks = [...tasks];
-  const taskToMove = updatedTasks.find(t => t.id === taskId);
-  
-  if (!taskToMove) return tasks;
-
-  // タスクを現在の位置から削除
-  const filteredTasks = updatedTasks.filter(t => t.id !== taskId);
-
-  // 新しい位置を計算
-  const targetTasks = filteredTasks.filter(t => {
-    if (newGroupId) {
-      return t.groupId === newGroupId && !t.parentId;
-    } else {
-      return !t.groupId && !t.parentId;
-    }
-  });
-
-  // タスクのグループIDを更新
-  taskToMove.groupId = newGroupId;
-
-  // 新しい位置にタスクを挿入
-  if (typeof newIndex === 'number') {
-    targetTasks.splice(newIndex, 0, taskToMove);
-    
-    // 順序を更新
-    targetTasks.forEach((task, index) => {
-      task.order = index;
-    });
-
-    // 更新されたタスクを元の配列に統合
-    return [
-      ...filteredTasks.filter(t => {
-        if (newGroupId) {
-          return t.groupId !== newGroupId || t.parentId;
-        } else {
-          return t.groupId || t.parentId;
-        }
-      }),
-      ...targetTasks,
-    ];
-  } else {
-    // インデックスが指定されていない場合は最後に追加
-    return [...filteredTasks, { ...taskToMove, order: filteredTasks.length }];
-  }
+  return tasks.filter(task => task.id !== id);
 };

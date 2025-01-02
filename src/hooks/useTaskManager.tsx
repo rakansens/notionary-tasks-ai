@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Task, Group, TaskManagerOperations } from './taskManager/types';
 import { useTaskStateManager } from './taskManager/taskStateManager';
 import { useTaskEvents } from './taskManager/useTaskEvents';
-import { useTaskOperations } from './taskManager/useTaskOperations';
 import { useToast } from "@/components/ui/use-toast";
 import {
   addTaskToSupabase,
@@ -14,32 +13,11 @@ import {
   deleteGroupFromSupabase,
   fetchInitialData,
 } from './taskManager/supabaseOperations';
+import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './taskManager/mappers';
+import { deleteGroupFromState, cleanupTasksAfterGroupDelete, updateGroupOrder } from './taskManager/groupOperations';
+import { updateTaskOrder, findTaskById, createNewTask } from './taskManager/taskOperations';
 
 export type { Task, Group };
-
-const mapSupabaseTaskToTask = (task: any): Task => ({
-  id: task.id,
-  title: task.title,
-  completed: task.completed,
-  order: task.order_position,
-  groupId: task.group_id,
-  parentId: task.parent_id,
-  addedAt: new Date(task.created_at),
-});
-
-const mapSupabaseGroupToGroup = (group: any): Group => ({
-  id: group.id,
-  name: group.name,
-  order: group.order_position,
-});
-
-const deleteGroupFromState = (groups: Group[], groupId: number): Group[] => {
-  return groups.filter(group => group.id !== groupId);
-};
-
-const cleanupTasksAfterGroupDelete = (tasks: Task[], groupId: number): Task[] => {
-  return tasks.filter(task => task.groupId !== groupId);
-};
 
 export const useTaskManager = (): TaskManagerOperations & {
   tasks: Task[];
@@ -61,10 +39,8 @@ export const useTaskManager = (): TaskManagerOperations & {
 } => {
   const { state, setters } = useTaskStateManager();
   const taskEvents = useTaskEvents();
-  const { findTaskById, createNewTask } = useTaskOperations();
   const { toast } = useToast();
 
-  // 初期データの取得
   useEffect(() => {
     const loadInitialData = async () => {
       try {
@@ -198,34 +174,6 @@ export const useTaskManager = (): TaskManagerOperations & {
     }
   };
 
-  const updateTaskOrder = async (tasks: Task[]) => {
-    try {
-      // Implement task order update logic here
-      setters.setTasks(tasks);
-    } catch (error) {
-      console.error('Error updating task order:', error);
-      toast({
-        title: "エラー",
-        description: "タスクの順序の更新に失敗しました",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const updateGroupOrder = async (groups: Group[]) => {
-    try {
-      // Implement group order update logic here
-      setters.setGroups(groups);
-    } catch (error) {
-      console.error('Error updating group order:', error);
-      toast({
-        title: "エラー",
-        description: "グループの順序の更新に失敗しました",
-        variant: "destructive",
-      });
-    }
-  };
-
   const addGroup = async () => {
     if (!state.newGroup.trim()) return;
 
@@ -345,8 +293,8 @@ export const useTaskManager = (): TaskManagerOperations & {
     deleteGroup,
     confirmDelete,
     cancelDelete,
-    updateTaskOrder,
-    updateGroupOrder,
+    updateTaskOrder: (tasks: Task[]) => updateTaskOrder(tasks, setters.setTasks),
+    updateGroupOrder: (groups: Group[]) => updateGroupOrder(groups, setters.setGroups),
     toggleGroupCollapse,
   };
 };

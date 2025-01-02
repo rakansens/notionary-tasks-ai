@@ -30,3 +30,17 @@ export const cleanupTasksAfterGroupDelete = (
 ): Task[] => {
   return tasks.filter(task => task.groupId !== groupId);
 };
+
+export const updateGroupOrder = async (groups: Group[], setGroups: (groups: Group[]) => void) => {
+  try {
+    // Update the order of each group based on its position in the array
+    const updatedGroups = groups.map((group, index) => ({
+      ...group,
+      order: index,
+    }));
+    setGroups(updatedGroups);
+  } catch (error) {
+    console.error('Error updating group order:', error);
+    throw error;
+  }
+};
