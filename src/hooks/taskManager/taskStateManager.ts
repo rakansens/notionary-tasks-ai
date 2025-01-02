@@ -16,69 +16,61 @@ export const useTaskStateManager = () => {
   const structureTasks = (flatTasks: Task[]): Task[] => {
     console.log('Structuring tasks input:', flatTasks);
     
-    // 最初のパスでタスクマップを作成
-    const taskMap = new Map<number, Task>();
+    // 深いコピーを作成する関数（再帰的に全ての階層をコピー）
+    const deepCloneTask = (task: Task): Task => ({
+      ...task,
+      subtasks: task.subtasks?.map(subtask => deepCloneTask(subtask)) || [],
+    });
     
-    // 深いコピーを作成する関数
-    const deepCopyTask = (task: Task): Task => {
-      return {
-        ...task,
-        subtasks: task.subtasks ? [...task.subtasks] : [],
-      };
-    };
-
-    // すべてのタスクをマップに追加（深いコピーを使用）
+    // タスクマップの作成（深いコピーを使用）
+    const taskMap = new Map<number, Task>();
     flatTasks.forEach(task => {
       if (!taskMap.has(task.id)) {
-        taskMap.set(task.id, deepCopyTask(task));
+        taskMap.set(task.id, deepCloneTask(task));
       }
     });
 
-    // 階層構造を構築（親子関係を設定）
+    // 階層構造の構築
     flatTasks.forEach(task => {
       if (task.parentId) {
         const parentTask = taskMap.get(task.parentId);
         const currentTask = taskMap.get(task.id);
         
         if (parentTask && currentTask) {
-          // 親タスクのsubtasks配列が存在しない場合は初期化
+          // 親タスクのsubtasks配列の初期化
           if (!parentTask.subtasks) {
             parentTask.subtasks = [];
           }
 
-          // 重複チェック
+          // 既存のサブタスクを保持しながら更新
           const existingIndex = parentTask.subtasks.findIndex(st => st.id === task.id);
-          
           if (existingIndex === -1) {
-            // サブタスクが存在しない場合は追加
-            parentTask.subtasks.push(currentTask);
+            // 新しいサブタスクを追加
+            parentTask.subtasks.push(deepCloneTask(currentTask));
           } else {
-            // 既存のサブタスクを更新（サブタスクの階層構造を保持）
+            // 既存のサブタスクを更新（階層構造を保持）
+            const existingSubtasks = parentTask.subtasks[existingIndex].subtasks || [];
             parentTask.subtasks[existingIndex] = {
-              ...currentTask,
-              subtasks: parentTask.subtasks[existingIndex].subtasks || [],
+              ...deepCloneTask(currentTask),
+              subtasks: existingSubtasks,
             };
           }
           
           // サブタスクを順序でソート
           parentTask.subtasks.sort((a, b) => (a.order || 0) - (b.order || 0));
-          
-          console.log(`Updated subtasks for parent ${task.parentId}:`, parentTask.subtasks);
         }
       }
     });
 
-    // ルートタスク（親を持たないタスク）を収集
+    // ルートタスクの収集と順序付け
     const rootTasks = flatTasks
       .filter(task => !task.parentId)
       .map(task => taskMap.get(task.id))
-      .filter((task): task is Task => task !== undefined);
+      .filter((task): task is Task => task !== undefined)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-    // ルートタスクを順序でソート
-    const sortedRootTasks = rootTasks.sort((a, b) => (a.order || 0) - (b.order || 0));
-    
-    console.log('Structured tasks output:', sortedRootTasks);
-    return sortedRootTasks;
+    console.log('Structured tasks output:', rootTasks);
+    return rootTasks;
   };
 
   const setStructuredTasks = (tasksOrUpdater: Task[] | ((prev: Task[]) => Task[])) => {
