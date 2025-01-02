@@ -19,19 +19,14 @@ export const useTaskStateManager = () => {
     // First pass: Create task objects with their existing subtasks
     const taskMap = new Map<number, Task>();
     
+    // 最初のパスで全てのタスクをマップに追加
     flatTasks.forEach(task => {
-      const taskCopy = { ...task };
-      
-      // 既存のタスクの状態を保持
       const existingTask = taskMap.get(task.id);
-      if (existingTask) {
-        // 既存のタスクがある場合は、そのsubtasksを保持
-        taskCopy.subtasks = existingTask.subtasks || [];
-      } else {
-        // 新しいタスクの場合は空の配列を初期化
-        taskCopy.subtasks = [];
-      }
-      
+      const taskCopy = { 
+        ...task,
+        // 既存のタスクのサブタスクを保持、または新しい配列を作成
+        subtasks: existingTask?.subtasks || []
+      };
       taskMap.set(task.id, taskCopy);
     });
 
@@ -45,24 +40,19 @@ export const useTaskStateManager = () => {
       if (task.parentId) {
         const parentTask = taskMap.get(task.parentId);
         if (parentTask) {
-          // 親タスクが存在する場合、サブタスクとして追加
-          if (!parentTask.subtasks) {
-            parentTask.subtasks = [];
-          }
-          
-          // 既存のサブタスクを確認
+          // サブタスクの重複チェック
           const existingSubtaskIndex = parentTask.subtasks.findIndex(
             st => st.id === task.id
           );
           
           if (existingSubtaskIndex === -1) {
-            // 存在しない場合は追加
+            // 存在しない場合のみ追加
             parentTask.subtasks.push(currentTask);
           } else {
-            // 存在する場合は更新（既存のsubtasksを保持）
+            // 既存のサブタスクを更新（サブタスクの階層構造を保持）
             parentTask.subtasks[existingSubtaskIndex] = {
               ...currentTask,
-              subtasks: parentTask.subtasks[existingSubtaskIndex].subtasks || [],
+              subtasks: parentTask.subtasks[existingSubtaskIndex].subtasks || []
             };
           }
           
@@ -72,7 +62,7 @@ export const useTaskStateManager = () => {
           console.log(`Updated subtasks for parent ${task.parentId}:`, parentTask.subtasks);
         }
       } else {
-        // ルートタスクの場合
+        // ルートタスクの場合、重複チェック
         if (!rootTasks.some(rt => rt.id === task.id)) {
           rootTasks.push(currentTask);
         }
