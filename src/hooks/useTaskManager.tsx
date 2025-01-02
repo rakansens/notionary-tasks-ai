@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
 import { Task, Group, TaskManagerOperations } from './taskManager/types';
-import { useTaskStateManager } from './taskManager/taskStateManager';
-import { useTaskEvents } from './taskManager/useTaskEvents';
+import { useTaskStateManager } from './taskStateManager/useTaskStateManager';
+import { useTaskEvents } from './useTaskEvents';
 import { useToast } from "@/components/ui/use-toast";
-import { useTaskCRUD } from './taskManager/useTaskCRUD';
-import { useGroupCRUD } from './taskManager/useGroupCRUD';
-import { fetchInitialData } from './taskManager/supabaseOperations';
-import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './taskManager/mappers';
-import { buildTaskHierarchy } from './taskManager/taskOperations';
-import { supabase } from "@/integrations/supabase/client";
+import { useTaskCRUD } from './useTaskCRUD';
+import { useGroupCRUD } from './useGroupCRUD';
+import { useSupabaseOperations } from './supabase/useSupabaseOperations';
+import { fetchInitialData } from './supabaseOperations';
+import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './mappers';
+import { updateTaskOrder } from './taskManager/taskOperations';
+import { updateGroupOrder } from './taskManager/groupOperations';
 
 export type { Task, Group };
 
@@ -30,35 +31,33 @@ export const useTaskManager = (): TaskManagerOperations & {
   setEditingGroupId: (id: number | null) => void;
   setAddingSubtaskId: (id: number | null) => void;
 } => {
-  const { state, setters } = useTaskStateManager();
+  const { state, actions } = useTaskStateManager();
   const taskEvents = useTaskEvents();
   const { toast } = useToast();
+  const { updateTaskOrderInSupabase, updateGroupOrderInSupabase } = useSupabaseOperations();
 
   const taskCRUD = useTaskCRUD(
     state.tasks,
-    setters.setTasks,
-    setters.setEditingTaskId
+    actions.setTasks,
+    actions.setEditingTaskId
   );
 
   const groupCRUD = useGroupCRUD(
     state.groups,
     state.tasks,
-    setters.setGroups,
-    setters.setTasks,
-    setters.setNewGroup,
-    setters.setIsAddingGroup,
-    setters.setDeleteTarget
+    actions.setGroups,
+    actions.setTasks,
+    actions.setNewGroup,
+    actions.setIsAddingGroup,
+    actions.setDeleteTarget
   );
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
         const { tasks, groups } = await fetchInitialData();
-        const mappedTasks = tasks.map(mapSupabaseTaskToTask);
-        const hierarchicalTasks = buildTaskHierarchy(mappedTasks);
-        console.log('Hierarchical tasks:', hierarchicalTasks);
-        setters.setTasks(hierarchicalTasks);
-        setters.setGroups(groups.map(mapSupabaseGroupToGroup));
+        actions.setTasks(tasks.map(mapSupabaseTaskToTask));
+        actions.setGroups(groups.map(mapSupabaseGroupToGroup));
       } catch (error) {
         console.error('Error loading initial data:', error);
         toast({
@@ -72,18 +71,6 @@ export const useTaskManager = (): TaskManagerOperations & {
     loadInitialData();
   }, []);
 
-  const toggleGroupCollapse = (groupId: number) => {
-    setters.setCollapsedGroups(prev => {
-      const newCollapsed = new Set(prev);
-      if (newCollapsed.has(groupId)) {
-        newCollapsed.delete(groupId);
-      } else {
-        newCollapsed.add(groupId);
-      }
-      return newCollapsed;
-    });
-  };
-
   const confirmDelete = () => {
     if (state.deleteTarget) {
       if (state.deleteTarget.type === "task") {
@@ -92,21 +79,26 @@ export const useTaskManager = (): TaskManagerOperations & {
         groupCRUD.deleteGroup(state.deleteTarget.id);
       }
     }
-    setters.setDeleteTarget(null);
+    actions.setDeleteTarget(null);
   };
 
   const cancelDelete = () => {
-    setters.setDeleteTarget(null);
+    actions.setDeleteTarget(null);
   };
 
   return {
     ...state,
-    ...setters,
+    ...actions,
     ...taskCRUD,
     ...groupCRUD,
-    updateTaskOrder: (tasks: Task[]) => updateTaskOrder(tasks, setters.setTasks),
-    updateGroupOrder: (groups: Group[]) => updateGroupOrder(groups, setters.setGroups),
-    toggleGroupCollapse,
+    updateTaskOrder: async (tasks: Task[]) => {
+      await updateTaskOrderInSupabase(tasks);
+      actions.setTasks(tasks);
+    },
+    updateGroupOrder: async (groups: Group[]) => {
+      await updateGroupOrderInSupabase(groups);
+      actions.setGroups(groups);
+    },
     confirmDelete,
     cancelDelete,
   };
