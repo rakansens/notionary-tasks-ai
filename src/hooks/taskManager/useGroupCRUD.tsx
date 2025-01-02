@@ -1,4 +1,4 @@
-import { Group, Task } from './types';
+import { Group, Task, DeleteTarget } from './types';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { addGroupToSupabase, deleteGroupFromState, cleanupTasksAfterGroupDelete } from './groupOperations';
@@ -6,11 +6,11 @@ import { addGroupToSupabase, deleteGroupFromState, cleanupTasksAfterGroupDelete 
 export const useGroupCRUD = (
   groups: Group[],
   tasks: Task[],
-  setGroups: (groups: Group[]) => void,
-  setTasks: (tasks: Task[]) => void,
+  setGroups: React.Dispatch<React.SetStateAction<Group[]>>,
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
   setNewGroup: (value: string) => void,
   setIsAddingGroup: (value: boolean) => void,
-  setDeleteTarget: (target: { type: string; id: number } | null) => void,
+  setDeleteTarget: React.Dispatch<React.SetStateAction<DeleteTarget | null>>,
 ) => {
   const { toast } = useToast();
 

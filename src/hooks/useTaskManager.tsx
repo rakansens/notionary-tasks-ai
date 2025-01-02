@@ -7,8 +7,9 @@ import { useTaskCRUD } from './taskManager/useTaskCRUD';
 import { useGroupCRUD } from './taskManager/useGroupCRUD';
 import { fetchInitialData } from './taskManager/supabaseOperations';
 import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './taskManager/mappers';
+import { deleteGroupFromState, cleanupTasksAfterGroupDelete, updateGroupOrder, addGroupToSupabase } from './taskManager/groupOperations';
 import { updateTaskOrder } from './taskManager/taskOperations';
-import { updateGroupOrder } from './taskManager/groupOperations';
+import { supabase } from "@/integrations/supabase/client";
 
 export type { Task, Group };
 
@@ -21,7 +22,7 @@ export const useTaskManager = (): TaskManagerOperations & {
   editingTaskId: number | null;
   editingGroupId: number | null;
   addingSubtaskId: number | null;
-  deleteTarget: { type: string; id: number } | null;
+  deleteTarget: { type: "task" | "group"; id: number } | null;
   collapsedGroups: Set<number>;
   setNewTask: (value: string) => void;
   setNewGroup: (value: string) => void;
@@ -81,6 +82,21 @@ export const useTaskManager = (): TaskManagerOperations & {
     });
   };
 
+  const confirmDelete = () => {
+    if (state.deleteTarget) {
+      if (state.deleteTarget.type === "task") {
+        taskCRUD.deleteTask(state.deleteTarget.id);
+      } else {
+        groupCRUD.deleteGroup(state.deleteTarget.id);
+      }
+    }
+    setters.setDeleteTarget(null);
+  };
+
+  const cancelDelete = () => {
+    setters.setDeleteTarget(null);
+  };
+
   return {
     ...state,
     ...setters,
@@ -89,5 +105,7 @@ export const useTaskManager = (): TaskManagerOperations & {
     updateTaskOrder: (tasks: Task[]) => updateTaskOrder(tasks, setters.setTasks),
     updateGroupOrder: (groups: Group[]) => updateGroupOrder(groups, setters.setGroups),
     toggleGroupCollapse,
+    confirmDelete,
+    cancelDelete,
   };
 };

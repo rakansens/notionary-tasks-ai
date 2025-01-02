@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 export const useTaskCRUD = (
   tasks: Task[],
-  setTasks: (tasks: Task[]) => void,
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
   setEditingTaskId: (id: number | null) => void,
 ) => {
   const { toast } = useToast();
@@ -60,7 +60,7 @@ export const useTaskCRUD = (
     }
   };
 
-  const toggleTask = async (id: number, parentId?: number) => {
+  const toggleTask = async (id: number) => {
     try {
       const taskToToggle = tasks.find(t => t.id === id);
       if (!taskToToggle) return;
