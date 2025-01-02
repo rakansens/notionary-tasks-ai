@@ -9,6 +9,7 @@ import { fetchInitialData } from './supabaseOperations';
 import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './mappers';
 import { updateGroupOrder, deleteGroup } from './groupOperations';
 import { updateTaskOrder } from './taskOperations';
+import { supabase } from "@/integrations/supabase/client";
 
 export type { Task, Group };
 
@@ -60,13 +61,11 @@ export const useTaskManager = (): TaskManagerOperations & {
     if (!trimmedTask) return;
 
     try {
-      // 親タスクを取得
       const parentTask = parentId ? state.tasks.find(t => t.id === parentId) : null;
-      console.log('Parent task:', parentTask); // デバッグログ
+      console.log('Parent task:', parentTask);
 
-      // 階層レベルの計算
       const hierarchyLevel = parentTask ? parentTask.hierarchyLevel + 1 : 0;
-      console.log('Calculated hierarchy level:', hierarchyLevel); // デバッグログ
+      console.log('Calculated hierarchy level:', hierarchyLevel);
 
       const newTask = taskOperations.createNewTask(
         trimmedTask,
@@ -76,36 +75,71 @@ export const useTaskManager = (): TaskManagerOperations & {
         hierarchyLevel
       );
 
-      console.log('New task to be saved:', newTask); // デバッグログ
+      console.log('New task to be saved:', newTask);
 
-      const savedTask = await taskOperations.addTaskToSupabase({
-        title: newTask.title,
-        completed: newTask.completed,
-        order: newTask.order,
-        groupId: newTask.groupId,
-        parentId: newTask.parentId,
-        hierarchyLevel: newTask.hierarchyLevel,
-      });
+      // サブタスクの場合は subtasks テーブルに保存
+      if (parentId) {
+        const { data: savedSubtask, error } = await supabase
+          .from('subtasks')
+          .insert({
+            title: newTask.title,
+            completed: newTask.completed,
+            order_position: newTask.order,
+            group_id: newTask.groupId,
+            parent_id: parentId,
+            hierarchy_level: hierarchyLevel,
+            parent_title: parentTask?.title
+          })
+          .select()
+          .single();
 
-      console.log('Saved task:', savedTask); // デバッグログ
+        if (error) throw error;
 
-      const taskWithId: Task = { 
-        ...newTask, 
-        id: savedTask.id,
-        addedAt: new Date(),
-        subtasks: []
-      };
-      
-      const updatedTasks = [...state.tasks, taskWithId];
-      setters.setTasks(updatedTasks);
+        const taskWithId: Task = {
+          ...newTask,
+          id: savedSubtask.id,
+          addedAt: new Date(),
+          subtasks: []
+        };
 
-      const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
+        const updatedTasks = [...state.tasks, taskWithId];
+        setters.setTasks(updatedTasks);
 
-      taskEvents.emitTaskAdded(taskWithId, parentTask || undefined, group);
-      
+        taskEvents.emitTaskAdded(taskWithId, parentTask);
+      } else {
+        // 通常のタスクは tasks テーブルに保存
+        const { data: savedTask, error } = await supabase
+          .from('tasks')
+          .insert({
+            title: newTask.title,
+            completed: newTask.completed,
+            order_position: newTask.order,
+            group_id: newTask.groupId,
+            parent_id: newTask.parentId,
+            hierarchy_level: hierarchyLevel
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        const taskWithId: Task = {
+          ...newTask,
+          id: savedTask.id,
+          addedAt: new Date(),
+          subtasks: []
+        };
+
+        const updatedTasks = [...state.tasks, taskWithId];
+        setters.setTasks(updatedTasks);
+
+        const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
+        taskEvents.emitTaskAdded(taskWithId, parentTask || undefined, group);
+      }
+
       setters.setNewTask("");
       if (groupId) {
-        setters.setEditingTaskId(savedTask.id);
+        setters.setEditingTaskId(null);
       }
     } catch (error) {
       console.error('Error adding task:', error);
@@ -115,6 +149,137 @@ export const useTaskManager = (): TaskManagerOperations & {
         variant: "destructive",
       });
     }
+  };
+
+  const toggleTask = async (id: number, parentId?: number) => {
+    try {
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+
+      const newCompleted = !task.completed;
+
+      // サブタスクの場合は subtasks テーブルを更新
+      if (parentId) {
+        const { error } = await supabase
+          .from('subtasks')
+          .update({ completed: newCompleted })
+          .eq('id', id);
+
+        if (error) throw error;
+      } else {
+        // 通常のタスクは tasks テーブルを更新
+        const { error } = await supabase
+          .from('tasks')
+          .update({ completed: newCompleted })
+          .eq('id', id);
+
+        if (error) throw error;
+      }
+
+      setters.setTasks(prevTasks =>
+        prevTasks.map(t =>
+          t.id === id ? { ...t, completed: newCompleted } : t
+        )
+      );
+    } catch (error) {
+      console.error('Error toggling task:', error);
+      toast({
+        title: "エラー",
+        description: "タスクの状態の更新に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateTaskTitle = async (id: number, title: string, parentId?: number) => {
+    try {
+      // サブタスクの場合は subtasks テーブルを更新
+      if (parentId) {
+        const { error } = await supabase
+          .from('subtasks')
+          .update({ title })
+          .eq('id', id);
+
+        if (error) throw error;
+      } else {
+        // 通常のタスクは tasks テーブルを更新
+        const { error } = await supabase
+          .from('tasks')
+          .update({ title })
+          .eq('id', id);
+
+        if (error) throw error;
+      }
+
+      setters.setTasks(prevTasks =>
+        prevTasks.map(t =>
+          t.id === id ? { ...t, title } : t
+        )
+      );
+    } catch (error) {
+      console.error('Error updating task title:', error);
+      toast({
+        title: "エラー",
+        description: "タスクのタイトル更新に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteTask = async (id: number, parentId?: number) => {
+    try {
+      // サブタスクの場合は subtasks テーブルから削除
+      if (parentId) {
+        const { error } = await supabase
+          .from('subtasks')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+      } else {
+        // 通常のタスクは tasks テーブルから削除
+        const { error } = await supabase
+          .from('tasks')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+      }
+
+      setters.setTasks(prevTasks => prevTasks.filter(t => t.id !== id));
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast({
+        title: "エラー",
+        description: "タスクの削除に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!state.deleteTarget) return;
+
+    try {
+      if (state.deleteTarget.type === 'group') {
+        await deleteGroup(state.deleteTarget.id);
+        setters.setGroups(prevGroups =>
+          prevGroups.filter(g => g.id !== state.deleteTarget?.id)
+        );
+      }
+      setters.setDeleteTarget(null);
+    } catch (error) {
+      console.error('Error confirming deletion:', error);
+      toast({
+        title: "エラー",
+        description: "削除の確認に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const cancelDelete = () => {
+    setters.setDeleteTarget(null);
   };
 
   const toggleGroupCollapse = (groupId: number) => {
@@ -147,6 +312,11 @@ export const useTaskManager = (): TaskManagerOperations & {
     setEditingGroupId: setters.setEditingGroupId,
     setAddingSubtaskId: setters.setAddingSubtaskId,
     addTask,
+    toggleTask,
+    updateTaskTitle,
+    deleteTask,
+    confirmDelete,
+    cancelDelete,
     toggleGroupCollapse,
     deleteGroup: (id: number) => {
       try {
