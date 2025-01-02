@@ -73,10 +73,10 @@ export const useTaskManager = (): TaskManagerOperations & {
       const savedTask = await taskOperations.addTaskToSupabase({
         title: newTask.title,
         completed: newTask.completed,
-        order: newTask.order,
-        groupId: newTask.groupId,
-        parentId: newTask.parentId,
-        hierarchyLevel: newTask.hierarchyLevel,
+        order_position: newTask.order,
+        group_id: newTask.groupId,
+        parent_id: newTask.parentId,
+        hierarchy_level: newTask.hierarchyLevel,
       });
 
       const taskWithId: Task = { ...newTask, id: savedTask.id };
@@ -85,7 +85,7 @@ export const useTaskManager = (): TaskManagerOperations & {
 
       const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
 
-      taskEvents.emitTaskAdded(taskWithId, parentTask || undefined, group);
+      taskEvents.emitTaskAdded(taskWithId.id, parentTask?.id || undefined, group?.id);
       
       setters.setNewTask("");
       if (groupId) {

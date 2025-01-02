@@ -1,5 +1,6 @@
-import { Tables } from "@/integrations/supabase/types";
-import { Task, Group } from "./types";
+import { Database } from "@/integrations/supabase/types";
+
+type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
 
 export const mapSupabaseTaskToTask = (task: Tables<"tasks">): Task => ({
   id: task.id,
