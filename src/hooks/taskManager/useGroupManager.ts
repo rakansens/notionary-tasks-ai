@@ -14,8 +14,13 @@ export const useGroupManager = (
   const { toast } = useToast();
 
   const addGroup = async () => {
+    // 先にトリム処理をして変数に格納
     const trimmedGroupName = newGroup.trim();
+    console.log('Adding new group with name:', trimmedGroupName);
+
+    // 空文字チェックを最初に行う
     if (!trimmedGroupName) {
+      console.log('Group name is empty after trim');
       toast({
         title: "エラー",
         description: "グループ名を入力してください",
@@ -25,7 +30,7 @@ export const useGroupManager = (
     }
 
     try {
-      console.log('Adding new group:', trimmedGroupName);
+      console.log('Creating new group with name:', trimmedGroupName);
       
       const newGroupData: Omit<Group, "id"> = {
         name: trimmedGroupName,
