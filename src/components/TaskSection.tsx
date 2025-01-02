@@ -1,7 +1,6 @@
-import { useTaskManager, Task } from "@/hooks/useTaskManager";
-import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import { useTaskManager, Task, Group } from "@/hooks/useTaskManager";
+import { useDragAndDrop } from "@/hooks/dragAndDrop/useDragAndDrop";
 import { TaskContainer } from "./task/TaskContainer";
-import { useEffect } from "react";
 
 export const TaskSection = () => {
   const {
@@ -35,22 +34,7 @@ export const TaskSection = () => {
     toggleGroupCollapse,
   } = useTaskManager();
 
-  useEffect(() => {
-    const handleAddGroup = (event: CustomEvent) => {
-      const { name } = event.detail;
-      addGroup(name);
-    };
-
-    window.addEventListener('addGroup', handleAddGroup as EventListener);
-
-    return () => {
-      window.removeEventListener('addGroup', handleAddGroup as EventListener);
-    };
-  }, [addGroup]);
-
   const handleReorderSubtasks = (startIndex: number, endIndex: number, parentId: number) => {
-    console.log(`Reordering subtasks for parentId: ${parentId}, from ${startIndex} to ${endIndex}`);
-    
     const findTaskHierarchy = (tasks: Task[], targetId: number): Task[] => {
       const hierarchy: Task[] = [];
       
@@ -107,7 +91,6 @@ export const TaskSection = () => {
     };
 
     const updatedTasks = updateTasksRecursively(tasks, taskHierarchy, 0, reorderedSubtasks);
-    console.log('Updated tasks:', updatedTasks);
     updateTaskOrder(updatedTasks);
   };
 
@@ -116,7 +99,20 @@ export const TaskSection = () => {
     handleDragStart,
     handleDragEnd,
     handleDragCancel,
-  } = useDragAndDrop(tasks, groups, updateTaskOrder, updateGroupOrder);
+  } = useDragAndDrop(
+    [...tasks, ...groups],
+    (items) => {
+      const updatedTasks = items.filter((item): item is Task => 'title' in item);
+      const updatedGroups = items.filter((item): item is Group => !('title' in item));
+      
+      if (updatedTasks.length > 0) {
+        updateTaskOrder(updatedTasks);
+      }
+      if (updatedGroups.length > 0) {
+        updateGroupOrder(updatedGroups);
+      }
+    }
+  );
 
   return (
     <TaskContainer

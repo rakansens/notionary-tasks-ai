@@ -1,7 +1,8 @@
-import { DndContext, closestCenter, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Task } from "@/hooks/useTaskManager";
+import { useDragAndDrop } from "@/hooks/dragAndDrop/useDragAndDrop";
 
 interface SubtaskDndContextProps {
   children: React.ReactNode;
@@ -31,23 +32,27 @@ export const SubtaskDndContext = ({
   
   const sensors = useSensors(mouseSensor, touchSensor);
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = subtasks.findIndex(task => task.id.toString() === active.id);
-    const newIndex = subtasks.findIndex(task => task.id.toString() === over.id);
-
-    if (oldIndex !== -1 && newIndex !== -1 && onReorderSubtasks) {
-      onReorderSubtasks(oldIndex, newIndex, parentTask.id);
+  const { handleDragStart, handleDragEnd, handleDragCancel } = useDragAndDrop(
+    subtasks,
+    (updatedItems) => {
+      const oldIndex = subtasks.findIndex(task => task.id === updatedItems[0].id);
+      const newIndex = updatedItems[0].order;
+      if (oldIndex !== -1 && onReorderSubtasks) {
+        onReorderSubtasks(oldIndex, newIndex, parentTask.id);
+      }
+    },
+    {
+      parentId: parentTask.id,
     }
-  };
+  );
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
       modifiers={[restrictToVerticalAxis]}
     >
       <SortableContext
