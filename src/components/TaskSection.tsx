@@ -38,8 +38,7 @@ export const TaskSection = () => {
   useEffect(() => {
     const handleAddGroup = (event: CustomEvent) => {
       const { name } = event.detail;
-      setNewGroup(name);
-      addGroup();
+      addGroup(name);
     };
 
     window.addEventListener('addGroup', handleAddGroup as EventListener);
@@ -47,7 +46,7 @@ export const TaskSection = () => {
     return () => {
       window.removeEventListener('addGroup', handleAddGroup as EventListener);
     };
-  }, [addGroup, setNewGroup]);
+  }, [addGroup]);
 
   const handleReorderSubtasks = (startIndex: number, endIndex: number, parentId: number) => {
     console.log(`Reordering subtasks for parentId: ${parentId}, from ${startIndex} to ${endIndex}`);
