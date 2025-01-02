@@ -22,6 +22,7 @@ export const updateGroupOrder = async (groups: Group[], setGroups: (groups: Grou
       .upsert(
         updatedGroups.map(group => ({
           id: group.id,
+          name: group.name,
           order_position: group.order,
         }))
       );
