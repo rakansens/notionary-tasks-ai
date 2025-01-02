@@ -15,7 +15,8 @@ export const useTaskCrud = (
   const { toast } = useToast();
 
   const addTask = async (groupId?: number, parentId?: number, title?: string) => {
-    const trimmedTask = title?.trim();
+    const taskTitle = title || "";
+    const trimmedTask = taskTitle.trim();
     if (!trimmedTask) return;
 
     try {
@@ -35,7 +36,12 @@ export const useTaskCrud = (
         hierarchyLevel: newTask.hierarchyLevel,
       });
 
-      const taskWithId: Task = { ...newTask, id: savedTask.id };
+      const taskWithId: Task = { 
+        ...newTask, 
+        id: savedTask.id,
+        groupId: groupId // 明示的にグループIDを設定
+      };
+      
       setTasks(prevTasks => [...prevTasks, taskWithId]);
 
       const parentTask = parentId ? taskOperations.findTaskById(tasks, parentId) : undefined;
