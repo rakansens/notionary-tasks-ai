@@ -14,17 +14,18 @@ export const useTaskState = () => {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
 
   const structureTasks = (flatTasks: Task[]): Task[] => {
-    const taskMap = new Map<number, Task>();
+    const deepCloneTask = (task: Task): Task => ({
+      ...task,
+      subtasks: task.subtasks?.map(subtask => deepCloneTask(subtask)) || [],
+    });
     
-    // まず、すべてのタスクを複製してマップに追加
+    const taskMap = new Map<number, Task>();
     flatTasks.forEach(task => {
-      taskMap.set(task.id, {
-        ...task,
-        subtasks: [],
-      });
+      if (!taskMap.has(task.id)) {
+        taskMap.set(task.id, deepCloneTask(task));
+      }
     });
 
-    // 親子関係を構築
     flatTasks.forEach(task => {
       if (task.parentId) {
         const parentTask = taskMap.get(task.parentId);
@@ -34,18 +35,30 @@ export const useTaskState = () => {
           if (!parentTask.subtasks) {
             parentTask.subtasks = [];
           }
-          parentTask.subtasks.push(currentTask);
+
+          const existingIndex = parentTask.subtasks.findIndex(st => st.id === task.id);
+          if (existingIndex === -1) {
+            parentTask.subtasks.push(deepCloneTask(currentTask));
+          } else {
+            const existingSubtasks = parentTask.subtasks[existingIndex].subtasks || [];
+            parentTask.subtasks[existingIndex] = {
+              ...deepCloneTask(currentTask),
+              subtasks: existingSubtasks,
+            };
+          }
+          
           parentTask.subtasks.sort((a, b) => (a.order || 0) - (b.order || 0));
         }
       }
     });
 
-    // ルートタスクのみを返す
-    return flatTasks
+    const rootTasks = flatTasks
       .filter(task => !task.parentId)
       .map(task => taskMap.get(task.id))
       .filter((task): task is Task => task !== undefined)
       .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    return rootTasks;
   };
 
   const setStructuredTasks = (tasksOrUpdater: Task[] | ((prev: Task[]) => Task[])) => {

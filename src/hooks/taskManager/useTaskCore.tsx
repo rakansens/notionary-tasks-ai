@@ -1,12 +1,12 @@
 import { Task, Group } from "./types";
 import { useTaskEvents } from "./useTaskEvents";
 import { useTaskOperations } from "./useTaskOperations";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 export const useTaskCore = (
   tasks: Task[],
   groups: Group[],
-  setTasks: (tasks: Task[] | ((prev: Task[]) => Task[])) => void,
+  setTasks: (tasks: Task[]) => void,
   setDeleteTarget: (target: { type: string; id: number } | null) => void
 ) => {
   const taskEvents = useTaskEvents();
@@ -18,13 +18,11 @@ export const useTaskCore = (
     if (!trimmedTask) return;
 
     try {
-      const parentTask = parentId ? taskOperations.findTaskById(tasks, parentId) : null;
       const newTask = taskOperations.createNewTask(
         trimmedTask,
         groupId,
         parentId,
-        tasks.length,
-        parentTask
+        tasks.length
       );
 
       const savedTask = await taskOperations.addTaskToSupabase({
@@ -36,18 +34,14 @@ export const useTaskCore = (
         hierarchyLevel: newTask.hierarchyLevel,
       });
 
-      const taskWithId: Task = { 
-        ...newTask, 
-        id: savedTask.id,
-        addedAt: new Date(),
-        subtasks: []
-      };
+      const taskWithId: Task = { ...newTask, id: savedTask.id };
+      const updatedTasks = [...tasks, taskWithId];
+      setTasks(updatedTasks);
 
-      setTasks(prevTasks => [...prevTasks, taskWithId]);
-
+      const parentTask = parentId ? taskOperations.findTaskById(updatedTasks, parentId) : undefined;
       const group = groupId ? groups.find(g => g.id === groupId) : undefined;
 
-      taskEvents.emitTaskAdded(taskWithId, parentTask || undefined, group);
+      taskEvents.emitTaskAdded(taskWithId, parentTask, group);
     } catch (error) {
       console.error('Error adding task:', error);
       toast({
@@ -91,7 +85,7 @@ export const useTaskCore = (
     try {
       await taskOperations.updateTaskTitleInSupabase(id, title);
       
-      setTasks(prevTasks => 
+      setTasks(prevTasks =>
         prevTasks.map(task =>
           task.id === id ? { ...task, title } : task
         )
