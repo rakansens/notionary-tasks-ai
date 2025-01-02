@@ -67,33 +67,49 @@ export const updateGroupName = async (id: number, name: string): Promise<void> =
 // グループの削除（関連するタスクも削除）
 export const deleteGroup = async (id: number): Promise<void> => {
   try {
-    // 1. グループ内のすべてのタスクのIDを取得
-    const { data: allTasks, error: fetchError } = await supabase
+    // 1. グループ内の親タスクを取得
+    const { data: parentTasks, error: parentError } = await supabase
       .from('tasks')
-      .select('id, parent_id')
-      .or(`group_id.eq.${id},parent_id.in.(select id from tasks where group_id=${id})`);
+      .select('id')
+      .eq('group_id', id);
 
-    if (fetchError) throw fetchError;
-    if (!allTasks) return;
+    if (parentError) throw parentError;
 
-    // 2. すべてのタスクを一括で削除
-    if (allTasks.length > 0) {
-      const taskIds = allTasks.map(task => task.id);
-      const { error: tasksError } = await supabase
+    // 2. 親タスクのIDを取得
+    const parentIds = parentTasks ? parentTasks.map(task => task.id) : [];
+
+    // 3. サブタスクを取得（親タスクのIDがある場合のみ）
+    let childTaskIds: number[] = [];
+    if (parentIds.length > 0) {
+      const { data: childTasks, error: childError } = await supabase
         .from('tasks')
-        .delete()
-        .in('id', taskIds);
+        .select('id')
+        .in('parent_id', parentIds);
 
-      if (tasksError) throw tasksError;
+      if (childError) throw childError;
+      childTaskIds = childTasks ? childTasks.map(task => task.id) : [];
     }
 
-    // 3. グループを削除
-    const { error: groupError } = await supabase
+    // 4. すべてのタスクIDを結合
+    const allTaskIds = [...parentIds, ...childTaskIds];
+
+    // 5. タスクを削除（存在する場合のみ）
+    if (allTaskIds.length > 0) {
+      const { error: deleteTasksError } = await supabase
+        .from('tasks')
+        .delete()
+        .in('id', allTaskIds);
+
+      if (deleteTasksError) throw deleteTasksError;
+    }
+
+    // 6. グループを削除
+    const { error: deleteGroupError } = await supabase
       .from('groups')
       .delete()
       .eq('id', id);
 
-    if (groupError) throw groupError;
+    if (deleteGroupError) throw deleteGroupError;
   } catch (error) {
     console.error('Error deleting group:', error);
     throw error;
