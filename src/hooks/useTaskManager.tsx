@@ -41,8 +41,8 @@ export const useTaskManager = (): TaskManagerOperations & {
       try {
         const { tasks, groups } = await fetchInitialData();
         console.log('Loaded tasks with hierarchy:', tasks);
-        setters.setTasks(tasks);
-        setters.setGroups(groups);
+        setters.setTasks(tasks.map(mapSupabaseTaskToTask));
+        setters.setGroups(groups.map(mapSupabaseGroupToGroup));
       } catch (error) {
         console.error('Error loading initial data:', error);
         toast({
