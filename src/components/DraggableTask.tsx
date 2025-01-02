@@ -83,7 +83,7 @@ export const DraggableTask = ({
         addTask={addTask}
         dragHandleProps={{ ...attributes, ...listeners }}
       />
-      {task.subtasks && task.subtasks.length > 0 && (
+      {Array.isArray(task.subtasks) && task.subtasks.length > 0 && (
         <SubtaskList
           parentTask={task}
           subtasks={task.subtasks}
