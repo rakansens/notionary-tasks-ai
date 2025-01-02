@@ -95,10 +95,11 @@ export const useTaskManager = (): TaskManagerOperations & {
         const { data: savedSubtask, error } = await supabase
           .from('subtasks')
           .insert(subtaskData)
-          .select()
-          .single();
+          .select('*')
+          .maybeSingle();
 
         if (error) throw error;
+        if (!savedSubtask) throw new Error('Failed to save subtask');
 
         const taskWithId: Task = {
           ...newTask,
@@ -109,7 +110,6 @@ export const useTaskManager = (): TaskManagerOperations & {
 
         const updatedTasks = [...state.tasks, taskWithId];
         setters.setTasks(updatedTasks);
-
         taskEvents.emitTaskAdded(taskWithId);
       } else {
         const taskData: TaskInsertData = {
@@ -126,10 +126,11 @@ export const useTaskManager = (): TaskManagerOperations & {
         const { data: savedTask, error } = await supabase
           .from('tasks')
           .insert(taskData)
-          .select()
-          .single();
+          .select('*')
+          .maybeSingle();
 
         if (error) throw error;
+        if (!savedTask) throw new Error('Failed to save task');
 
         const taskWithId: Task = {
           ...newTask,
@@ -140,7 +141,6 @@ export const useTaskManager = (): TaskManagerOperations & {
 
         const updatedTasks = [...state.tasks, taskWithId];
         setters.setTasks(updatedTasks);
-
         taskEvents.emitTaskAdded(taskWithId);
       }
 
@@ -168,15 +168,19 @@ export const useTaskManager = (): TaskManagerOperations & {
       if (parentId) {
         const { error } = await supabase
           .from('subtasks')
-          .update({ completed: newCompleted } as { completed: boolean })
-          .eq('id', id);
+          .update({ completed: newCompleted })
+          .eq('id', id)
+          .select()
+          .maybeSingle();
 
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('tasks')
           .update({ completed: newCompleted })
-          .eq('id', id);
+          .eq('id', id)
+          .select()
+          .maybeSingle();
 
         if (error) throw error;
       }
@@ -201,15 +205,19 @@ export const useTaskManager = (): TaskManagerOperations & {
       if (parentId) {
         const { error } = await supabase
           .from('subtasks')
-          .update({ title } as { title: string })
-          .eq('id', id);
+          .update({ title })
+          .eq('id', id)
+          .select()
+          .maybeSingle();
 
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('tasks')
           .update({ title })
-          .eq('id', id);
+          .eq('id', id)
+          .select()
+          .maybeSingle();
 
         if (error) throw error;
       }
