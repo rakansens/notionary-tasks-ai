@@ -1,97 +1,96 @@
 import { Task } from './types';
+import { supabase } from "@/integrations/supabase/client";
 
+// シンプルな順序更新関数
 export const updateTaskOrder = async (tasks: Task[], setTasks: (tasks: Task[]) => void): Promise<void> => {
   try {
-    const updatedTasks = tasks.map((task, index) => ({
-      ...task,
-      order: index,
-    }));
-    setTasks(updatedTasks);
+    // 1. まずローカルの状態を更新
+    setTasks(tasks);
+
+    // 2. 各タスクの順序を更新
+    const promises = tasks.map(task => 
+      supabase
+        .from('tasks')
+        .update({
+          order_position: task.order,
+          group_id: task.groupId
+        })
+        .eq('id', task.id)
+    );
+
+    // 3. 一括で更新を実行
+    await Promise.all(promises);
+
   } catch (error) {
     console.error('Error updating task order:', error);
+    // エラー時は元の状態を再取得
+    await reloadTasks(setTasks);
   }
 };
 
-export const findTaskById = (tasks: Task[], id: number): Task | undefined => {
-  for (const task of tasks) {
-    if (task.id === id) return task;
-    if (task.subtasks) {
-      const found = findTaskById(task.subtasks, id);
-      if (found) return found;
+// データの再取得用関数
+const reloadTasks = async (setTasks: (tasks: Task[]) => void): Promise<void> => {
+  try {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .order('order_position');
+
+    if (error) throw error;
+
+    if (data) {
+      const tasks = data.map(mapDatabaseTaskToTask);
+      setTasks(tasks);
     }
+  } catch (error) {
+    console.error('Error reloading tasks:', error);
   }
-  return undefined;
 };
 
+// データベースのタスクを内部のタスク型に変換
+const mapDatabaseTaskToTask = (dbTask: any): Task => ({
+  id: dbTask.id,
+  title: dbTask.title,
+  completed: dbTask.completed,
+  order: dbTask.order_position,
+  groupId: dbTask.group_id,
+  parentId: dbTask.parent_id,
+  hierarchyLevel: dbTask.hierarchy_level,
+  addedAt: dbTask.created_at ? new Date(dbTask.created_at) : new Date(),
+});
+
+// タスクの検索
+export const findTaskById = (tasks: Task[], id: number): Task | undefined => {
+  return tasks.find(task => task.id === id);
+};
+
+// 新しいタスクの作成
 export const createNewTask = (
   title: string,
   groupId?: number,
   parentId?: number,
   order?: number
-): Task => {
-  const hierarchyLevel = parentId ? 1 : 0; // 親タスクがある場合は階層レベル1、ない場合は0
-  
-  return {
-    id: Date.now(),
-    title,
-    completed: false,
-    order: order || 0,
-    groupId,
-    parentId,
-    hierarchyLevel,
-    addedAt: new Date(),
-  };
-};
+): Omit<Task, "id"> => ({
+  title,
+  completed: false,
+  order: order || 0,
+  groupId,
+  parentId,
+  hierarchyLevel: parentId ? 1 : 0,
+  addedAt: new Date(),
+});
 
-export const updateTaskTitle = (
-  tasks: Task[],
-  id: number,
-  title: string,
-  parentId?: number
-): Task[] => {
-  const updateTaskTitleRecursive = (tasks: Task[]): Task[] => {
-    return tasks.map(task => {
-      if (task.id === id) {
-        return { ...task, title };
-      }
-      if (task.subtasks) {
-        return {
-          ...task,
-          subtasks: updateTaskTitleRecursive(task.subtasks),
-        };
-      }
-      return task;
-    });
-  };
+// タスクの削除
+export const deleteTask = async (id: number): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', id);
 
-  return updateTaskTitleRecursive(tasks);
-};
-
-export const deleteTask = (
-  tasks: Task[],
-  id: number,
-  parentId?: number
-): Task[] => {
-  const deleteTaskRecursive = (tasks: Task[]): Task[] => {
-    if (parentId) {
-      return tasks.map(task => {
-        if (task.id === parentId) {
-          return {
-            ...task,
-            subtasks: task.subtasks?.filter(subtask => subtask.id !== id) || [],
-          };
-        }
-        if (task.subtasks) {
-          return {
-            ...task,
-            subtasks: deleteTaskRecursive(task.subtasks),
-          };
-        }
-        return task;
-      });
-    }
-    return tasks.filter(task => task.id !== id);
-  };
-
-  return deleteTaskRecursive(tasks);
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    throw error;
+  }
 };

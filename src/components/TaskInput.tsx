@@ -2,7 +2,7 @@ import { Plus, FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface TaskInputProps {
@@ -42,11 +42,22 @@ export const TaskInput = ({
       onSubmit();
     }
 
-    // 入力値をクリア
-    onChange('');
-    setHasUserInput(false);
-    setIsGroupMode(false);
+    // 入力値のクリアは成功時のみ行う（useTaskManagerからの通知を受けて行う）
   };
+
+  // 成功時のクリア処理を追加
+  useEffect(() => {
+    const handleGroupAdded = () => {
+      onChange('');
+      setHasUserInput(false);
+      setIsGroupMode(false);
+    };
+
+    window.addEventListener('groupAdded', handleGroupAdded);
+    return () => {
+      window.removeEventListener('groupAdded', handleGroupAdded);
+    };
+  }, [onChange]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
