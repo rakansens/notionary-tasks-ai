@@ -9,11 +9,19 @@ export const useGroupOperations = () => {
     try {
       const { data, error } = await supabase
         .from('groups')
-        .insert([group])
+        .insert([{
+          name: group.name,
+          order_position: group.order
+        }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding group:', error);
+        throw error;
+      }
+
+      console.log('Group added successfully:', data);
       return data;
     } catch (error) {
       console.error('Error adding group:', error);

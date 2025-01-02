@@ -155,21 +155,36 @@ export const useTaskManager = (): TaskManagerOperations & {
     if (!state.newGroup.trim()) return;
 
     try {
+      console.log('Adding new group:', state.newGroup);
+      
       const newGroup: Omit<Group, "id"> = {
         name: state.newGroup,
         order: state.groups.length,
       };
 
       const savedGroup = await groupOperations.addGroupToSupabase(newGroup);
+      console.log('Group saved to Supabase:', savedGroup);
       
-      const group = { ...newGroup, id: savedGroup.id };
-      setters.setGroups(prevGroups => [...prevGroups, group]);
-      taskEvents.emitGroupAdded(group);
-      
-      setters.setNewGroup("");
-      setters.setIsAddingGroup(false);
+      if (savedGroup) {
+        const group = { ...newGroup, id: savedGroup.id };
+        setters.setGroups(prevGroups => [...prevGroups, group]);
+        taskEvents.emitGroupAdded(group);
+        
+        toast({
+          title: "成功",
+          description: "グループを追加しました",
+        });
+        
+        setters.setNewGroup("");
+        setters.setIsAddingGroup(false);
+      }
     } catch (error) {
       console.error('Error adding group:', error);
+      toast({
+        title: "エラー",
+        description: "グループの追加に失敗しました",
+        variant: "destructive",
+      });
     }
   };
 
