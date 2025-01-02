@@ -1,7 +1,9 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Task, Group } from "@/hooks/taskManager/types";
+import { DraggableTask } from "../DraggableTask";
 import { GroupList } from "../GroupList";
+import { Task, Group } from "@/hooks/taskManager/types";
 import {
+  DragOverlay,
   DndContext,
   KeyboardSensor,
   PointerSensor,
@@ -10,11 +12,13 @@ import {
   closestCenter,
 } from "@dnd-kit/core";
 import {
+  SortableContext,
   sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { TaskList } from "./TaskList";
-import { TaskDragOverlay } from "./TaskDragOverlay";
+import { TaskItem } from "../TaskItem";
+import { Folder } from "lucide-react";
 
 interface TaskMainContentProps {
   tasks: Task[];
@@ -76,6 +80,10 @@ export const TaskMainContent = ({
     })
   );
 
+  const nonGroupTasks = tasks
+    .filter(task => !task.groupId && !task.parentId)
+    .sort((a, b) => a.order - b.order);
+
   return (
     <ScrollArea className="flex-1">
       <div className="p-4 space-y-1">
@@ -110,36 +118,66 @@ export const TaskMainContent = ({
             toggleGroupCollapse={toggleGroupCollapse}
           />
 
-          <TaskList
-            tasks={tasks}
-            editingTaskId={editingTaskId}
-            addingSubtaskId={addingSubtaskId}
-            setEditingTaskId={setEditingTaskId}
-            setAddingSubtaskId={setAddingSubtaskId}
-            toggleTask={toggleTask}
-            updateTaskTitle={updateTaskTitle}
-            deleteTask={deleteTask}
-            newTask={newTask}
-            setNewTask={setNewTask}
-            addTask={addTask}
-            onReorderSubtasks={handleReorderSubtasks}
-          />
+          <SortableContext
+            items={nonGroupTasks.map(task => task.id.toString())}
+            strategy={verticalListSortingStrategy}
+          >
+            {nonGroupTasks.map(task => (
+              <DraggableTask
+                key={task.id}
+                task={task}
+                editingTaskId={editingTaskId}
+                addingSubtaskId={addingSubtaskId}
+                setEditingTaskId={setEditingTaskId}
+                setAddingSubtaskId={setAddingSubtaskId}
+                toggleTask={toggleTask}
+                updateTaskTitle={updateTaskTitle}
+                deleteTask={deleteTask}
+                newTask={newTask}
+                setNewTask={setNewTask}
+                addTask={addTask}
+                onReorderSubtasks={handleReorderSubtasks}
+              />
+            ))}
+          </SortableContext>
           
-          <TaskDragOverlay
-            dragAndDropState={dragAndDropState}
-            tasks={tasks}
-            groups={groups}
-            editingTaskId={editingTaskId}
-            addingSubtaskId={addingSubtaskId}
-            setEditingTaskId={setEditingTaskId}
-            setAddingSubtaskId={setAddingSubtaskId}
-            toggleTask={toggleTask}
-            updateTaskTitle={updateTaskTitle}
-            deleteTask={deleteTask}
-            newTask={newTask}
-            setNewTask={setNewTask}
-            addTask={addTask}
-          />
+          <DragOverlay dropAnimation={{
+            duration: 150,
+            easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+          }}>
+            {dragAndDropState.activeId ? (
+              dragAndDropState.activeId.startsWith('group-') ? (
+                <div className="shadow-lg rounded-md bg-gray-50 p-4">
+                  {(() => {
+                    const groupId = Number(dragAndDropState.activeId.replace('group-', ''));
+                    const group = groups.find(g => g.id === groupId);
+                    return group ? (
+                      <div className="flex items-center gap-2">
+                        <Folder className="h-5 w-5 text-gray-500" />
+                        <h3 className="font-medium text-gray-900">{group.name}</h3>
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
+              ) : (
+                <div className="shadow-lg rounded-md bg-white">
+                  <TaskItem
+                    task={tasks.find(t => t.id.toString() === dragAndDropState.activeId) || tasks[0]}
+                    editingTaskId={editingTaskId}
+                    addingSubtaskId={addingSubtaskId}
+                    setEditingTaskId={setEditingTaskId}
+                    setAddingSubtaskId={setAddingSubtaskId}
+                    toggleTask={toggleTask}
+                    updateTaskTitle={updateTaskTitle}
+                    deleteTask={deleteTask}
+                    newTask={newTask}
+                    setNewTask={setNewTask}
+                    addTask={addTask}
+                  />
+                </div>
+              )
+            ) : null}
+          </DragOverlay>
         </DndContext>
       </div>
     </ScrollArea>
