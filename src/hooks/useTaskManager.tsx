@@ -60,11 +60,14 @@ export const useTaskManager = (): TaskManagerOperations & {
     if (!trimmedTask) return;
 
     try {
+      const parentTask = parentId ? taskOperations.findTaskById(state.tasks, parentId) : null;
+      
       const newTask = taskOperations.createNewTask(
         trimmedTask,
         groupId,
         parentId,
-        state.tasks.length
+        state.tasks.length,
+        parentTask
       );
 
       const savedTask = await taskOperations.addTaskToSupabase({
@@ -80,10 +83,9 @@ export const useTaskManager = (): TaskManagerOperations & {
       const updatedTasks = [...state.tasks, taskWithId];
       setters.setTasks(updatedTasks);
 
-      const parentTask = parentId ? taskOperations.findTaskById(updatedTasks, parentId) : undefined;
       const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
 
-      taskEvents.emitTaskAdded(taskWithId, parentTask, group);
+      taskEvents.emitTaskAdded(taskWithId, parentTask || undefined, group);
       
       setters.setNewTask("");
       if (groupId) {

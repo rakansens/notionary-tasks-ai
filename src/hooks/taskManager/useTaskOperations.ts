@@ -21,18 +21,23 @@ export const useTaskOperations = () => {
     groupId?: number,
     parentId?: number,
     order?: number,
-    hierarchyLevel: number = 0
-  ): Task => ({
-    id: Date.now(),
-    title,
-    completed: false,
-    groupId,
-    parentId,
-    order: order || 0,
-    hierarchyLevel,
-    addedAt: new Date(),
-    subtasks: [],
-  });
+    parentTask?: Task | null
+  ): Task => {
+    // 親タスクが存在する場合、その階層レベル+1を設定
+    const hierarchyLevel = parentTask ? parentTask.hierarchyLevel + 1 : 0;
+
+    return {
+      id: Date.now(),
+      title,
+      completed: false,
+      groupId: groupId || null,
+      parentId: parentId || null,
+      order: order || 0,
+      hierarchyLevel,
+      addedAt: new Date(),
+      subtasks: [],
+    };
+  };
 
   const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt" | "subtasks">) => {
     try {
