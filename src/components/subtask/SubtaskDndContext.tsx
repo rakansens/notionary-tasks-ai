@@ -1,7 +1,7 @@
 import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { Task } from "@/hooks/useTaskManager";
+import { Task } from "@/hooks/taskManager/types";
 import { useDragAndDrop } from "@/hooks/dragAndDrop/useDragAndDrop";
 
 interface SubtaskDndContextProps {

@@ -1,4 +1,4 @@
-import { Task } from "@/hooks/useTaskManager";
+import { Task } from "@/hooks/taskManager/types";
 import { DraggableTask } from "../DraggableTask";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { TaskInput } from "../TaskInput";

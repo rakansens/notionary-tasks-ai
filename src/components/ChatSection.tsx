@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useTaskManager } from "@/hooks/useTaskManager";
+import { useTaskManager } from "@/hooks/taskManager/useTaskManager";
 import { TaskSuggestion } from "./TaskSuggestion";
 
 interface Message {
