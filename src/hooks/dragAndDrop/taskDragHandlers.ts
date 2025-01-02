@@ -8,18 +8,20 @@ export const handleTaskDragEnd = (
   updateTaskOrder: UpdateTaskOrderFn
 ) => {
   const activeTaskId = Number(activeId);
-  const overTaskId = Number(overId);
+  const overTaskId = overId.startsWith('group-') ? undefined : Number(overId);
+  const overGroupId = overId.startsWith('group-') ? Number(overId.replace('group-', '')) : undefined;
 
   const activeTask = tasks.find(task => task.id === activeTaskId);
-  const overTask = tasks.find(task => task.id === overTaskId);
+  const overTask = overTaskId ? tasks.find(task => task.id === overTaskId) : undefined;
   
   if (!activeTask) return;
 
   // グループ外への移動かどうかを判定
-  const isMovingOutOfGroup = activeTask.groupId && (!overTask || !overTask.groupId);
+  const isMovingOutOfGroup = activeTask.groupId && (!overTask?.groupId && !overGroupId);
+  const isMovingToGroup = overGroupId !== undefined;
 
   // Calculate new index and group
-  const newGroupId = isMovingOutOfGroup ? undefined : (overTask?.groupId || undefined);
+  const newGroupId = isMovingToGroup ? overGroupId : (overTask?.groupId || undefined);
   const tasksInTargetArea = tasks.filter(task => {
     if (newGroupId) {
       // グループ内のタスクの場合
@@ -45,6 +47,13 @@ export const handleTaskDragEnd = (
     const nonGroupTasks = filteredTasks.filter(t => !t.groupId && !t.parentId);
     const maxOrder = nonGroupTasks.length > 0
       ? Math.max(...nonGroupTasks.map(t => t.order))
+      : -1;
+    taskToMove.order = maxOrder + 1;
+  } else if (isMovingToGroup) {
+    // グループに直接移動する場合
+    const groupTasks = filteredTasks.filter(t => t.groupId === newGroupId && !t.parentId);
+    const maxOrder = groupTasks.length > 0
+      ? Math.max(...groupTasks.map(t => t.order))
       : -1;
     taskToMove.order = maxOrder + 1;
   } else {
@@ -101,13 +110,6 @@ export const handleTaskDragEnd = (
   // 更新されたタスクを配列に追加
   filteredTasks.push(taskToMove);
 
-  // タスクを順序でソート
-  const sortedTasks = filteredTasks.sort((a, b) => {
-    if (a.groupId === b.groupId) {
-      return a.order - b.order;
-    }
-    return 0;
-  });
-
-  updateTaskOrder(sortedTasks);
+  // タスクの順序を更新
+  updateTaskOrder(filteredTasks);
 };
