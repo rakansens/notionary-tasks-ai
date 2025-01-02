@@ -19,7 +19,7 @@ export const handleTaskDragEnd = (
   const isMovingOutOfGroup = activeTask.groupId && (!overTask || !overTask.groupId);
 
   // Calculate new index and group
-  const newGroupId = isMovingOutOfGroup ? undefined : (overTask?.groupId || Number(overId.replace('group-', '')));
+  const newGroupId = isMovingOutOfGroup ? undefined : (overTask?.groupId || undefined);
   const tasksInTargetArea = tasks.filter(task => {
     if (newGroupId) {
       // グループ内のタスクの場合
@@ -30,85 +30,78 @@ export const handleTaskDragEnd = (
     }
   }).sort((a, b) => a.order - b.order);
 
-  // Update task order
+  // タスクの順序を更新
   const updatedTasks = [...tasks];
-  const taskToMove = updatedTasks.find(t => t.id === activeTaskId);
-  if (!taskToMove) return;
+  const taskToMove = { ...activeTask }; // タスクのコピーを作成
 
-  // Remove task from current position
+  // 現在の位置からタスクを削除
   const filteredTasks = updatedTasks.filter(t => t.id !== activeTaskId);
 
-  // Update task's group
+  // タスクのグループを更新
   taskToMove.groupId = newGroupId;
 
   if (isMovingOutOfGroup) {
     // グループ外に移動する場合
     const nonGroupTasks = filteredTasks.filter(t => !t.groupId && !t.parentId);
     const maxOrder = nonGroupTasks.length > 0
-      ? Math.max(...nonGroupTasks.map(t => t.order), -1)
+      ? Math.max(...nonGroupTasks.map(t => t.order))
       : -1;
     taskToMove.order = maxOrder + 1;
   } else {
     // 通常の移動の場合
-    if (tasksInTargetArea.length === 0) {
-      // グループが空の場合は最初の位置に配置
-      taskToMove.order = 0;
+    const overIndex = tasksInTargetArea.findIndex(task => task.id === overTaskId);
+    
+    if (overIndex === -1) {
+      // 最後に追加する場合
+      const maxOrder = tasksInTargetArea.length > 0
+        ? Math.max(...tasksInTargetArea.map(t => t.order))
+        : -1;
+      taskToMove.order = maxOrder + 1;
     } else {
-      const overIndex = tasksInTargetArea.findIndex(task => task.id === overTaskId);
-      if (overIndex >= 0) {
-        const targetTask = tasksInTargetArea[overIndex];
-        const currentIndex = tasksInTargetArea.findIndex(task => task.id === activeTaskId);
-        let newOrder;
+      // 特定の位置に挿入する場合
+      const targetTask = tasksInTargetArea[overIndex];
+      const currentIndex = tasksInTargetArea.findIndex(task => task.id === activeTaskId);
 
-        if (currentIndex === -1) {
-          // タスクが別のエリアから移動してきた場合
-          newOrder = targetTask.order;
-          // 後続のタスクの順序をシフト
+      if (currentIndex === -1) {
+        // 別のエリアからの移動
+        taskToMove.order = targetTask.order;
+        filteredTasks.forEach(task => {
+          if ((task.groupId === newGroupId || (!task.groupId && !newGroupId)) && 
+              task.order >= targetTask.order) {
+            task.order += 1;
+          }
+        });
+      } else {
+        // 同じエリア内での移動
+        if (currentIndex < overIndex) {
+          // 上から下への移動
+          taskToMove.order = targetTask.order;
           filteredTasks.forEach(task => {
             if ((task.groupId === newGroupId || (!task.groupId && !newGroupId)) && 
-                task.order >= newOrder) {
-              task.order += 1;
+                task.order > activeTask.order && 
+                task.order <= targetTask.order) {
+              task.order -= 1;
             }
           });
         } else {
-          // 同じエリア内での移動
-          if (currentIndex < overIndex) {
-            // 上から下への移動
-            newOrder = targetTask.order;
-            // 間のタスクの順序を上にシフト
-            filteredTasks.forEach(task => {
-              if ((task.groupId === newGroupId || (!task.groupId && !newGroupId)) && 
-                  task.order > activeTask.order && 
-                  task.order <= targetTask.order) {
-                task.order -= 1;
-              }
-            });
-          } else {
-            // 下から上への移動
-            newOrder = targetTask.order;
-            // 間のタスクの順序を下にシフト
-            filteredTasks.forEach(task => {
-              if ((task.groupId === newGroupId || (!task.groupId && !newGroupId)) && 
-                  task.order >= targetTask.order && 
-                  task.order < activeTask.order) {
-                task.order += 1;
-              }
-            });
-          }
+          // 下から上への移動
+          taskToMove.order = targetTask.order;
+          filteredTasks.forEach(task => {
+            if ((task.groupId === newGroupId || (!task.groupId && !newGroupId)) && 
+                task.order >= targetTask.order && 
+                task.order < activeTask.order) {
+              task.order += 1;
+            }
+          });
         }
-        taskToMove.order = newOrder;
-      } else {
-        // 最後に追加する場合
-        const maxOrder = Math.max(...tasksInTargetArea.map(t => t.order), -1);
-        taskToMove.order = maxOrder + 1;
       }
     }
   }
 
-  // Insert task at new position
+  // 更新されたタスクを配列に追加
   filteredTasks.push(taskToMove);
 
-  // Sort tasks by order
+  // タスクを順序でソート
   const sortedTasks = filteredTasks.sort((a, b) => {
     if (a.groupId === b.groupId) {
       return a.order - b.order;
