@@ -30,9 +30,9 @@ export const TaskInput = ({
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
+    if (!trimmedValue) return;
     
     if (isGroupMode) {
-      // グループ追加のイベントを発火
       window.dispatchEvent(new CustomEvent('addGroup', {
         detail: {
           name: trimmedValue,
@@ -41,11 +41,8 @@ export const TaskInput = ({
     } else {
       onSubmit();
     }
-
-    // 入力値のクリアは成功時のみ行う（useTaskManagerからの通知を受けて行う）
   };
 
-  // 成功時のクリア処理を追加
   useEffect(() => {
     const handleGroupAdded = () => {
       onChange('');
@@ -86,11 +83,7 @@ export const TaskInput = ({
 
   const handleInputChange = (newValue: string) => {
     onChange(newValue);
-    if (newValue.trim() !== '') {
-      setHasUserInput(true);
-    } else {
-      setHasUserInput(false);
-    }
+    setHasUserInput(newValue.trim() !== '');
   };
 
   return (
