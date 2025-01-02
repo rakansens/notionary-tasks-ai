@@ -198,7 +198,7 @@ export const useTaskManager = (): TaskManagerOperations & {
     }
   };
 
-  const deleteGroup = async (id: number) => {
+  const initiateGroupDelete = async (id: number) => {
     try {
       const groupToDelete = state.groups.find(g => g.id === id);
       if (groupToDelete) {
@@ -217,12 +217,19 @@ export const useTaskManager = (): TaskManagerOperations & {
   const handleGroupDelete = async (id: number) => {
     try {
       const groupToDelete = state.groups.find(g => g.id === id);
-      if (groupToDelete) {
-        await deleteGroup(id);
-        taskEvents.emitGroupDeleted(groupToDelete);
-        setters.setGroups(prevGroups => prevGroups.filter(g => g.id !== id));
-        setters.setTasks(prevTasks => prevTasks.filter(t => t.groupId !== id));
-      }
+      if (!groupToDelete) return;
+
+      await deleteGroup(id);
+
+      setters.setGroups(prevGroups => prevGroups.filter(g => g.id !== id));
+      setters.setTasks(prevTasks => prevTasks.filter(t => t.groupId !== id));
+      
+      taskEvents.emitGroupDeleted(groupToDelete);
+
+      toast({
+        title: "成功",
+        description: `グループ「${groupToDelete.name}」を削除しました`,
+      });
     } catch (error) {
       console.error('Error deleting group:', error);
       toast({
@@ -282,7 +289,7 @@ export const useTaskManager = (): TaskManagerOperations & {
     toggleTask,
     updateTaskTitle,
     deleteTask,
-    deleteGroup,
+    deleteGroup: initiateGroupDelete,
     confirmDelete,
     cancelDelete,
     updateTaskOrder: (tasks: Task[]) => updateTaskOrder(tasks, setters.setTasks),

@@ -67,15 +67,27 @@ export const updateGroupName = async (id: number, name: string): Promise<void> =
 // グループの削除（関連するタスクも削除）
 export const deleteGroup = async (id: number): Promise<void> => {
   try {
-    // 1. グループに属するタスクを削除
-    const { error: tasksError } = await supabase
+    // 1. グループ内のすべてのタスクのIDを取得
+    const { data: allTasks, error: fetchError } = await supabase
       .from('tasks')
-      .delete()
-      .eq('group_id', id);
+      .select('id, parent_id')
+      .or(`group_id.eq.${id},parent_id.in.(select id from tasks where group_id=${id})`);
 
-    if (tasksError) throw tasksError;
+    if (fetchError) throw fetchError;
+    if (!allTasks) return;
 
-    // 2. グループを削除
+    // 2. すべてのタスクを一括で削除
+    if (allTasks.length > 0) {
+      const taskIds = allTasks.map(task => task.id);
+      const { error: tasksError } = await supabase
+        .from('tasks')
+        .delete()
+        .in('id', taskIds);
+
+      if (tasksError) throw tasksError;
+    }
+
+    // 3. グループを削除
     const { error: groupError } = await supabase
       .from('groups')
       .delete()

@@ -26,7 +26,7 @@ export interface TaskManagerOperations {
   toggleTask: (id: number, parentId?: number) => void;
   updateTaskTitle: (id: number, title: string, parentId?: number) => void;
   deleteTask: (id: number, parentId?: number) => void;
-  addGroup: () => void;
+  addGroup: (name: string) => void;
   updateGroupName: (id: number, name: string) => void;
   deleteGroup: (id: number) => void;
   confirmDelete: () => void;
