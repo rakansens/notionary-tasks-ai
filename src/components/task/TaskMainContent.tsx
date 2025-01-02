@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DraggableTask } from "../DraggableTask";
 import { GroupList } from "../GroupList";
@@ -11,8 +10,6 @@ import {
   useSensor,
   useSensors,
   closestCenter,
-  DragStartEvent,
-  DragEndEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -20,8 +17,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { TaskItem } from "../TaskItem";
-import { Folder } from "lucide-react";
+import { useTaskDragAndDrop } from "@/hooks/useTaskDragAndDrop";
+import { TaskDragOverlay } from "./TaskDragOverlay";
 
 interface TaskMainContentProps {
   tasks: Task[];
@@ -68,7 +65,12 @@ export const TaskMainContent = ({
   updateGroupOrder,
   toggleGroupCollapse,
 }: TaskMainContentProps) => {
-  const [dragAndDropState, setDragAndDropState] = useState<{ activeId: string | null }>({ activeId: null });
+  const {
+    dragAndDropState,
+    handleDragStart,
+    handleDragEnd,
+    handleDragCancel,
+  } = useTaskDragAndDrop(tasks, groups, updateTaskOrder, updateGroupOrder);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -76,57 +78,6 @@ export const TaskMainContent = ({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setDragAndDropState({ activeId: String(event.active.id) });
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (!over) {
-      setDragAndDropState({ activeId: null });
-      return;
-    }
-
-    const activeId = active.id.toString();
-    const overId = over.id.toString();
-    
-    if (activeId === overId) {
-      setDragAndDropState({ activeId: null });
-      return;
-    }
-
-    if (activeId.startsWith('group-') && overId.startsWith('group-')) {
-      const startIndex = groups.findIndex(g => g.id === Number(activeId.replace('group-', '')));
-      const endIndex = groups.findIndex(g => g.id === Number(overId.replace('group-', '')));
-      
-      if (startIndex !== -1 && endIndex !== -1) {
-        const reorderedGroups = [...groups];
-        const [movedGroup] = reorderedGroups.splice(startIndex, 1);
-        reorderedGroups.splice(endIndex, 0, movedGroup);
-        
-        updateGroupOrder(reorderedGroups);
-      }
-    } else {
-      const startIndex = tasks.findIndex(t => t.id === Number(activeId));
-      const endIndex = tasks.findIndex(t => t.id === Number(overId));
-      
-      if (startIndex !== -1 && endIndex !== -1) {
-        const reorderedTasks = [...tasks];
-        const [movedTask] = reorderedTasks.splice(startIndex, 1);
-        reorderedTasks.splice(endIndex, 0, movedTask);
-        
-        updateTaskOrder(reorderedTasks);
-      }
-    }
-
-    setDragAndDropState({ activeId: null });
-  };
-
-  const handleDragCancel = () => {
-    setDragAndDropState({ activeId: null });
-  };
 
   const nonGroupTasks = tasks
     .filter(task => !task.groupId && !task.parentId)
@@ -238,36 +189,21 @@ export const TaskMainContent = ({
             easing: "cubic-bezier(0.25, 1, 0.5, 1)",
           }}>
             {dragAndDropState.activeId ? (
-              dragAndDropState.activeId.startsWith('group-') ? (
-                <div className="shadow-lg rounded-md bg-gray-50 p-4">
-                  {(() => {
-                    const groupId = Number(dragAndDropState.activeId.replace('group-', ''));
-                    const group = groups.find(g => g.id === groupId);
-                    return group ? (
-                      <div className="flex items-center gap-2">
-                        <Folder className="h-5 w-5 text-gray-500" />
-                        <h3 className="font-medium text-gray-900">{group.name}</h3>
-                      </div>
-                    ) : null;
-                  })()}
-                </div>
-              ) : (
-                <div className="shadow-lg rounded-md bg-white">
-                  <TaskItem
-                    task={tasks.find(t => t.id.toString() === dragAndDropState.activeId) || tasks[0]}
-                    editingTaskId={editingTaskId}
-                    addingSubtaskId={addingSubtaskId}
-                    setEditingTaskId={setEditingTaskId}
-                    setAddingSubtaskId={setAddingSubtaskId}
-                    toggleTask={toggleTask}
-                    updateTaskTitle={updateTaskTitle}
-                    deleteTask={deleteTask}
-                    newTask={newTask}
-                    setNewTask={setNewTask}
-                    addTask={addTask}
-                  />
-                </div>
-              )
+              <TaskDragOverlay
+                activeId={dragAndDropState.activeId}
+                tasks={tasks}
+                groups={groups}
+                editingTaskId={editingTaskId}
+                addingSubtaskId={addingSubtaskId}
+                setEditingTaskId={setEditingTaskId}
+                setAddingSubtaskId={setAddingSubtaskId}
+                toggleTask={toggleTask}
+                updateTaskTitle={updateTaskTitle}
+                deleteTask={deleteTask}
+                newTask={newTask}
+                setNewTask={setNewTask}
+                addTask={addTask}
+              />
             ) : null}
           </DragOverlay>
         </DndContext>
