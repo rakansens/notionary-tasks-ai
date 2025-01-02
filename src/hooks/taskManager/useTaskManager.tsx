@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Task, Group, TaskManagerOperations } from './types';
+import { Task, Group, TaskManagerOperations, TaskEventData } from './types';
 import { useTaskStateManager } from './taskStateManager';
 import { useTaskEvents } from './useTaskEvents';
 import { useToast } from "@/components/ui/use-toast";
@@ -83,7 +83,7 @@ export const useTaskManager = (): TaskManagerOperations & {
             parent_id: parentId,
             hierarchy_level: hierarchyLevel,
             parent_title: parentTask?.title || ''
-          } as any)
+          })
           .select()
           .single();
 
@@ -99,11 +99,12 @@ export const useTaskManager = (): TaskManagerOperations & {
         const updatedTasks = [...state.tasks, taskWithId];
         setters.setTasks(updatedTasks);
 
-        taskEvents.emitTaskAdded({
+        const eventData: TaskEventData = {
           taskId: taskWithId.id,
           parentTaskId: parentTask?.id,
           groupId: groupId
-        });
+        };
+        taskEvents.emitTaskAdded(eventData);
       } else {
         const { data: savedTask, error } = await supabase
           .from('tasks')
@@ -130,11 +131,12 @@ export const useTaskManager = (): TaskManagerOperations & {
         const updatedTasks = [...state.tasks, taskWithId];
         setters.setTasks(updatedTasks);
 
-        taskEvents.emitTaskAdded({
+        const eventData: TaskEventData = {
           taskId: taskWithId.id,
           parentTaskId: parentTask?.id,
           groupId: groupId
-        });
+        };
+        taskEvents.emitTaskAdded(eventData);
       }
 
       setters.setNewTask("");
