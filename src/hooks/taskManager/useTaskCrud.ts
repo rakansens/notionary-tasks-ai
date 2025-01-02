@@ -20,6 +20,8 @@ export const useTaskCrud = (
     if (!trimmedTask) return;
 
     try {
+      console.log('Adding task with groupId:', groupId); // デバッグログ追加
+
       const newTask = taskOperations.createNewTask(
         trimmedTask,
         groupId,
@@ -27,20 +29,31 @@ export const useTaskCrud = (
         tasks.length
       );
 
+      console.log('New task object:', newTask); // デバッグログ追加
+
       const savedTask = await taskOperations.addTaskToSupabase({
         title: newTask.title,
         completed: newTask.completed,
         order: newTask.order,
-        groupId: newTask.groupId,
+        groupId: groupId,
         parentId: newTask.parentId,
         hierarchyLevel: newTask.hierarchyLevel,
       });
 
-      const taskWithId: Task = { 
-        ...newTask, 
+      console.log('Saved task from Supabase:', savedTask); // デバッグログ追加
+
+      const taskWithId: Task = {
         id: savedTask.id,
-        groupId: groupId // 明示的にグループIDを設定
+        title: savedTask.title,
+        completed: savedTask.completed,
+        order: savedTask.order_position,
+        groupId: savedTask.group_id,
+        parentId: savedTask.parent_id,
+        hierarchyLevel: savedTask.hierarchy_level,
+        addedAt: new Date(savedTask.created_at),
       };
+
+      console.log('Final task object to be added to state:', taskWithId); // デバッグログ追加
       
       setTasks(prevTasks => [...prevTasks, taskWithId]);
 
@@ -53,6 +66,11 @@ export const useTaskCrud = (
       if (groupId) {
         setEditingTaskId(savedTask.id);
       }
+
+      toast({
+        title: "タスクを追加しました",
+        description: `「${taskTitle}」${group ? `をグループ「${group.name}」に` : "を"}追加しました`,
+      });
     } catch (error) {
       console.error('Error adding task:', error);
       toast({
