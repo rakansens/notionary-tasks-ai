@@ -7,11 +7,19 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useTaskManager } from "@/hooks/useTaskManager";
+import { TaskAnalysis } from "./TaskAnalysis";
 
 interface Message {
   id: number;
   text: string;
   isUser: boolean;
+  taskAnalysis?: {
+    title: string;
+    priority: "high" | "low";
+    group?: string;
+    dependencies?: string[];
+    completed?: boolean;
+  }[];
 }
 
 export const ChatSection = () => {
@@ -45,10 +53,18 @@ export const ChatSection = () => {
 
       if (error) throw error;
 
+      // タスク分析の応答かどうかを判断
+      const isTaskAnalysis = data.response.includes("優先度の高いタスク") || 
+                            data.response.includes("優先度の低いタスク");
+
+      // 応答をパースしてタスクオブジェクトに変換
+      const parsedTasks = isTaskAnalysis ? parseTaskAnalysis(data.response) : null;
+
       const aiResponse: Message = {
         id: Date.now() + 1,
         text: data.response,
         isUser: false,
+        taskAnalysis: parsedTasks // 新しいプロパティを追加
       };
       
       setMessages(prev => [...prev, aiResponse]);
@@ -62,6 +78,48 @@ export const ChatSection = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // タスク分析テキストをパースする関数
+  const parseTaskAnalysis = (text: string) => {
+    const tasks: any[] = [];
+    
+    // 高優先度タスクの抽出
+    const highPriorityMatch = text.match(/優先度の高いタスク：([\s\S]*?)(?=優先度の低いタスク|$)/);
+    if (highPriorityMatch) {
+      const highPriorityTasks = highPriorityMatch[1].match(/\* ([^\n]+)/g);
+      highPriorityTasks?.forEach(task => {
+        const title = task.replace('* ', '').trim();
+        tasks.push({ title, priority: 'high' });
+      });
+    }
+
+    // 低優先度タスクの抽出
+    const lowPriorityMatch = text.match(/優先度の低いタスク：([\s\S]*?)(?=依存関係|$)/);
+    if (lowPriorityMatch) {
+      const lowPriorityTasks = lowPriorityMatch[1].match(/\* ([^\n]+)/g);
+      lowPriorityTasks?.forEach(task => {
+        const title = task.replace('* ', '').trim();
+        tasks.push({ title, priority: 'low' });
+      });
+    }
+
+    // 依存関係の抽出と設定
+    const dependenciesMatch = text.match(/依存関係：([\s\S]*?)(?=最適化されたタスクリスト|$)/);
+    if (dependenciesMatch) {
+      const dependencies = dependenciesMatch[1].match(/\* ([^\n]+)/g);
+      dependencies?.forEach(dep => {
+        const depText = dep.replace('* ', '').trim();
+        const [taskTitle, dependsOn] = depText.split('は、');
+        const task = tasks.find(t => t.title.includes(taskTitle));
+        if (task) {
+          task.dependencies = task.dependencies || [];
+          task.dependencies.push(dependsOn.replace('後に', '').replace('する必要があります。', ''));
+        }
+      });
+    }
+
+    return tasks;
   };
 
   return (
@@ -80,16 +138,22 @@ export const ChatSection = () => {
                 message.isUser ? "justify-end" : "justify-start"
               )}
             >
-              <div
-                className={cn(
-                  "max-w-[80%] p-4 rounded-lg transition-all duration-200",
-                  message.isUser
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground"
-                )}
-              >
-                {message.text}
-              </div>
+              {message.taskAnalysis ? (
+                <div className="w-full">
+                  <TaskAnalysis tasks={message.taskAnalysis} />
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "max-w-[80%] p-4 rounded-lg transition-all duration-200",
+                    message.isUser
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-foreground"
+                  )}
+                >
+                  {message.text}
+                </div>
+              )}
             </div>
           ))}
         </div>
