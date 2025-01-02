@@ -34,12 +34,7 @@ export const GroupContent = ({
   addTask,
   onReorderSubtasks,
 }: GroupContentProps) => {
-  // グループ内の最上位タスクのみをフィルタリング
-  const groupTasks = tasks.filter(task => 
-    task.groupId === groupId && !task.parentId
-  );
-  
-  console.log('Group tasks:', groupTasks);
+  const groupTasks = tasks.filter(task => task.groupId === groupId && !task.parentId);
   const sortableItems = groupTasks.map(task => task.id.toString());
 
   return (
