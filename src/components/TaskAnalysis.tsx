@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, AlertTriangle, ArrowUp, ArrowRight, ArrowDown } from "lucide-react";
 import { useTaskManager } from "@/hooks/useTaskManager";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface Task {
   title: string;
@@ -53,7 +53,7 @@ export const TaskAnalysis = ({ tasks }: TaskAnalysisProps) => {
   };
 
   const handleAddTask = (task: Task) => {
-    addTask(task.title); // 修正：引数を1つだけにしました
+    addTask(undefined, undefined, task.title);
     toast({
       title: "タスクを追加しました",
       description: `「${task.title}」を追加しました`,
