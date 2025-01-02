@@ -148,6 +148,24 @@ export const useTaskOperations = () => {
     }
   };
 
+  const updateTaskOrder = async (tasks: Task[]) => {
+    try {
+      const updatedTasksWithOrder = tasks.map((task, index) => ({
+        ...task,
+        order: index,
+      }));
+      return updatedTasksWithOrder;
+    } catch (error) {
+      console.error('Error updating task order:', error);
+      toast({
+        title: "エラー",
+        description: "タスクの順序の更新に失敗しました",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   return {
     findTaskById,
     createNewTask,
@@ -155,5 +173,6 @@ export const useTaskOperations = () => {
     toggleTaskInSupabase,
     updateTaskTitleInSupabase,
     deleteTaskFromSupabase,
+    updateTaskOrder,
   };
 };

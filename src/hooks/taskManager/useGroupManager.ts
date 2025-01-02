@@ -1,10 +1,11 @@
 import { Group } from './types';
 import { useGroupOperations } from './useGroupOperations';
 import { useToast } from "@/components/ui/use-toast";
+import { Dispatch, SetStateAction } from 'react';
 
 export const useGroupManager = (
   groups: Group[],
-  setGroups: (groups: Group[]) => void,
+  setGroups: Dispatch<SetStateAction<Group[]>>,
   newGroup: string,
   setNewGroup: (value: string) => void,
   setIsAddingGroup: (value: boolean) => void,
@@ -41,12 +42,11 @@ export const useGroupManager = (
           order: savedGroup.order_position,
         };
         
-        setGroups(prevGroups => [...prevGroups, group]);
+        setGroups((prevGroups: Group[]) => [...prevGroups, group]);
         
         setNewGroup("");
         setIsAddingGroup(false);
 
-        // 成功通知は全ての処理が完了した後に表示
         toast({
           title: "成功",
           description: "グループを追加しました",
@@ -66,7 +66,7 @@ export const useGroupManager = (
     try {
       await groupOperations.updateGroupNameInSupabase(id, name);
       
-      setGroups(prevGroups =>
+      setGroups((prevGroups: Group[]) =>
         prevGroups.map(group =>
           group.id === id ? { ...group, name } : group
         )
@@ -87,7 +87,7 @@ export const useGroupManager = (
       if (groupToDelete) {
         await groupOperations.deleteGroupFromSupabase(id);
       }
-      setGroups(prevGroups => prevGroups.filter(group => group.id !== id));
+      setGroups((prevGroups: Group[]) => prevGroups.filter(group => group.id !== id));
       
       toast({
         title: "成功",
