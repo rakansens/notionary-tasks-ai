@@ -1,4 +1,4 @@
-import { Task } from "@/hooks/taskManager/types";
+import { Task, Group } from "@/hooks/taskManager/types";
 import { useToast } from "@/components/ui/use-toast";
 import { useTaskOperations } from './useTaskOperations';
 import { useGroupOperations } from './useGroupOperations';
