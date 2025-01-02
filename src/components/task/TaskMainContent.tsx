@@ -19,6 +19,7 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { useTaskDragAndDrop } from "@/hooks/useTaskDragAndDrop";
 import { TaskDragOverlay } from "./TaskDragOverlay";
+import { useState } from "react";
 
 interface TaskMainContentProps {
   tasks: Task[];
@@ -73,7 +74,11 @@ export const TaskMainContent = ({
   } = useTaskDragAndDrop(tasks, groups, updateTaskOrder, updateGroupOrder);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8ピクセル以上動かさないとドラッグ開始しない
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -83,15 +88,26 @@ export const TaskMainContent = ({
     .filter(task => !task.groupId && !task.parentId)
     .sort((a, b) => a.order - b.order);
 
+  console.log('DragAndDrop State:', dragAndDropState); // デバッグ用
+
   return (
     <ScrollArea className="flex-1">
       <div className="p-4 space-y-1">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onDragCancel={handleDragCancel}
+          onDragStart={(event) => {
+            console.log('Drag Start:', event); // デバッグ用
+            handleDragStart(event);
+          }}
+          onDragEnd={(event) => {
+            console.log('Drag End:', event); // デバッグ用
+            handleDragEnd(event);
+          }}
+          onDragCancel={() => {
+            console.log('Drag Cancel'); // デバッグ用
+            handleDragCancel();
+          }}
           modifiers={[restrictToVerticalAxis]}
         >
           <GroupList
@@ -114,6 +130,7 @@ export const TaskMainContent = ({
             deleteGroup={deleteGroup}
             updateTaskOrder={updateTaskOrder}
             onReorderSubtasks={(startIndex, endIndex, parentId) => {
+              console.log('Reorder Subtasks:', { startIndex, endIndex, parentId }); // デバッグ用
               const parent = tasks.find(t => t.id === parentId);
               if (!parent || !parent.subtasks) return;
               
@@ -158,6 +175,7 @@ export const TaskMainContent = ({
                 setNewTask={setNewTask}
                 addTask={addTask}
                 onReorderSubtasks={(startIndex, endIndex, parentId) => {
+                  console.log('Reorder Subtasks in DraggableTask:', { startIndex, endIndex, parentId }); // デバッグ用
                   const parent = tasks.find(t => t.id === parentId);
                   if (!parent || !parent.subtasks) return;
                   
