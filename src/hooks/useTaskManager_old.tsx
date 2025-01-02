@@ -85,7 +85,7 @@ export const useTaskManager = (): TaskManagerOperations & {
 
       const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
 
-      taskEvents.emitTaskAdded(taskWithId.id, parentTask?.id || undefined, group?.id);
+      taskEvents.emitTaskAdded(taskWithId.id, parentTask?.id, group?.id);
       
       setters.setNewTask("");
       if (groupId) {

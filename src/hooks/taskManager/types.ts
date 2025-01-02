@@ -2,12 +2,12 @@ export interface Task {
   id: number;
   title: string;
   completed: boolean;
+  order: number;
   groupId?: number;
   parentId?: number;
-  subtasks?: Task[];
-  order: number;
-  addedAt: Date;
   hierarchyLevel: number;
+  addedAt: Date;
+  subtasks?: Task[];
 }
 
 export interface Group {
@@ -34,4 +34,10 @@ export interface TaskManagerOperations {
   updateTaskOrder: (tasks: Task[]) => void;
   updateGroupOrder: (groups: Group[]) => void;
   toggleGroupCollapse: (groupId: number) => void;
+}
+
+export interface TaskEventData {
+  taskId: number;
+  parentTaskId?: number;
+  groupId?: number;
 }
