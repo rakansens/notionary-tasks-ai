@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { emitTaskEvent, createTaskEvent } from "@/utils/taskEventEmitter";
 
 interface TaskInputProps {
   value: string;
@@ -35,20 +36,9 @@ export const TaskInput = ({
     }
 
     if (isGroupMode) {
-      // グループ追加イベントを発火
-      const event = new CustomEvent('groupAdded', {
-        detail: {
-          name: trimmedValue,
-          addedAt: new Date(),
-        },
-        bubbles: true,
-        composed: true
-      });
-      window.dispatchEvent(event);
-      console.log(`グループ「${trimmedValue}」を追加しました`);
+      emitTaskEvent(createTaskEvent('GROUP_ADDED', trimmedValue));
     } else {
       onSubmit();
-      console.log(`タスク「${trimmedValue}」を追加しました${groupId ? `（グループID: ${groupId}）` : ''}`);
     }
     
     onChange('');
