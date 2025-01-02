@@ -62,10 +62,7 @@ export const useTaskManager = (): TaskManagerOperations & {
 
     try {
       const parentTask = parentId ? state.tasks.find(t => t.id === parentId) : null;
-      console.log('Parent task:', parentTask);
-
       const hierarchyLevel = parentTask ? parentTask.hierarchyLevel + 1 : 0;
-      console.log('Calculated hierarchy level:', hierarchyLevel);
 
       const newTask = taskOperations.createNewTask(
         trimmedTask,
@@ -74,8 +71,6 @@ export const useTaskManager = (): TaskManagerOperations & {
         state.tasks.length,
         hierarchyLevel
       );
-
-      console.log('New task to be saved:', newTask);
 
       if (parentId) {
         const { data: savedSubtask, error } = await supabase
@@ -104,7 +99,11 @@ export const useTaskManager = (): TaskManagerOperations & {
         const updatedTasks = [...state.tasks, taskWithId];
         setters.setTasks(updatedTasks);
 
-        taskEvents.emitTaskAdded(taskWithId, parentTask);
+        taskEvents.emitTaskAdded({
+          taskId: taskWithId.id,
+          parentTaskId: parentTask?.id,
+          groupId: groupId
+        });
       } else {
         const { data: savedTask, error } = await supabase
           .from('tasks')
@@ -131,8 +130,11 @@ export const useTaskManager = (): TaskManagerOperations & {
         const updatedTasks = [...state.tasks, taskWithId];
         setters.setTasks(updatedTasks);
 
-        const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
-        taskEvents.emitTaskAdded(taskWithId, parentTask || undefined, group);
+        taskEvents.emitTaskAdded({
+          taskId: taskWithId.id,
+          parentTaskId: parentTask?.id,
+          groupId: groupId
+        });
       }
 
       setters.setNewTask("");
@@ -159,7 +161,7 @@ export const useTaskManager = (): TaskManagerOperations & {
       if (parentId) {
         const { error } = await supabase
           .from('subtasks')
-          .update({ completed: newCompleted } as any)
+          .update({ completed: newCompleted } as { completed: boolean })
           .eq('id', id);
 
         if (error) throw error;
@@ -192,7 +194,7 @@ export const useTaskManager = (): TaskManagerOperations & {
       if (parentId) {
         const { error } = await supabase
           .from('subtasks')
-          .update({ title } as any)
+          .update({ title } as { title: string })
           .eq('id', id);
 
         if (error) throw error;
@@ -222,7 +224,6 @@ export const useTaskManager = (): TaskManagerOperations & {
 
   const deleteTask = async (id: number, parentId?: number) => {
     try {
-      // サブタスクの場合は subtasks テーブルから削除
       if (parentId) {
         const { error } = await supabase
           .from('subtasks')
@@ -231,7 +232,6 @@ export const useTaskManager = (): TaskManagerOperations & {
 
         if (error) throw error;
       } else {
-        // 通常のタスクは tasks テーブルから削除
         const { error } = await supabase
           .from('tasks')
           .delete()
