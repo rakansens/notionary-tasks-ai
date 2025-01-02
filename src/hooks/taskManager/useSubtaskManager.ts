@@ -61,28 +61,20 @@ export const useSubtaskManager = () => {
 
   const updateSubtaskOrder = async (subtasks: Task[]) => {
     try {
-      const updates = subtasks.map((task, index) => ({
-        order_position: index,
-        title: task.title,
-        completed: task.completed,
-        parent_id: task.parentId,
-        hierarchy_level: task.hierarchyLevel
-      }));
+      for (const [index, task] of subtasks.entries()) {
+        const { error } = await supabase
+          .from('tasks')
+          .update({
+            order_position: index,
+            title: task.title,
+            completed: task.completed,
+            parent_id: task.parentId,
+            hierarchy_level: task.hierarchyLevel
+          })
+          .eq('id', task.id);
 
-      const { error } = await supabase
-        .from('tasks')
-        .upsert(
-          updates.map((update, index) => ({
-            ...update,
-            id: subtasks[index].id
-          })),
-          { 
-            onConflict: 'id',
-            ignoreDuplicates: false
-          }
-        );
-
-      if (error) throw error;
+        if (error) throw error;
+      }
     } catch (error) {
       console.error('Error updating subtask order:', error);
       toast({
