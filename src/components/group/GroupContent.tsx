@@ -38,23 +38,28 @@ export const GroupContent = ({
 
   return (
     <div className="pl-8 pr-2">
-      {groupTasks.map((task) => (
-        <DraggableTask
-          key={task.id}
-          task={task}
-          editingTaskId={editingTaskId}
-          addingSubtaskId={addingSubtaskId}
-          setEditingTaskId={setEditingTaskId}
-          setAddingSubtaskId={setAddingSubtaskId}
-          toggleTask={toggleTask}
-          updateTaskTitle={updateTaskTitle}
-          deleteTask={deleteTask}
-          newTask={newTask}
-          setNewTask={setNewTask}
-          addTask={addTask}
-          onReorderSubtasks={onReorderSubtasks}
-        />
-      ))}
+      <SortableContext
+        items={groupTasks.map(task => task.id.toString())}
+        strategy={verticalListSortingStrategy}
+      >
+        {groupTasks.map((task) => (
+          <DraggableTask
+            key={task.id}
+            task={task}
+            editingTaskId={editingTaskId}
+            addingSubtaskId={addingSubtaskId}
+            setEditingTaskId={setEditingTaskId}
+            setAddingSubtaskId={setAddingSubtaskId}
+            toggleTask={toggleTask}
+            updateTaskTitle={updateTaskTitle}
+            deleteTask={deleteTask}
+            newTask={newTask}
+            setNewTask={setNewTask}
+            addTask={addTask}
+            onReorderSubtasks={onReorderSubtasks}
+          />
+        ))}
+      </SortableContext>
       <TaskInput
         value={newTask}
         onChange={setNewTask}
