@@ -27,8 +27,8 @@ export const useTaskStateManager = () => {
       const taskWithSubtasks = taskMap.get(task.id)!;
       if (task.parentId) {
         const parentTask = taskMap.get(task.parentId);
-        if (parentTask) {
-          parentTask.subtasks!.push(taskWithSubtasks);
+        if (parentTask && parentTask.subtasks) {
+          parentTask.subtasks.push(taskWithSubtasks);
         }
       } else {
         rootTasks.push(taskWithSubtasks);
@@ -38,9 +38,12 @@ export const useTaskStateManager = () => {
     return rootTasks;
   };
 
-  const setStructuredTasks = (flatTasks: Task[]) => {
-    const structuredTasks = structureTasks(flatTasks);
-    setTasks(structuredTasks);
+  const setStructuredTasks = (tasksOrUpdater: Task[] | ((prev: Task[]) => Task[])) => {
+    if (typeof tasksOrUpdater === 'function') {
+      setTasks(prev => structureTasks(tasksOrUpdater(prev)));
+    } else {
+      setTasks(structureTasks(tasksOrUpdater));
+    }
   };
 
   return {
