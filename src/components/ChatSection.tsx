@@ -1,26 +1,12 @@
 import { useState } from "react";
-import { Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useTaskManager } from "@/hooks/useTaskManager";
-import { TaskAnalysis } from "./TaskAnalysis";
-
-interface Message {
-  id: number;
-  text: string;
-  isUser: boolean;
-  taskAnalysis?: {
-    title: string;
-    priority: "high" | "low";
-    group?: string;
-    dependencies?: string[];
-    completed?: boolean;
-  }[];
-}
+import { ChatMessage } from "./chat/ChatMessage";
+import { ChatInput } from "./chat/ChatInput";
+import { Message } from "@/types/messages";
 
 export const ChatSection = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -53,18 +39,16 @@ export const ChatSection = () => {
 
       if (error) throw error;
 
-      // タスク分析の応答かどうかを判断
       const isTaskAnalysis = data.response.includes("優先度の高いタスク") || 
                             data.response.includes("優先度の低いタスク");
 
-      // 応答をパースしてタスクオブジェクトに変換
       const parsedTasks = isTaskAnalysis ? parseTaskAnalysis(data.response) : null;
 
       const aiResponse: Message = {
         id: Date.now() + 1,
         text: data.response,
         isUser: false,
-        taskAnalysis: parsedTasks // 新しいプロパティを追加
+        taskAnalysis: parsedTasks
       };
       
       setMessages(prev => [...prev, aiResponse]);
@@ -80,7 +64,6 @@ export const ChatSection = () => {
     }
   };
 
-  // タスク分析テキストをパースする関数
   const parseTaskAnalysis = (text: string) => {
     const tasks: any[] = [];
     
@@ -202,46 +185,18 @@ export const ChatSection = () => {
                 message.isUser ? "justify-end" : "justify-start"
               )}
             >
-              {message.taskAnalysis ? (
-                <div className="w-full">
-                  <TaskAnalysis tasks={message.taskAnalysis} />
-                </div>
-              ) : (
-                <div
-                  className={cn(
-                    "max-w-[80%] p-4 rounded-lg transition-all duration-200",
-                    message.isUser
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground"
-                  )}
-                >
-                  {message.text}
-                </div>
-              )}
+              <ChatMessage message={message} />
             </div>
           ))}
         </div>
       </ScrollArea>
       
-      <div className="p-6 border-t">
-        <div className="flex gap-3">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && !isLoading && handleSend()}
-            placeholder="メッセージを入力..."
-            className="flex-1"
-            disabled={isLoading}
-          />
-          <Button 
-            onClick={handleSend} 
-            size="icon"
-            disabled={isLoading}
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <ChatInput
+        input={input}
+        isLoading={isLoading}
+        onInputChange={setInput}
+        onSend={handleSend}
+      />
     </div>
   );
 };
