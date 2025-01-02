@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface TaskInputProps {
   value: string;
@@ -25,23 +26,27 @@ export const TaskInput = ({
 }: TaskInputProps) => {
   const [isGroupMode, setIsGroupMode] = useState(false);
   const [hasUserInput, setHasUserInput] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
     if (!trimmedValue) {
       onChange('');
       setHasUserInput(false);
+      toast({
+        title: "エラー",
+        description: isGroupMode ? "グループ名を入力してください" : "タスク名を入力してください",
+        variant: "destructive",
+      });
       return;
     }
 
     if (isGroupMode) {
-      window.dispatchEvent(new CustomEvent('groupAdded', {
+      // グループ追加のイベントを発火
+      window.dispatchEvent(new CustomEvent('addGroup', {
         detail: {
-          title: trimmedValue,
-          addedAt: new Date(),
-        },
-        bubbles: true,
-        composed: true
+          name: trimmedValue,
+        }
       }));
     } else {
       onSubmit();
@@ -82,7 +87,7 @@ export const TaskInput = ({
     if (newValue.trim() !== '') {
       setHasUserInput(true);
     } else {
-      setHasUserInput(false); // 入力が空の場合はフラグをリセット
+      setHasUserInput(false);
     }
   };
 
