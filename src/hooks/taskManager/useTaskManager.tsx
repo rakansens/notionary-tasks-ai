@@ -1,10 +1,12 @@
+import { Task, Group, TaskManagerOperations } from './types';
 import { useTaskState } from './useTaskState';
 import { useTaskCore } from './useTaskCore';
 import { useTaskEvents } from './useTaskEvents';
 import { useTaskOperations } from './useTaskOperations';
 import { useGroupOperations } from './useGroupOperations';
 import { useToast } from "@/components/ui/use-toast";
-import type { TaskManagerOperations } from './types';
+import { updateTaskOrder } from './taskOperations';
+import { updateGroupOrder } from './groupOperations';
 
 export const useTaskManager = (): TaskManagerOperations & {
   tasks: Task[];
@@ -28,9 +30,8 @@ export const useTaskManager = (): TaskManagerOperations & {
   const taskOperations = useTaskOperations();
   const groupOperations = useGroupOperations();
   const { toast } = useToast();
-
-  const taskCore = useTaskCore(state, setters, taskOperations, taskEvents, toast);
   const taskEvents = useTaskEvents(state, setters, taskOperations, groupOperations);
+  const taskCore = useTaskCore(state, setters, taskOperations, taskEvents, toast);
 
   return {
     ...state,

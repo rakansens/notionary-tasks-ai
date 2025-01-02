@@ -6,8 +6,8 @@ import { updateGroupOrder, deleteGroup } from './groupOperations';
 import { updateTaskOrder } from './taskOperations';
 
 export const useTaskCore = (
-  state: ReturnType<typeof useTaskStateManager>['state'],
-  setters: ReturnType<typeof useTaskStateManager>['setters'],
+  state: ReturnType<typeof useTaskState>['state'],
+  setters: ReturnType<typeof useTaskState>['setters'],
   taskOperations: ReturnType<typeof useTaskOperations>,
   taskEvents: ReturnType<typeof useTaskEvents>,
   showToast: ReturnType<typeof useToast>['toast']
