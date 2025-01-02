@@ -40,6 +40,8 @@ export const TaskInput = ({
       }));
     } else {
       onSubmit();
+      onChange('');
+      setHasUserInput(false);
     }
   };
 
@@ -57,7 +59,7 @@ export const TaskInput = ({
   }, [onChange]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleSubmit();
     } else if (e.key === "Escape" && onCancel) {
