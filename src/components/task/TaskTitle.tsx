@@ -30,6 +30,7 @@ export const TaskTitle = ({
   hierarchyLevel,
 }: TaskTitleProps) => {
   const [inputValue, setInputValue] = useState(title);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     setInputValue(title);
@@ -49,14 +50,19 @@ export const TaskTitle = ({
   }
 
   return (
-    <div className="flex items-center gap-1">
-      {hasSubtasks && (
+    <div 
+      className="flex items-center gap-1"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {hasSubtasks && isHovered && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleCollapse();
           }}
-          className="p-1 hover:bg-gray-100 rounded"
+          className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
+          aria-label={isCollapsed ? "展開" : "折りたたむ"}
         >
           {isCollapsed ? (
             <ChevronRight className="h-4 w-4 text-gray-500" />
