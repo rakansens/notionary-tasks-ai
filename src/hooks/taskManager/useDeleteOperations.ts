@@ -26,14 +26,14 @@ export const useDeleteOperations = (
     }
   };
 
-  const confirmDelete = () => {
-    if (!deleteTarget) return;
+  const confirmDelete = (target: DeleteTarget | null) => {
+    if (!target) return;
 
-    if (deleteTarget.type === "task") {
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== deleteTarget.id));
+    if (target.type === "task") {
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== target.id));
     } else {
-      setGroups(prevGroups => deleteGroupFromState(prevGroups, deleteTarget.id));
-      setTasks(prevTasks => cleanupTasksAfterGroupDelete(prevTasks, deleteTarget.id));
+      setGroups(prevGroups => deleteGroupFromState(prevGroups, target.id));
+      setTasks(prevTasks => cleanupTasksAfterGroupDelete(prevTasks, target.id));
     }
     
     setDeleteTarget(null);
