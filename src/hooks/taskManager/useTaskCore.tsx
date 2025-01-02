@@ -1,4 +1,4 @@
-import { Task, Group } from './types';
+import { Task } from "@/hooks/taskManager/types";
 import { useToast } from "@/components/ui/use-toast";
 import { useTaskOperations } from './useTaskOperations';
 import { useGroupOperations } from './useGroupOperations';
@@ -17,11 +17,25 @@ export const useTaskCore = () => {
     if (!trimmedTask) return;
 
     try {
+      const hierarchyLevel = parentId 
+        ? (state.tasks.find(t => t.id === parentId)?.hierarchyLevel || 0) + 1 
+        : 0;
+
+      if (hierarchyLevel > 2) {
+        toast({
+          title: "エラー",
+          description: "サブタスクは3階層までしか作成できません",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const newTask = taskOperations.createNewTask(
         trimmedTask,
         groupId,
         parentId,
-        state.tasks.length
+        state.tasks.length,
+        hierarchyLevel
       );
 
       const savedTask = await taskOperations.addTaskToSupabase({
@@ -34,7 +48,22 @@ export const useTaskCore = () => {
       });
 
       const taskWithId: Task = { ...newTask, id: savedTask.id };
-      const updatedTasks = [...state.tasks, taskWithId];
+      
+      // Update parent task's subtasks if this is a subtask
+      const updatedTasks = state.tasks.map(task => {
+        if (task.id === parentId) {
+          return {
+            ...task,
+            subtasks: [...(task.subtasks || []), taskWithId],
+          };
+        }
+        return task;
+      });
+
+      if (!parentId) {
+        updatedTasks.push(taskWithId);
+      }
+
       setters.setTasks(updatedTasks);
 
       const parentTask = parentId ? taskOperations.findTaskById(updatedTasks, parentId) : undefined;
@@ -63,11 +92,22 @@ export const useTaskCore = () => {
 
       await taskOperations.toggleTaskInSupabase(id, !taskToToggle.completed);
       
-      setters.setTasks(prevTasks => 
-        prevTasks.map(task =>
-          task.id === id ? { ...task, completed: !task.completed } : task
-        )
-      );
+      const updateTaskCompletionStatus = (tasks: Task[]): Task[] => {
+        return tasks.map(task => {
+          if (task.id === id) {
+            return { ...task, completed: !task.completed };
+          }
+          if (task.subtasks) {
+            return {
+              ...task,
+              subtasks: updateTaskCompletionStatus(task.subtasks),
+            };
+          }
+          return task;
+        });
+      };
+
+      setters.setTasks(prevTasks => updateTaskCompletionStatus(prevTasks));
 
       const parentTask = parentId ? taskOperations.findTaskById(state.tasks, parentId) : undefined;
       const group = taskToToggle.groupId ? state.groups.find(g => g.id === taskToToggle.groupId) : undefined;
