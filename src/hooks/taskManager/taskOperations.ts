@@ -1,6 +1,6 @@
 import { Task } from './types';
 
-export const updateTaskOrder = async (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
+export const updateTaskOrder = async (tasks: Task[], setTasks: (tasks: Task[]) => void): Promise<void> => {
   try {
     const updatedTasks = tasks.map((task, index) => ({
       ...task,
@@ -28,7 +28,8 @@ export const createNewTask = (
   groupId?: number,
   parentId?: number,
   order?: number
-): Omit<Task, "id"> => ({
+): Task => ({
+  id: Date.now(), // 一時的なIDを生成
   title,
   completed: false,
   order: order || 0,
@@ -42,7 +43,7 @@ export const updateTaskTitle = async (
   id: number,
   title: string,
   parentId?: number
-): Task[] => {
+): Promise<Task[]> => {
   return tasks.map(task => {
     if (task.id === id) {
       return { ...task, title };
@@ -61,7 +62,7 @@ export const deleteTask = async (
   tasks: Task[],
   id: number,
   parentId?: number
-): Task[] => {
+): Promise<Task[]> => {
   if (parentId) {
     return tasks.map(task => {
       if (task.id === parentId) {
