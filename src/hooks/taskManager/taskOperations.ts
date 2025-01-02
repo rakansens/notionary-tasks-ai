@@ -167,3 +167,23 @@ export const useTaskOperations = () => {
     deleteTaskFromSupabase,
   };
 };
+
+// タスクの並び順を更新する関数を追加
+export const updateTaskOrder = async (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
+  try {
+    // タスクの順序を更新
+    for (const task of tasks) {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ order_position: task.order })
+        .eq('id', task.id);
+
+      if (error) throw error;
+    }
+    
+    setTasks(tasks);
+  } catch (error) {
+    console.error('Error updating task order:', error);
+    throw error;
+  }
+};

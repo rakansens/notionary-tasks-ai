@@ -9,6 +9,7 @@ import { fetchInitialData } from './supabaseOperations';
 import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './mappers';
 import { updateGroupOrder, deleteGroup } from './groupOperations';
 import { updateTaskOrder } from './taskOperations';
+import { supabase } from "@/integrations/supabase/client";
 
 export const useTaskManager = (): TaskManagerOperations & {
   tasks: Task[];
@@ -113,16 +114,74 @@ export const useTaskManager = (): TaskManagerOperations & {
     }
   };
 
-  const toggleGroupCollapse = (groupId: number) => {
-    setters.setCollapsedGroups(prev => {
-      const newCollapsed = new Set(prev);
-      if (newCollapsed.has(groupId)) {
-        newCollapsed.delete(groupId);
-      } else {
-        newCollapsed.add(groupId);
+  const toggleTask = async (id: number) => {
+    try {
+      const task = taskOperations.findTaskById(state.tasks, id);
+      if (task) {
+        await taskOperations.toggleTaskInSupabase(id, !task.completed);
+        setters.setTasks(prevTasks =>
+          prevTasks.map(t =>
+            t.id === id ? { ...t, completed: !t.completed } : t
+          )
+        );
       }
-      return newCollapsed;
-    });
+    } catch (error) {
+      console.error('Error toggling task:', error);
+      toast({
+        title: "エラー",
+        description: "タスクの状態の更新に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateTaskTitle = async (id: number, title: string) => {
+    try {
+      await taskOperations.updateTaskTitleInSupabase(id, title);
+      setters.setTasks(prevTasks =>
+        prevTasks.map(task =>
+          task.id === id ? { ...task, title } : task
+        )
+      );
+    } catch (error) {
+      console.error('Error updating task title:', error);
+      toast({
+        title: "エラー",
+        description: "タスクのタイトル更新に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteTask = async (id: number) => {
+    try {
+      await taskOperations.deleteTaskFromSupabase(id);
+      setters.setTasks(prevTasks =>
+        prevTasks.filter(task => task.id !== id)
+      );
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast({
+        title: "エラー",
+        description: "タスクの削除に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const confirmDelete = () => {
+    if (state.deleteTarget) {
+      if (state.deleteTarget.type === 'task') {
+        deleteTask(state.deleteTarget.id);
+      } else if (state.deleteTarget.type === 'group') {
+        deleteGroup(state.deleteTarget.id);
+      }
+      setters.setDeleteTarget(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setters.setDeleteTarget(null);
   };
 
   return {
@@ -143,7 +202,22 @@ export const useTaskManager = (): TaskManagerOperations & {
     setEditingGroupId: setters.setEditingGroupId,
     setAddingSubtaskId: setters.setAddingSubtaskId,
     addTask,
-    toggleGroupCollapse,
+    toggleTask,
+    updateTaskTitle,
+    deleteTask,
+    confirmDelete,
+    cancelDelete,
+    toggleGroupCollapse: (groupId: number) => {
+      setters.setCollapsedGroups(prev => {
+        const newCollapsed = new Set(prev);
+        if (newCollapsed.has(groupId)) {
+          newCollapsed.delete(groupId);
+        } else {
+          newCollapsed.add(groupId);
+        }
+        return newCollapsed;
+      });
+    },
     deleteGroup: (id: number) => {
       try {
         const groupToDelete = state.groups.find(g => g.id === id);
