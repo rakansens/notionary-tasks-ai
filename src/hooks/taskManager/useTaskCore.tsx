@@ -18,11 +18,13 @@ export const useTaskCore = (
     if (!trimmedTask) return;
 
     try {
+      const parentTask = parentId ? taskOperations.findTaskById(tasks, parentId) : null;
       const newTask = taskOperations.createNewTask(
         trimmedTask,
         groupId,
         parentId,
-        tasks.length
+        tasks.length,
+        parentTask
       );
 
       const savedTask = await taskOperations.addTaskToSupabase({
@@ -34,13 +36,18 @@ export const useTaskCore = (
         hierarchyLevel: newTask.hierarchyLevel,
       });
 
-      const taskWithId: Task = { ...newTask, id: savedTask.id };
-      setTasks((prevTasks: Task[]) => [...prevTasks, taskWithId]);
+      const taskWithId: Task = { 
+        ...newTask, 
+        id: savedTask.id,
+        addedAt: new Date(),
+        subtasks: []
+      };
 
-      const parentTask = parentId ? taskOperations.findTaskById(tasks, parentId) : undefined;
+      setTasks(prevTasks => [...prevTasks, taskWithId]);
+
       const group = groupId ? groups.find(g => g.id === groupId) : undefined;
 
-      taskEvents.emitTaskAdded(taskWithId, parentTask, group);
+      taskEvents.emitTaskAdded(taskWithId, parentTask || undefined, group);
     } catch (error) {
       console.error('Error adding task:', error);
       toast({
@@ -58,7 +65,7 @@ export const useTaskCore = (
 
       await taskOperations.toggleTaskInSupabase(id, !taskToToggle.completed);
       
-      setTasks((prevTasks: Task[]) => 
+      setTasks(prevTasks => 
         prevTasks.map(task =>
           task.id === id ? { ...task, completed: !task.completed } : task
         )
@@ -84,7 +91,7 @@ export const useTaskCore = (
     try {
       await taskOperations.updateTaskTitleInSupabase(id, title);
       
-      setTasks((prevTasks: Task[]) =>
+      setTasks(prevTasks => 
         prevTasks.map(task =>
           task.id === id ? { ...task, title } : task
         )
@@ -111,7 +118,7 @@ export const useTaskCore = (
 
       taskEvents.emitTaskDeleted(taskToDelete, parentTask, group);
 
-      setTasks((prevTasks: Task[]) => prevTasks.filter(task => task.id !== id));
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
     } catch (error) {
       console.error('Error deleting task:', error);
       toast({
