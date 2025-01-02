@@ -42,12 +42,7 @@ export const TaskInput = ({
     }
 
     if (isGroupMode) {
-      // グループ追加のイベントを発火
-      window.dispatchEvent(new CustomEvent('addGroup', {
-        detail: {
-          name: trimmedValue,
-        }
-      }));
+      onSubmit();
     } else {
       onSubmit();
       console.log(`タスク「${trimmedValue}」を追加しました${groupId ? `（グループID: ${groupId}）` : ''}`);
