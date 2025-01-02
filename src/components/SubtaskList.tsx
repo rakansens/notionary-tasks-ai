@@ -1,4 +1,4 @@
-import { Task } from "@/hooks/taskManager/types";
+import { Task } from "@/hooks/useTaskManager";
 import { DraggableTask } from "./DraggableTask";
 import { SubtaskDndContext } from "./subtask/SubtaskDndContext";
 import { SubtaskContainer } from "./subtask/SubtaskContainer";

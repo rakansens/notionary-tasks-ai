@@ -1,5 +1,4 @@
-import { useTaskManager } from "@/hooks/taskManager";
-import { Task, Group } from "@/hooks/taskManager/types";
+import { useTaskManager, Task, Group } from "@/hooks/useTaskManager";
 import { useDragAndDrop } from "@/hooks/dragAndDrop/useDragAndDrop";
 import { TaskContainer } from "./task/TaskContainer";
 
