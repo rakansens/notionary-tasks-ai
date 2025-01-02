@@ -36,8 +36,11 @@ export const useTaskOperations = () => {
 
   const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt" | "subtasks">) => {
     try {
+      // サブタスクの場合は subtasks テーブルに保存
+      const tableName = task.parentId ? 'subtasks' : 'tasks';
+      
       const { data, error } = await supabase
-        .from('tasks')
+        .from(tableName)
         .insert({
           title: task.title,
           completed: task.completed,
