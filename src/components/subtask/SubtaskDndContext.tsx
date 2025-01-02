@@ -1,10 +1,11 @@
 import { Task } from "@/hooks/taskManager/types";
-import { createContext, useContext } from "react";
+import { createContext, useContext, ReactNode } from "react";
 import { DndContext } from "@dnd-kit/core";
 
 interface SubtaskDndContextProps {
   subtasks: Task[];
   parentTask: Task;
+  children: ReactNode;
   onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
 }
 
@@ -12,7 +13,7 @@ const SubtaskDndContext = createContext<SubtaskDndContextProps | undefined>(unde
 
 export const SubtaskDndProvider: React.FC<SubtaskDndContextProps> = ({ children, subtasks, parentTask, onReorderSubtasks }) => {
   return (
-    <SubtaskDndContext.Provider value={{ subtasks, parentTask, onReorderSubtasks }}>
+    <SubtaskDndContext.Provider value={{ subtasks, parentTask, onReorderSubtasks, children }}>
       <DndContext>
         {children}
       </DndContext>
