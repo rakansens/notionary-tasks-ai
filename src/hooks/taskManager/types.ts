@@ -7,6 +7,7 @@ export interface Task {
   subtasks?: Task[];
   order: number;
   addedAt: Date;
+  hierarchyLevel: number;
 }
 
 export interface Group {

@@ -28,22 +28,27 @@ export const createNewTask = (
   groupId?: number,
   parentId?: number,
   order?: number
-): Task => ({
-  id: Date.now(),
-  title,
-  completed: false,
-  order: order || 0,
-  groupId,
-  parentId,
-  addedAt: new Date(),
-});
+): Task => {
+  const hierarchyLevel = parentId ? 1 : 0; // 親タスクがある場合は階層レベル1、ない場合は0
+  
+  return {
+    id: Date.now(),
+    title,
+    completed: false,
+    order: order || 0,
+    groupId,
+    parentId,
+    hierarchyLevel,
+    addedAt: new Date(),
+  };
+};
 
-export const updateTaskTitle = async (
+export const updateTaskTitle = (
   tasks: Task[],
   id: number,
   title: string,
   parentId?: number
-): Promise<Task[]> => {
+): Task[] => {
   const updateTaskTitleRecursive = (tasks: Task[]): Task[] => {
     return tasks.map(task => {
       if (task.id === id) {
@@ -62,11 +67,11 @@ export const updateTaskTitle = async (
   return updateTaskTitleRecursive(tasks);
 };
 
-export const deleteTask = async (
+export const deleteTask = (
   tasks: Task[],
   id: number,
   parentId?: number
-): Promise<Task[]> => {
+): Task[] => {
   const deleteTaskRecursive = (tasks: Task[]): Task[] => {
     if (parentId) {
       return tasks.map(task => {
