@@ -56,11 +56,9 @@ export const useTaskCore = (
 
       await taskOperations.toggleTaskInSupabase(id, !taskToToggle.completed);
       
-      setTasks(prevTasks => 
-        prevTasks.map(task =>
-          task.id === id ? { ...task, completed: !task.completed } : task
-        )
-      );
+      setTasks(tasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      ));
     } catch (error) {
       console.error('Error toggling task:', error);
       toast({
@@ -77,11 +75,9 @@ export const useTaskCore = (
     try {
       await taskOperations.updateTaskTitleInSupabase(id, title);
       
-      setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task.id === id ? { ...task, title } : task
-        )
-      );
+      setTasks(tasks.map(task =>
+        task.id === id ? { ...task, title } : task
+      ));
       setEditingTaskId(null);
     } catch (error) {
       console.error('Error updating task title:', error);
@@ -96,7 +92,7 @@ export const useTaskCore = (
   const deleteTask = async (id: number) => {
     try {
       await taskOperations.deleteTaskFromSupabase(id);
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+      setTasks(tasks.filter(task => task.id !== id));
     } catch (error) {
       console.error('Error deleting task:', error);
       toast({

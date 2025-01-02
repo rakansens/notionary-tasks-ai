@@ -9,7 +9,7 @@ export const useGroupCore = (
   setTasks: (tasks: any[]) => void,
   setNewGroup: (value: string) => void,
   setIsAddingGroup: (value: boolean) => void,
-  setDeleteTarget: (target: { type: string; id: number } | null) => void
+  setDeleteTarget: (target: { type: "task" | "group"; id: number } | null) => void
 ) => {
   const { toast } = useToast();
   const groupOperations = useGroupOperations();
@@ -32,7 +32,7 @@ export const useGroupCore = (
           order: savedGroup.order_position,
         };
         
-        setGroups(prevGroups => [...prevGroups, group]);
+        setGroups([...groups, group]);
         
         toast({
           title: "成功",
@@ -59,7 +59,7 @@ export const useGroupCore = (
 
       await deleteGroup(id);
 
-      setGroups(prevGroups => prevGroups.filter(g => g.id !== id));
+      setGroups(groups.filter(g => g.id !== id));
       setTasks(prevTasks => prevTasks.filter(t => t.groupId !== id));
 
       toast({
@@ -79,11 +79,9 @@ export const useGroupCore = (
   const updateGroupName = async (id: number, name: string) => {
     try {
       await groupOperations.updateGroupNameInSupabase(id, name);
-      setGroups(prevGroups =>
-        prevGroups.map(group =>
-          group.id === id ? { ...group, name } : group
-        )
-      );
+      setGroups(groups.map(group =>
+        group.id === id ? { ...group, name } : group
+      ));
     } catch (error) {
       console.error('Error updating group name:', error);
       toast({
