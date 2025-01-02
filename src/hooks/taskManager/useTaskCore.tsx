@@ -59,11 +59,10 @@ export const useTaskCore = (
 
       await taskOperations.toggleTaskInSupabase(id, !taskToToggle.completed);
       
-      setTasks(prevTasks => 
-        prevTasks.map(task =>
-          task.id === id ? { ...task, completed: !task.completed } : task
-        )
+      const updatedTasks = tasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
       );
+      setTasks(updatedTasks);
 
       const parentTask = parentId ? taskOperations.findTaskById(tasks, parentId) : undefined;
       const group = taskToToggle.groupId ? groups.find(g => g.id === taskToToggle.groupId) : undefined;
@@ -85,11 +84,10 @@ export const useTaskCore = (
     try {
       await taskOperations.updateTaskTitleInSupabase(id, title);
       
-      setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task.id === id ? { ...task, title } : task
-        )
+      const updatedTasks = tasks.map(task =>
+        task.id === id ? { ...task, title } : task
       );
+      setTasks(updatedTasks);
     } catch (error) {
       console.error('Error updating task title:', error);
       toast({
@@ -112,7 +110,7 @@ export const useTaskCore = (
 
       taskEvents.emitTaskDeleted(taskToDelete, parentTask, group);
 
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+      setTasks(tasks.filter(task => task.id !== id));
     } catch (error) {
       console.error('Error deleting task:', error);
       toast({

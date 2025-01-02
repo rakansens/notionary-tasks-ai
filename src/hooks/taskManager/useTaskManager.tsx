@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Task, Group, TaskManagerOperations } from './types';
+import { Task, Group, TaskManagerOperations, DeleteTarget } from './types';
 import { useTaskState } from './useTaskState';
 import { useTaskEvents } from './useTaskEvents';
 import { useToast } from "@/components/ui/use-toast";
@@ -20,7 +20,7 @@ export const useTaskManager = (): TaskManagerOperations & {
   editingTaskId: number | null;
   editingGroupId: number | null;
   addingSubtaskId: number | null;
-  deleteTarget: { type: string; id: number } | null;
+  deleteTarget: DeleteTarget | null;
   collapsedGroups: Set<number>;
   setNewTask: (value: string) => void;
   setNewGroup: (value: string) => void;
@@ -35,7 +35,18 @@ export const useTaskManager = (): TaskManagerOperations & {
   const taskOperations = useTaskOperations();
   const groupOperations = useGroupOperations();
 
-  const taskCore = useTaskCore(state.tasks, state.groups, setters.setTasks, setters.setDeleteTarget);
+  const taskCore = useTaskCore(
+    state.tasks,
+    state.groups,
+    setters.setTasks,
+    (target: { type: string; id: number } | null) => {
+      if (target === null) {
+        setters.setDeleteTarget(null);
+      } else {
+        setters.setDeleteTarget({ ...target, type: target.type as "task" | "group" });
+      }
+    }
+  );
 
   // 初期データの読み込み
   useEffect(() => {
@@ -137,6 +148,6 @@ export const useTaskManager = (): TaskManagerOperations & {
     addGroup: (name: string) => {
       window.dispatchEvent(new CustomEvent('addGroup', { detail: { name } }));
     },
-    updateGroupName: groupOperations.updateGroupName,
+    updateGroupName: (id: number, name: string) => groupOperations.updateGroupNameInSupabase(id, name),
   };
 };
