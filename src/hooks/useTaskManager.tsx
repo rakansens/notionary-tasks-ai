@@ -9,6 +9,8 @@ import { fetchInitialData } from './taskManager/supabaseOperations';
 import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './taskManager/mappers';
 import { deleteGroupFromState, cleanupTasksAfterGroupDelete, updateGroupOrder } from './taskManager/groupOperations';
 import { updateTaskOrder } from './taskManager/taskOperations';
+import { supabase } from "@/integrations/supabase/client";
+import { addGroupToSupabase } from './taskManager/groupOperations';
 
 export type { Task, Group };
 
@@ -59,52 +61,13 @@ export const useTaskManager = (): TaskManagerOperations & {
   const addGroup = async () => {
     if (!state.newGroup.trim()) return;
 
-    try {
-      console.log('Adding new group:', state.newGroup);
-      
-      const { data: savedGroup, error } = await supabase
-        .from('groups')
-        .insert({
-          name: state.newGroup,
-          order_position: state.groups.length,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error adding group:', error);
-        toast({
-          title: "エラー",
-          description: "グループの追加に失敗しました",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (savedGroup) {
-        const group = { 
-          id: savedGroup.id, 
-          name: savedGroup.name,
-          order: savedGroup.order_position 
-        };
-        setters.setGroups(prevGroups => [...prevGroups, group]);
-        taskEvents.emitGroupAdded(group);
-        
-        toast({
-          title: "成功",
-          description: "グループを追加しました",
-        });
-        
-        setters.setNewGroup("");
-        setters.setIsAddingGroup(false);
-      }
-    } catch (error) {
-      console.error('Error adding group:', error);
-      toast({
-        title: "エラー",
-        description: "グループの追加に失敗しました",
-        variant: "destructive",
-      });
+    const savedGroup = await addGroupToSupabase(state.newGroup, state.groups.length);
+    
+    if (savedGroup) {
+      setters.setGroups(prevGroups => [...prevGroups, savedGroup]);
+      taskEvents.emitGroupAdded(savedGroup);
+      setters.setNewGroup("");
+      setters.setIsAddingGroup(false);
     }
   };
 
@@ -116,7 +79,7 @@ export const useTaskManager = (): TaskManagerOperations & {
       console.log('Adding task with groupId:', groupId, 'parentId:', parentId);
       
       const { data: savedTask, error } = await supabase
-        .from('tasks')  // tasksテーブルに変更
+        .from('tasks')
         .insert({
           title: trimmedTask,
           completed: false,
@@ -224,58 +187,6 @@ export const useTaskManager = (): TaskManagerOperations & {
       setters.setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
     } catch (error) {
       console.error('Error deleting task:', error);
-    }
-  };
-
-  const addGroup = async () => {
-    if (!state.newGroup.trim()) return;
-
-    try {
-      console.log('Adding new group:', state.newGroup);
-      
-      const { data: savedGroup, error } = await supabase
-        .from('groups')
-        .insert({
-          name: state.newGroup,
-          order_position: state.groups.length,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error adding group:', error);
-        toast({
-          title: "エラー",
-          description: "グループの追加に失敗しました",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (savedGroup) {
-        const group = { 
-          id: savedGroup.id, 
-          name: savedGroup.name,
-          order: savedGroup.order_position 
-        };
-        setters.setGroups(prevGroups => [...prevGroups, group]);
-        taskEvents.emitGroupAdded(group);
-        
-        toast({
-          title: "成功",
-          description: "グループを追加しました",
-        });
-        
-        setters.setNewGroup("");
-        setters.setIsAddingGroup(false);
-      }
-    } catch (error) {
-      console.error('Error adding group:', error);
-      toast({
-        title: "エラー",
-        description: "グループの追加に失敗しました",
-        variant: "destructive",
-      });
     }
   };
 
