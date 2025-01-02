@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useTaskManager } from "@/hooks/useTaskManager";
 
 interface Message {
   id: number;
@@ -18,6 +19,7 @@ export const ChatSection = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { tasks, groups } = useTaskManager();
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -34,7 +36,11 @@ export const ChatSection = () => {
     
     try {
       const { data, error } = await supabase.functions.invoke('chat-with-gemini', {
-        body: { message: input }
+        body: { 
+          message: input,
+          tasks,
+          groups
+        }
       });
 
       if (error) throw error;

@@ -2,7 +2,6 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,9 +14,24 @@ serve(async (req) => {
   }
 
   try {
-    const { message } = await req.json();
+    const { message, tasks, groups } = await req.json();
 
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+    // タスクとグループの情報をコンテキストとして整形
+    const taskContext = tasks.map(task => {
+      const group = groups.find(g => g.id === task.groupId);
+      return `- ${task.title} (${task.completed ? '完了' : '未完了'})${group ? ` [グループ: ${group.name}]` : ''}`;
+    }).join('\n');
+
+    const contextPrompt = `
+以下のタスク情報を参考にして回答してください：
+
+${taskContext}
+
+ユーザーからの質問：${message}`;
+
+    console.log('Sending to Gemini API with context:', contextPrompt);
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -25,7 +39,7 @@ serve(async (req) => {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: message
+            text: contextPrompt
           }]
         }]
       })
