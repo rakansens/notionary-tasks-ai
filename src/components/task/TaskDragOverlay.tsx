@@ -1,5 +1,5 @@
 import { Task, Group } from "@/hooks/taskManager/types";
-import { TaskItem } from "./TaskItem";
+import { TaskItem } from "@/components/TaskItem";
 import { Folder } from "lucide-react";
 
 interface TaskDragOverlayProps {
