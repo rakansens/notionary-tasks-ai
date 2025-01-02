@@ -173,8 +173,13 @@ export const useTaskManager = (): TaskManagerOperations & {
       const savedGroup = await groupOperations.addGroupToSupabase(newGroup);
       console.log('Group saved to Supabase:', savedGroup);
       
-      if (savedGroup) {
-        const group = { ...newGroup, id: savedGroup.id };
+      if (savedGroup && savedGroup.id) {
+        const group: Group = {
+          id: savedGroup.id,
+          name: savedGroup.name,
+          order: savedGroup.order_position,
+        };
+        
         setters.setGroups(prevGroups => [...prevGroups, group]);
         taskEvents.emitGroupAdded(group);
         
