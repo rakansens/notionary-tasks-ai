@@ -1,6 +1,7 @@
-import { Task, Group } from './types';
+import { Tables } from "@/integrations/supabase/types";
+import { Task, Group } from "./types";
 
-export const mapSupabaseTaskToTask = (task: any): Task => ({
+export const mapSupabaseTaskToTask = (task: Tables<"tasks">): Task => ({
   id: task.id,
   title: task.title,
   completed: task.completed,
@@ -8,10 +9,9 @@ export const mapSupabaseTaskToTask = (task: any): Task => ({
   groupId: task.group_id,
   parentId: task.parent_id,
   hierarchyLevel: task.hierarchy_level,
-  addedAt: new Date(task.created_at),
 });
 
-export const mapSupabaseGroupToGroup = (group: any): Group => ({
+export const mapSupabaseGroupToGroup = (group: Tables<"groups">): Group => ({
   id: group.id,
   name: group.name,
   order: group.order_position,

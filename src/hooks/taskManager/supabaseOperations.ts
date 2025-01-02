@@ -10,6 +10,7 @@ export const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt">) => {
       order_position: task.order,
       group_id: task.groupId,
       parent_id: task.parentId,
+      hierarchy_level: task.hierarchyLevel,
     })
     .select()
     .single();
