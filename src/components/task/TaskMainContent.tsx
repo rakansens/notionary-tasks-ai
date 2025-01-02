@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DraggableTask } from "../DraggableTask";
 import { GroupList } from "../GroupList";
@@ -10,6 +11,8 @@ import {
   useSensor,
   useSensors,
   closestCenter,
+  DragStartEvent,
+  DragEndEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
