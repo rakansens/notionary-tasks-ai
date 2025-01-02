@@ -87,7 +87,9 @@ export const useTaskManager = (): TaskManagerOperations & {
           group_id: newTask.groupId,
           parent_id: parentId,
           hierarchy_level: hierarchyLevel,
-          parent_title: parentTask?.title || null
+          parent_title: parentTask?.title || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
 
         const { data: savedSubtask, error } = await supabase
@@ -116,7 +118,9 @@ export const useTaskManager = (): TaskManagerOperations & {
           order_position: newTask.order,
           group_id: newTask.groupId,
           parent_id: newTask.parentId,
-          hierarchy_level: hierarchyLevel
+          hierarchy_level: hierarchyLevel,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
 
         const { data: savedTask, error } = await supabase

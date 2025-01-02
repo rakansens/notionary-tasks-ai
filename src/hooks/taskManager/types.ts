@@ -1,3 +1,5 @@
+import { Database } from "@/integrations/supabase/types";
+
 export interface Task {
   id: number;
   title: string;
@@ -46,21 +48,5 @@ export interface TaskEventData {
   hierarchyLevel: number;
 }
 
-export interface SubtaskInsertData {
-  title: string;
-  completed: boolean;
-  order_position: number;
-  group_id: number | null;
-  parent_id: number | null;
-  hierarchy_level: number;
-  parent_title: string | null;
-}
-
-export interface TaskInsertData {
-  title: string;
-  completed: boolean;
-  order_position: number;
-  group_id: number | null;
-  parent_id: number | null;
-  hierarchy_level: number;
-}
+export type SubtaskInsertData = Database["public"]["Tables"]["subtasks"]["Insert"];
+export type TaskInsertData = Database["public"]["Tables"]["tasks"]["Insert"];
