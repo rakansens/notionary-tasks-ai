@@ -143,7 +143,13 @@ ${message}`;
 
     const generatedText = data.candidates[0].content.parts[0].text;
 
-    return new Response(JSON.stringify({ response: generatedText }), {
+    // タスク提案を抽出（実際のAIの応答から提案を解析する処理を実装）
+    const suggestions = extractSuggestions(generatedText);
+
+    return new Response(JSON.stringify({ 
+      response: generatedText,
+      suggestions: suggestions
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
@@ -154,3 +160,18 @@ ${message}`;
     });
   }
 });
+
+// タスク提案を抽出する関数
+function extractSuggestions(text: string) {
+  // この部分は実際のAIの応答フォーマットに合わせて実装する必要があります
+  // 現在は簡易的な実装として、文章から「- 」で始まる行をタスクとして抽出
+  const suggestions = text
+    .split('\n')
+    .filter(line => line.trim().startsWith('- '))
+    .map((line, index) => ({
+      id: Date.now() + index,
+      title: line.trim().replace(/^- /, ''),
+    }));
+
+  return suggestions;
+}

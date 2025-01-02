@@ -7,11 +7,20 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useTaskManager } from "@/hooks/useTaskManager";
+import { TaskSuggestion } from "./TaskSuggestion";
 
 interface Message {
   id: number;
   text: string;
   isUser: boolean;
+  suggestions?: Array<{
+    id: number;
+    title: string;
+    subtasks?: Array<{
+      id: number;
+      title: string;
+    }>;
+  }>;
 }
 
 export const ChatSection = () => {
@@ -19,7 +28,7 @@ export const ChatSection = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { tasks, groups } = useTaskManager();
+  const { tasks, groups, addTask } = useTaskManager();
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -49,6 +58,7 @@ export const ChatSection = () => {
         id: Date.now() + 1,
         text: data.response,
         isUser: false,
+        suggestions: data.suggestions,
       };
       
       setMessages(prev => [...prev, aiResponse]);
@@ -64,6 +74,14 @@ export const ChatSection = () => {
     }
   };
 
+  const handleAddSuggestion = (suggestion: any) => {
+    addTask(undefined, undefined, suggestion.title);
+    toast({
+      title: "タスクを追加しました",
+      description: `「${suggestion.title}」をタスクリストに追加しました。`,
+    });
+  };
+
   return (
     <div className="flex flex-col h-full bg-background">
       <div className="p-6 border-b">
@@ -73,23 +91,35 @@ export const ChatSection = () => {
       <ScrollArea className="flex-1 p-6">
         <div className="space-y-4">
           {messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex",
-                message.isUser ? "justify-end" : "justify-start"
-              )}
-            >
+            <div key={message.id}>
               <div
                 className={cn(
-                  "max-w-[80%] p-4 rounded-lg transition-all duration-200",
-                  message.isUser
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground"
+                  "flex",
+                  message.isUser ? "justify-end" : "justify-start"
                 )}
               >
-                {message.text}
+                <div
+                  className={cn(
+                    "max-w-[80%] p-4 rounded-lg transition-all duration-200",
+                    message.isUser
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-foreground"
+                  )}
+                >
+                  {message.text}
+                </div>
               </div>
+              {!message.isUser && message.suggestions && message.suggestions.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {message.suggestions.map((suggestion) => (
+                    <TaskSuggestion
+                      key={suggestion.id}
+                      suggestion={suggestion}
+                      onAdd={handleAddSuggestion}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
