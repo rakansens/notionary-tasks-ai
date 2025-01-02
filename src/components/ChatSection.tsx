@@ -1,12 +1,18 @@
 import { useState } from "react";
+import { Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useTaskManager } from "@/hooks/useTaskManager";
-import { ChatMessage } from "./chat/ChatMessage";
-import { ChatInput } from "./chat/ChatInput";
-import { Message } from "@/types/messages";
+
+interface Message {
+  id: number;
+  text: string;
+  isUser: boolean;
+}
 
 export const ChatSection = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -39,16 +45,10 @@ export const ChatSection = () => {
 
       if (error) throw error;
 
-      const isTaskAnalysis = data.response.includes("優先度の高いタスク") || 
-                            data.response.includes("優先度の低いタスク");
-
-      const parsedTasks = isTaskAnalysis ? parseTaskAnalysis(data.response) : null;
-
       const aiResponse: Message = {
         id: Date.now() + 1,
         text: data.response,
         isUser: false,
-        taskAnalysis: parsedTasks
       };
       
       setMessages(prev => [...prev, aiResponse]);
@@ -62,111 +62,6 @@ export const ChatSection = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const parseTaskAnalysis = (text: string) => {
-    const tasks: any[] = [];
-    
-    // 緊急タスクの抽出
-    const urgentMatch = text.match(/緊急タスク：([\s\S]*?)(?=高|優先度の高いタスク|$)/);
-    if (urgentMatch) {
-      const urgentTasks = urgentMatch[1].match(/\* ([^\n]+)/g);
-      urgentTasks?.forEach(task => {
-        const title = task.replace('* ', '').trim();
-        tasks.push({ title, priority: 'urgent' });
-      });
-    }
-
-    // 高優先度タスクの抽出
-    const highPriorityMatch = text.match(/優先度の高いタスク：([\s\S]*?)(?=中|優先度の中程度のタスク|優先度の低いタスク|$)/);
-    if (highPriorityMatch) {
-      const highPriorityTasks = highPriorityMatch[1].match(/\* ([^\n]+)/g);
-      highPriorityTasks?.forEach(task => {
-        const title = task.replace('* ', '').trim();
-        tasks.push({ title, priority: 'high' });
-      });
-    }
-
-    // 中優先度タスクの抽出
-    const mediumPriorityMatch = text.match(/優先度の中程度のタスク：([\s\S]*?)(?=低|優先度の低いタスク|$)/);
-    if (mediumPriorityMatch) {
-      const mediumPriorityTasks = mediumPriorityMatch[1].match(/\* ([^\n]+)/g);
-      mediumPriorityTasks?.forEach(task => {
-        const title = task.replace('* ', '').trim();
-        tasks.push({ title, priority: 'medium' });
-      });
-    }
-
-    // 低優先度タスクの抽出
-    const lowPriorityMatch = text.match(/優先度の低いタスク：([\s\S]*?)(?=依存関係|$)/);
-    if (lowPriorityMatch) {
-      const lowPriorityTasks = lowPriorityMatch[1].match(/\* ([^\n]+)/g);
-      lowPriorityTasks?.forEach(task => {
-        const title = task.replace('* ', '').trim();
-        tasks.push({ title, priority: 'low' });
-      });
-    }
-
-    // 依存関係の抽出と設定
-    const dependenciesMatch = text.match(/依存関係：([\s\S]*?)(?=最適化されたタスクリスト|$)/);
-    if (dependenciesMatch) {
-      const dependencies = dependenciesMatch[1].match(/\* ([^\n]+)/g);
-      dependencies?.forEach(dep => {
-        const depText = dep.replace('* ', '').trim();
-        const [taskTitle, dependsOn] = depText.split('は、');
-        const task = tasks.find(t => t.title.includes(taskTitle));
-        if (task) {
-          task.dependencies = task.dependencies || [];
-          task.dependencies.push(dependsOn.replace('後に', '').replace('する必要があります。', ''));
-        }
-      });
-    }
-
-    // コンテキストの抽出
-    const workMatch = text.match(/仕事：([\s\S]*?)(?=個人|$)/);
-    if (workMatch) {
-      const workTasks = workMatch[1].match(/\* ([^\n]+)/g);
-      workTasks?.forEach(taskText => {
-        const title = taskText.replace('* ', '').trim();
-        const task = tasks.find(t => t.title === title);
-        if (task) {
-          task.context = 'work';
-        }
-      });
-    }
-
-    const personalMatch = text.match(/個人：([\s\S]*?)(?=優先度|$)/);
-    if (personalMatch) {
-      const personalTasks = personalMatch[1].match(/\* ([^\n]+)/g);
-      personalTasks?.forEach(taskText => {
-        const title = taskText.replace('* ', '').trim();
-        const task = tasks.find(t => t.title === title);
-        if (task) {
-          task.context = 'personal';
-        }
-      });
-    }
-
-    // グループの抽出
-    const projectMatch = text.match(/プロジェクト：([\s\S]*?)(?=コンテキスト別|$)/);
-    if (projectMatch) {
-      let currentGroup = '';
-      const lines = projectMatch[1].split('\n');
-      lines.forEach(line => {
-        if (line.startsWith('* ')) {
-          const groupName = line.replace('* ', '').trim();
-          currentGroup = groupName;
-        } else if (line.startsWith('  * ')) {
-          const title = line.replace('  * ', '').trim();
-          const task = tasks.find(t => t.title === title);
-          if (task) {
-            task.group = currentGroup;
-          }
-        }
-      });
-    }
-
-    return tasks;
   };
 
   return (
@@ -185,18 +80,40 @@ export const ChatSection = () => {
                 message.isUser ? "justify-end" : "justify-start"
               )}
             >
-              <ChatMessage message={message} />
+              <div
+                className={cn(
+                  "max-w-[80%] p-4 rounded-lg transition-all duration-200",
+                  message.isUser
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground"
+                )}
+              >
+                {message.text}
+              </div>
             </div>
           ))}
         </div>
       </ScrollArea>
       
-      <ChatInput
-        input={input}
-        isLoading={isLoading}
-        onInputChange={setInput}
-        onSend={handleSend}
-      />
+      <div className="p-6 border-t">
+        <div className="flex gap-3">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && !isLoading && handleSend()}
+            placeholder="メッセージを入力..."
+            className="flex-1"
+            disabled={isLoading}
+          />
+          <Button 
+            onClick={handleSend} 
+            size="icon"
+            disabled={isLoading}
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
