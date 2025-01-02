@@ -24,6 +24,7 @@ export const useTaskOperations = () => {
     groupId,
     parentId,
     order: order || 0,
+    hierarchyLevel: parentId ? 1 : 0,
     addedAt: new Date(),
   });
 

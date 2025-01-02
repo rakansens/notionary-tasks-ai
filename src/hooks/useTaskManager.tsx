@@ -78,6 +78,7 @@ export const useTaskManager = (): TaskManagerOperations & {
         order: newTask.order,
         groupId: newTask.groupId,
         parentId: newTask.parentId,
+        hierarchyLevel: newTask.hierarchyLevel,
       });
 
       const taskWithId: Task = { ...newTask, id: savedTask.id };
