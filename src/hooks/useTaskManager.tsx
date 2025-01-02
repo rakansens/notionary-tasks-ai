@@ -37,53 +37,6 @@ export const useTaskManager = (): TaskManagerOperations & {
   const groupOperations = useGroupOperations();
 
   useEffect(() => {
-    const handleAddGroup = async (event: CustomEvent) => {
-      const { name } = event.detail;
-      if (!name.trim()) return;
-
-      try {
-        const newGroup: Omit<Group, "id"> = {
-          name: name.trim(),
-          order: state.groups.length,
-        };
-
-        const savedGroup = await groupOperations.addGroupToSupabase(newGroup);
-        console.log('Group saved to Supabase:', savedGroup);
-        
-        if (savedGroup && savedGroup.id) {
-          const group: Group = {
-            id: savedGroup.id,
-            name: savedGroup.name,
-            order: savedGroup.order_position,
-          };
-          
-          setters.setGroups(prevGroups => [...prevGroups, group]);
-          taskEvents.emitGroupAdded(group);
-          
-          toast({
-            title: "成功",
-            description: `グループ「${name.trim()}」を追加しました`,
-          });
-          
-          window.dispatchEvent(new CustomEvent('groupAdded'));
-        }
-      } catch (error) {
-        console.error('Error adding group:', error);
-        toast({
-          title: "エラー",
-          description: "グループの追加に失敗しました",
-          variant: "destructive",
-        });
-      }
-    };
-
-    window.addEventListener('addGroup', handleAddGroup as EventListener);
-    return () => {
-      window.removeEventListener('addGroup', handleAddGroup as EventListener);
-    };
-  }, [state.groups.length, groupOperations, taskEvents, toast, setters]);
-
-  useEffect(() => {
     const loadInitialData = async () => {
       try {
         const { tasks, groups } = await fetchInitialData();
@@ -268,6 +221,46 @@ export const useTaskManager = (): TaskManagerOperations & {
     });
   };
 
+  const addNewGroup = async (name: string) => {
+    if (!name.trim()) return;
+
+    try {
+      const newGroup: Omit<Group, "id"> = {
+        name: name.trim(),
+        order: state.groups.length,
+      };
+
+      const savedGroup = await groupOperations.addGroupToSupabase(newGroup);
+      console.log('Group saved to Supabase:', savedGroup);
+      
+      if (savedGroup && savedGroup.id) {
+        const group: Group = {
+          id: savedGroup.id,
+          name: savedGroup.name,
+          order: savedGroup.order_position,
+        };
+        
+        setters.setGroups(prevGroups => [...prevGroups, group]);
+        taskEvents.emitGroupAdded(group);
+        
+        toast({
+          title: "成功",
+          description: `グループ「${name.trim()}」を追加しました`,
+        });
+        
+        setters.setNewGroup("");
+        setters.setIsAddingGroup(false);
+      }
+    } catch (error) {
+      console.error('Error adding group:', error);
+      toast({
+        title: "エラー",
+        description: "グループの追加に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
   return {
     tasks: state.tasks,
     groups: state.groups,
@@ -295,9 +288,7 @@ export const useTaskManager = (): TaskManagerOperations & {
     updateTaskOrder: (tasks: Task[]) => updateTaskOrder(tasks, setters.setTasks),
     updateGroupOrder: (groups: Group[]) => updateGroupOrder(groups, setters.setGroups),
     toggleGroupCollapse,
-    addGroup: (name: string) => {
-      window.dispatchEvent(new CustomEvent('addGroup', { detail: { name } }));
-    },
+    addGroup: addNewGroup,
     updateGroupName: async (id: number, name: string) => {
       try {
         await groupOperations.updateGroupNameInSupabase(id, name);
