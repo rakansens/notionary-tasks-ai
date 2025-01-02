@@ -1,6 +1,7 @@
 import { GripVertical, Folder, FolderOpen, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Group } from "@/hooks/useTaskManager";
+import { useState, useEffect } from "react";
 
 interface GroupHeaderProps {
   group: Group;
@@ -29,6 +30,19 @@ export const GroupHeader = ({
   addTask,
   setNewTask,
 }: GroupHeaderProps) => {
+  const [editingName, setEditingName] = useState(group.name);
+
+  useEffect(() => {
+    setEditingName(group.name);
+  }, [group.name]);
+
+  const handleEditComplete = () => {
+    if (editingName.trim()) {
+      updateGroupName(group.id, editingName.trim());
+      setEditingGroupId(null);
+    }
+  };
+
   return (
     <div className="flex items-center justify-between mb-2">
       <div className="flex items-center gap-2">
@@ -51,11 +65,14 @@ export const GroupHeader = ({
         </button>
         {editingGroupId === group.id ? (
           <Input
-            value={group.name}
-            onChange={e => updateGroupName(group.id, e.target.value)}
-            onBlur={() => setEditingGroupId(null)}
+            value={editingName}
+            onChange={e => setEditingName(e.target.value)}
+            onBlur={handleEditComplete}
             onKeyDown={e => {
               if (e.key === "Enter") {
+                handleEditComplete();
+              } else if (e.key === "Escape") {
+                setEditingName(group.name);
                 setEditingGroupId(null);
               }
             }}
