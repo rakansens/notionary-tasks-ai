@@ -7,8 +7,7 @@ import { useTaskCRUD } from './taskManager/useTaskCRUD';
 import { useGroupCRUD } from './taskManager/useGroupCRUD';
 import { fetchInitialData } from './taskManager/supabaseOperations';
 import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './taskManager/mappers';
-import { deleteGroupFromState, cleanupTasksAfterGroupDelete, updateGroupOrder, addGroupToSupabase } from './taskManager/groupOperations';
-import { updateTaskOrder } from './taskManager/taskOperations';
+import { buildTaskHierarchy } from './taskManager/taskOperations';
 import { supabase } from "@/integrations/supabase/client";
 
 export type { Task, Group };
@@ -55,7 +54,10 @@ export const useTaskManager = (): TaskManagerOperations & {
     const loadInitialData = async () => {
       try {
         const { tasks, groups } = await fetchInitialData();
-        setters.setTasks(tasks.map(mapSupabaseTaskToTask));
+        const mappedTasks = tasks.map(mapSupabaseTaskToTask);
+        const hierarchicalTasks = buildTaskHierarchy(mappedTasks);
+        console.log('Hierarchical tasks:', hierarchicalTasks);
+        setters.setTasks(hierarchicalTasks);
         setters.setGroups(groups.map(mapSupabaseGroupToGroup));
       } catch (error) {
         console.error('Error loading initial data:', error);
