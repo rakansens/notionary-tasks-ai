@@ -1,4 +1,4 @@
-import { Group, Task } from "./types";
+import { Group } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -17,17 +17,20 @@ export const updateGroupOrder = async (groups: Group[], setGroups: (groups: Grou
       order: index,
     }));
 
-    const { error } = await supabase
-      .from('groups')
-      .upsert(
-        updatedGroups.map(group => ({
-          id: group.id,
-          name: group.name,
-          order_position: group.order,
-        }))
-      );
+    const updates = updatedGroups.map(group => ({
+      name: group.name,
+      order_position: group.order,
+    }));
 
-    if (error) throw error;
+    for (const [index, group] of updatedGroups.entries()) {
+      const { error } = await supabase
+        .from('groups')
+        .update(updates[index])
+        .eq('id', group.id);
+
+      if (error) throw error;
+    }
+
     setGroups(updatedGroups);
   } catch (error) {
     console.error('Error updating group order:', error);
