@@ -36,6 +36,8 @@ export const useTaskOperations = () => {
 
   const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt" | "subtasks">) => {
     try {
+      console.log('Adding task to Supabase:', task);
+      
       const { data, error } = await supabase
         .from('tasks')
         .insert({
@@ -54,6 +56,7 @@ export const useTaskOperations = () => {
         throw error;
       }
 
+      console.log('Task added successfully:', data);
       return data;
     } catch (error) {
       console.error('Error adding task:', error);
