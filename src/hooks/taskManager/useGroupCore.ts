@@ -6,7 +6,7 @@ import { deleteGroup } from "./groupOperations";
 export const useGroupCore = (
   groups: Group[],
   setGroups: (groups: Group[]) => void,
-  setTasks: (tasks: Task[]) => void,
+  setTasks: (tasks: Task[] | ((prevTasks: Task[]) => Task[])) => void,
   setNewGroup: (value: string) => void,
   setIsAddingGroup: (value: boolean) => void,
   setDeleteTarget: (target: { type: "task" | "group"; id: number } | null) => void
@@ -60,7 +60,7 @@ export const useGroupCore = (
       await deleteGroup(id);
 
       setGroups(groups.filter(g => g.id !== id));
-      setTasks(tasks => tasks.filter(t => t.groupId !== id));
+      setTasks(prevTasks => prevTasks.filter(t => t.groupId !== id));
 
       toast({
         title: "成功",
