@@ -1,13 +1,14 @@
 import { Task, Group } from "./types";
 import { useEffect } from "react";
 import { taskEventEmitter } from "@/utils/taskEventEmitter";
+import { TaskEventType } from "@/types/taskEvents";
 
 export const useTaskEvents = () => {
   useEffect(() => {
     const handleGroupAdded = (event: CustomEvent) => {
       console.log('Group added event received:', event.detail);
       taskEventEmitter.emit('GROUP_ADDED', {
-        type: 'GROUP_ADDED',
+        type: 'GROUP_ADDED' as const,
         title: event.detail.name,
         timestamp: event.detail.addedAt,
       });
@@ -22,7 +23,7 @@ export const useTaskEvents = () => {
 
   const emitTaskAdded = (task: Task, parentTask?: Task, group?: Group) => {
     const eventData = {
-      type: 'TASK_ADDED',
+      type: 'TASK_ADDED' as const,
       title: task.title,
       parentTask: parentTask?.title,
       groupName: group?.name,
@@ -41,7 +42,7 @@ export const useTaskEvents = () => {
 
   const emitTaskCompleted = (task: Task, parentTask?: Task, group?: Group) => {
     const eventData = {
-      type: 'TASK_COMPLETED',
+      type: 'TASK_COMPLETED' as const,
       title: task.title,
       parentTask: parentTask?.title,
       groupName: group?.name,
@@ -53,7 +54,7 @@ export const useTaskEvents = () => {
 
   const emitTaskDeleted = (task: Task, parentTask?: Task, group?: Group) => {
     const eventData = {
-      type: 'TASK_DELETED',
+      type: 'TASK_DELETED' as const,
       title: task.title,
       timestamp: new Date(),
     };
@@ -64,7 +65,7 @@ export const useTaskEvents = () => {
 
   const emitGroupAdded = (group: Group) => {
     const eventData = {
-      type: 'GROUP_ADDED',
+      type: 'GROUP_ADDED' as const,
       title: group.name,
       timestamp: new Date(),
     };
@@ -75,7 +76,7 @@ export const useTaskEvents = () => {
 
   const emitGroupDeleted = (group: Group) => {
     const eventData = {
-      type: 'GROUP_DELETED',
+      type: 'GROUP_DELETED' as const,
       title: group.name,
       timestamp: new Date(),
     };
