@@ -16,18 +16,44 @@ serve(async (req) => {
   try {
     const { message, tasks, groups } = await req.json();
 
-    // タスクとグループの情報をコンテキストとして整形
-    const taskContext = tasks.map(task => {
-      const group = groups.find(g => g.id === task.groupId);
-      return `- ${task.title} (${task.completed ? '完了' : '未完了'})${group ? ` [グループ: ${group.name}]` : ''}`;
-    }).join('\n');
+    // タスクとグループの情報をより詳細なコンテキストとして整形
+    const groupedTasks = groups.map(group => {
+      const groupTasks = tasks
+        .filter(task => task.groupId === group.id)
+        .map(task => {
+          const subtasks = task.subtasks 
+            ? `\n    サブタスク:\n      ${task.subtasks
+                .map(st => `- ${st.title} (${st.completed ? '完了' : '未完了'})`)
+                .join('\n      ')}`
+            : '';
+          return `  - ${task.title} (${task.completed ? '完了' : '未完了'})${subtasks}`;
+        })
+        .join('\n');
+      return `グループ「${group.name}」:\n${groupTasks}`;
+    }).join('\n\n');
+
+    const ungroupedTasks = tasks
+      .filter(task => !task.groupId && !task.parentId)
+      .map(task => {
+        const subtasks = task.subtasks 
+          ? `\n  サブタスク:\n    ${task.subtasks
+              .map(st => `- ${st.title} (${st.completed ? '完了' : '未完了'})`)
+              .join('\n    ')}`
+          : '';
+        return `- ${task.title} (${task.completed ? '完了' : '未完了'})${subtasks}`;
+      })
+      .join('\n');
 
     const contextPrompt = `
-以下のタスク情報を参考にして回答してください：
+現在のタスク状況は以下の通りです：
 
-${taskContext}
+${groupedTasks}
 
-ユーザーからの質問：${message}`;
+グループに属さないタスク：
+${ungroupedTasks}
+
+上記の情報を踏まえて、以下の質問に答えてください：
+${message}`;
 
     console.log('Sending to Gemini API with context:', contextPrompt);
 
@@ -41,12 +67,22 @@ ${taskContext}
           parts: [{
             text: contextPrompt
           }]
-        }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
+        }
       })
     });
 
     const data = await response.json();
     console.log('Gemini API Response:', data);
+
+    if (!data.candidates || data.candidates.length === 0) {
+      throw new Error('No response from Gemini API');
+    }
 
     const generatedText = data.candidates[0].content.parts[0].text;
 
