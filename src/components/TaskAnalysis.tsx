@@ -53,7 +53,7 @@ export const TaskAnalysis = ({ tasks }: TaskAnalysisProps) => {
   };
 
   const handleAddTask = (task: Task) => {
-    addTask(task.title); // 修正：引数を1つだけにしました
+    addTask(undefined, undefined); // グループIDとparentIDはundefinedで渡す
     toast({
       title: "タスクを追加しました",
       description: `「${task.title}」を追加しました`,
@@ -81,7 +81,7 @@ export const TaskAnalysis = ({ tasks }: TaskAnalysisProps) => {
                   {priorityTasks.map((task, index) => (
                     <div
                       key={index}
-                      className={`p-3 rounded-lg border ${getPriorityColor(priority)} flex items-center justify-between`}
+                      className={`p-3 rounded-lg border ${getPriorityColor(priority)} flex items-center justify-between group hover:border-notion-primary/50 transition-colors duration-200`}
                     >
                       <div className="space-y-1">
                         <div className="font-medium">{task.title}</div>
@@ -102,9 +102,9 @@ export const TaskAnalysis = ({ tasks }: TaskAnalysisProps) => {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleAddTask(task)}
-                        className="ml-2"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-4 w-4 text-notion-secondary group-hover:text-notion-primary group-hover:scale-110 transition-all duration-200" />
                       </Button>
                     </div>
                   ))}
