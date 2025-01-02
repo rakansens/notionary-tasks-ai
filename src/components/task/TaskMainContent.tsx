@@ -1,7 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DraggableTask } from "../DraggableTask";
 import { GroupList } from "../GroupList";
-import { Task, Group } from "@/hooks/taskManager/types";
+import { Task, Group } from "@/hooks/useTaskManager";
 import {
   DragOverlay,
   DndContext,
@@ -11,7 +11,6 @@ import {
   useSensors,
   closestCenter,
 } from "@dnd-kit/core";
-
 import {
   SortableContext,
   sortableKeyboardCoordinates,

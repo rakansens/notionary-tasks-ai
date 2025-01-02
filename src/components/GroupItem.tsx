@@ -1,7 +1,7 @@
 import { Folder, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { Group } from "@/hooks/taskManager/types";
+import type { Group } from "@/hooks/useTaskManager";
 
 interface GroupItemProps {
   group: Group;

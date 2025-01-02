@@ -1,6 +1,6 @@
 import { GripVertical, Folder, FolderOpen, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Group } from "@/hooks/taskManager/types";
+import { Group } from "@/hooks/useTaskManager";
 import { useState, useEffect } from "react";
 
 interface GroupHeaderProps {

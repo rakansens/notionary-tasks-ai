@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Task, Group } from "@/hooks/taskManager/types";
+import type { Task, Group } from "@/hooks/useTaskManager";
 import { GroupHeader } from "./group/GroupHeader";
 import { GroupContent } from "./group/GroupContent";
 import { GroupContainer } from "./group/GroupContainer";

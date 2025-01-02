@@ -2,7 +2,7 @@ import { DeleteConfirmDialog } from "../DeleteConfirmDialog";
 import { TaskHeader } from "./TaskHeader";
 import { TaskFooter } from "./TaskFooter";
 import { TaskMainContent } from "./TaskMainContent";
-import { Task, Group } from "@/hooks/taskManager/types";
+import { Task, Group } from "@/hooks/useTaskManager";
 
 interface TaskContainerProps {
   tasks: Task[];
