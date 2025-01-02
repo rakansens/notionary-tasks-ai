@@ -1,15 +1,13 @@
-import { Database } from "@/integrations/supabase/types";
-
 export interface Task {
   id: number;
   title: string;
   completed: boolean;
-  order: number;
   groupId?: number;
   parentId?: number;
-  hierarchyLevel: number;
-  addedAt: Date;
   subtasks?: Task[];
+  order: number;
+  addedAt: Date;
+  hierarchyLevel: number;
 }
 
 export interface Group {
@@ -37,23 +35,3 @@ export interface TaskManagerOperations {
   updateGroupOrder: (groups: Group[]) => void;
   toggleGroupCollapse: (groupId: number) => void;
 }
-
-export interface TaskEventData {
-  taskId: number;
-  title: string;
-  completed: boolean;
-  order: number;
-  groupId?: number;
-  parentId?: number;
-  hierarchyLevel: number;
-}
-
-type Tables = Database['public']['Tables']
-type Views = Database['public']['Views']
-
-export type SubtaskInsertData = Tables['tasks']['Insert']
-export type TaskInsertData = Tables['tasks']['Insert']
-
-export type SubtaskRow = Views['subtasks']['Row']
-export type TaskRow = Tables['tasks']['Row']
-export type GroupRow = Tables['groups']['Row']

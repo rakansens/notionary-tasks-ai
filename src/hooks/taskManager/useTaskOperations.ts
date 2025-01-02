@@ -21,10 +21,11 @@ export const useTaskOperations = () => {
     groupId?: number,
     parentId?: number,
     order?: number,
-    hierarchyLevel: number = 0
+    parentTask?: Task | null
   ): Task => {
-    console.log('Creating new task with hierarchy level:', hierarchyLevel); // デバッグログ
-    
+    // 親タスクが存在する場合、その階層レベル+1を設定
+    const hierarchyLevel = parentTask ? parentTask.hierarchyLevel + 1 : 0;
+
     return {
       id: Date.now(),
       title,
