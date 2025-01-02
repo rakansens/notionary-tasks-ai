@@ -57,7 +57,9 @@ export const TaskTitle = ({
     >
       {hasSubtasks && isHovered && (
         <button
+          type="button"
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             onToggleCollapse();
           }}
