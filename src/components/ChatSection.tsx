@@ -74,7 +74,7 @@ export const ChatSection = () => {
     }
   };
 
-  const handleAddSuggestion = (suggestion: any) => {
+  const handleAddSuggestion = (suggestion: { title: string }) => {
     addTask(undefined, undefined, suggestion.title);
     toast({
       title: "タスクを追加しました",

@@ -1,13 +1,19 @@
 import { useState } from "react";
-import { Task } from "@/hooks/useTaskManager";
 import { TaskCheckbox } from "./task/TaskCheckbox";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TaskSuggestionProps {
-  suggestion: Task;
-  onAdd: (task: Task) => void;
+  suggestion: {
+    id: number;
+    title: string;
+    subtasks?: Array<{
+      id: number;
+      title: string;
+    }>;
+  };
+  onAdd: (suggestion: { title: string }) => void;
 }
 
 export const TaskSuggestion = ({ suggestion, onAdd }: TaskSuggestionProps) => {
@@ -16,7 +22,6 @@ export const TaskSuggestion = ({ suggestion, onAdd }: TaskSuggestionProps) => {
 
   const handleAdd = () => {
     onAdd({
-      ...suggestion,
       title: editedTitle,
     });
   };

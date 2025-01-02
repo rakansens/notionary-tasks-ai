@@ -9,7 +9,38 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      task_suggestions: {
+        Row: {
+          created_at: string
+          id: number
+          parent_id: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          parent_id?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          parent_id?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_suggestions_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "task_suggestions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
