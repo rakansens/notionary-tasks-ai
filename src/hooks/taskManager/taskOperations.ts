@@ -5,12 +5,12 @@ export const updateTaskOrder = async (tasks: Task[], setTasks: (tasks: Task[]) =
   try {
     // タスクの順序をデータベースで更新
     const updates = tasks.map(task => ({
-      title: task.title, // titleフィールドを追加
+      title: task.title,
       order_position: task.order,
       group_id: task.groupId,
       parent_id: task.parentId,
-      completed: task.completed, // completedフィールドも追加
-      hierarchy_level: task.hierarchyLevel // hierarchy_levelも追加
+      completed: task.completed,
+      hierarchy_level: task.hierarchyLevel
     }));
 
     const { error } = await supabase
