@@ -21,7 +21,6 @@ export const TaskSection = () => {
     setEditingGroupId,
     setAddingSubtaskId,
     addTask,
-    addGroup,
     toggleTask,
     updateTaskTitle,
     updateGroupName,
@@ -33,6 +32,12 @@ export const TaskSection = () => {
     updateGroupOrder,
     toggleGroupCollapse,
   } = useTaskManager();
+
+  const handleAddGroup = () => {
+    if (newGroup.trim()) {
+      window.dispatchEvent(new CustomEvent('addGroup', { detail: { name: newGroup.trim() } }));
+    }
+  };
 
   return (
     <TaskSortProvider tasks={tasks} updateTaskOrder={updateTaskOrder}>
@@ -54,7 +59,7 @@ export const TaskSection = () => {
         setEditingGroupId={setEditingGroupId}
         setAddingSubtaskId={setAddingSubtaskId}
         addTask={addTask}
-        addGroup={addGroup}
+        addGroup={handleAddGroup}
         toggleTask={toggleTask}
         updateTaskTitle={updateTaskTitle}
         updateGroupName={updateGroupName}

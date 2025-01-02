@@ -18,6 +18,7 @@ interface SubtaskListProps {
   newTask: string;
   setNewTask: (value: string) => void;
   addTask: (groupId?: number, parentId?: number) => void;
+  isCollapsed?: boolean;
 }
 
 export const SubtaskList = ({
@@ -33,12 +34,13 @@ export const SubtaskList = ({
   newTask,
   setNewTask,
   addTask,
+  isCollapsed,
 }: SubtaskListProps) => {
-  const { isCollapsed, toggleCollapse } = useCollapsedState();
+  const { isCollapsed: localIsCollapsed, toggleCollapse } = useCollapsedState();
   const { reorderSubtasks } = useTaskSort();
   
   if (!subtasks || subtasks.length === 0) return null;
-  if (isCollapsed(parentTask.id)) return null;
+  if (isCollapsed || localIsCollapsed(parentTask.id)) return null;
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
@@ -64,7 +66,7 @@ export const SubtaskList = ({
             newTask={newTask}
             setNewTask={setNewTask}
             addTask={addTask}
-            isCollapsed={isCollapsed(subtask.id)}
+            isCollapsed={localIsCollapsed(subtask.id)}
             onToggleCollapse={() => toggleCollapse(subtask.id)}
           />
         ))}
