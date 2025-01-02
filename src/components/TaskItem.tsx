@@ -19,6 +19,8 @@ interface TaskItemProps {
   setNewTask: (value: string) => void;
   addTask: (groupId?: number, parentId?: number) => void;
   dragHandleProps?: Record<string, any>;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const TaskItem = ({
@@ -35,6 +37,8 @@ export const TaskItem = ({
   setNewTask,
   addTask,
   dragHandleProps,
+  isCollapsed,
+  onToggleCollapse,
 }: TaskItemProps) => {
   const isEditing = editingTaskId === task.id;
   const isAddingSubtask = addingSubtaskId === task.id;
@@ -81,10 +85,14 @@ export const TaskItem = ({
           title={task.title}
           completed={task.completed}
           isEditing={isEditing}
+          hasSubtasks={task.subtasks && task.subtasks.length > 0}
+          isCollapsed={isCollapsed || false}
           onTitleChange={(title) => {}}
           onTitleClick={() => setEditingTaskId(task.id)}
           onBlur={handleBlur}
           onKeyPress={handleKeyDown}
+          onToggleCollapse={onToggleCollapse || (() => {})}
+          hierarchyLevel={task.hierarchyLevel || 0}
         />
         
         {isAddingSubtask && (
@@ -111,7 +119,17 @@ export const TaskItem = ({
       </div>
 
       <TaskItemActions
-        onAddSubtask={() => setAddingSubtaskId(task.id)}
+        onAddSubtask={() => {
+          if (task.hierarchyLevel < 2) {
+            setAddingSubtaskId(task.id);
+          } else {
+            toast({
+              title: "エラー",
+              description: "サブタスクは3階層までしか作成できません",
+              variant: "destructive",
+            });
+          }
+        }}
         onDelete={() => deleteTask(task.id, parentTask?.id)}
         onDropdownDelete={() => deleteTask(task.id, parentTask?.id)}
       />

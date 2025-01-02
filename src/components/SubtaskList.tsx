@@ -17,6 +17,7 @@ interface SubtaskListProps {
   setNewTask: (value: string) => void;
   addTask: (groupId?: number, parentId?: number) => void;
   onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
+  isCollapsed?: boolean;
 }
 
 export const SubtaskList = ({
@@ -33,8 +34,9 @@ export const SubtaskList = ({
   setNewTask,
   addTask,
   onReorderSubtasks,
+  isCollapsed,
 }: SubtaskListProps) => {
-  if (!subtasks || subtasks.length === 0) return null;
+  if (!subtasks || subtasks.length === 0 || isCollapsed) return null;
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
