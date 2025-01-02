@@ -19,19 +19,20 @@ export const useTaskStateManager = () => {
 
     // First pass: Create task objects with empty subtasks arrays
     flatTasks.forEach(task => {
-      taskMap.set(task.id, { ...task, subtasks: [] });
+      const taskWithSubtasks = { ...task, subtasks: [] };
+      taskMap.set(task.id, taskWithSubtasks);
     });
 
     // Second pass: Build the tree structure
     flatTasks.forEach(task => {
-      const taskWithSubtasks = taskMap.get(task.id)!;
       if (task.parentId) {
         const parentTask = taskMap.get(task.parentId);
-        if (parentTask && parentTask.subtasks) {
-          parentTask.subtasks.push(taskWithSubtasks);
+        if (parentTask) {
+          // サブタスクを親タスクのsubtasks配列に追加
+          parentTask.subtasks = [...(parentTask.subtasks || []), taskMap.get(task.id)!];
         }
       } else {
-        rootTasks.push(taskWithSubtasks);
+        rootTasks.push(taskMap.get(task.id)!);
       }
     });
 
@@ -40,7 +41,10 @@ export const useTaskStateManager = () => {
 
   const setStructuredTasks = (tasksOrUpdater: Task[] | ((prev: Task[]) => Task[])) => {
     if (typeof tasksOrUpdater === 'function') {
-      setTasks(prev => structureTasks(tasksOrUpdater(prev)));
+      setTasks(prev => {
+        const updatedTasks = tasksOrUpdater(prev);
+        return structureTasks(updatedTasks);
+      });
     } else {
       setTasks(structureTasks(tasksOrUpdater));
     }
