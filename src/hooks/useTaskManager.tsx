@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Task, Group } from './taskManager/types';
+import { Task, Group, TaskManagerOperations } from './taskManager/types';
 import { useTaskStateManager } from './taskManager/taskStateManager';
 import { useTaskEvents } from './taskManager/useTaskEvents';
 import { useTaskOperations } from './taskManager/useTaskOperations';
@@ -18,7 +18,24 @@ import {
 
 export type { Task, Group };
 
-export const useTaskManager = () => {
+export const useTaskManager = (): TaskManagerOperations & {
+  tasks: Task[];
+  groups: Group[];
+  newTask: string;
+  newGroup: string;
+  isAddingGroup: boolean;
+  editingTaskId: number | null;
+  editingGroupId: number | null;
+  addingSubtaskId: number | null;
+  deleteTarget: { type: string; id: number } | null;
+  collapsedGroups: Set<number>;
+  setNewTask: (value: string) => void;
+  setNewGroup: (value: string) => void;
+  setIsAddingGroup: (value: boolean) => void;
+  setEditingTaskId: (id: number | null) => void;
+  setEditingGroupId: (id: number | null) => void;
+  setAddingSubtaskId: (id: number | null) => void;
+} => {
   const { state, setters } = useTaskStateManager();
   const taskEvents = useTaskEvents();
   const { findTaskById, createNewTask } = useTaskOperations();
@@ -41,7 +58,7 @@ export const useTaskManager = () => {
     };
   }, [state.groups.length]);
 
-  const addTask = (groupId?: number, parentId?: number, title?: string) => {
+  const addTask: TaskManagerOperations['addTask'] = (groupId?: number, parentId?: number, title?: string) => {
     const trimmedTask = title || state.newTask.trim();
     if (!trimmedTask) return;
 
@@ -52,21 +69,17 @@ export const useTaskManager = () => {
       state.tasks.length
     );
 
-    // 状態を更新
     const updatedTasks = addTaskToState(state.tasks, task, parentId);
     setters.setTasks(updatedTasks);
 
-    // 更新された状態から必要な情報を取得
     const updatedTask = findTaskById(updatedTasks, task.id);
     if (updatedTask && updatedTask.title) {
       const parentTask = parentId ? findTaskById(updatedTasks, parentId) : undefined;
       const grandParentTask = parentTask?.parentId ? findTaskById(updatedTasks, parentTask.parentId) : undefined;
       const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
 
-      // イベントを発行
       taskEvents.emitTaskAdded(updatedTask, parentTask, group, grandParentTask);
 
-      // グループ内のタスク追加時のログ
       if (group) {
         console.log(`グループ「${group.name}」内にタスク「${trimmedTask}」を追加しました`);
       }
@@ -84,7 +97,6 @@ export const useTaskManager = () => {
       if (task) {
         const parentTask = parentId ? state.tasks.find(t => t.id === parentId) : undefined;
         const group = task.groupId ? state.groups.find(g => g.id === task.groupId) : undefined;
-        // タスク完了イベントの発行を削除
       }
     }
     setters.setTasks(prevTasks => updateTaskTitleInState(prevTasks, id, title, parentId));
