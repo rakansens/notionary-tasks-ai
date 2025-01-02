@@ -16,14 +16,13 @@ export const useTaskStateManager = () => {
   const structureTasks = (flatTasks: Task[]): Task[] => {
     console.log('Structuring tasks input:', flatTasks);
     
+    // First pass: Create task objects and maintain existing subtasks
     const taskMap = new Map<number, Task>();
-    const rootTasks: Task[] = [];
-
-    // First pass: Create task objects with empty subtasks arrays
     flatTasks.forEach(task => {
+      const existingTask = taskMap.get(task.id);
       const taskWithSubtasks = { 
         ...task, 
-        subtasks: [],
+        subtasks: existingTask ? existingTask.subtasks : [],
         order: task.order || 0,
         hierarchyLevel: task.hierarchyLevel || 0,
         completed: task.completed || false,
@@ -31,7 +30,8 @@ export const useTaskStateManager = () => {
       taskMap.set(task.id, taskWithSubtasks);
     });
 
-    // Second pass: Build the tree structure
+    // Second pass: Build the tree structure while preserving existing subtasks
+    const rootTasks: Task[] = [];
     flatTasks.forEach(task => {
       const currentTask = taskMap.get(task.id);
       if (!currentTask) return;
@@ -39,22 +39,27 @@ export const useTaskStateManager = () => {
       if (task.parentId) {
         const parentTask = taskMap.get(task.parentId);
         if (parentTask) {
-          // 既存のサブタスクを保持しながら新しいサブタスクを追加
+          // 既存のサブタスクを保持
           const existingSubtasks = parentTask.subtasks || [];
-          const updatedSubtasks = [...existingSubtasks];
           
           // 現在のタスクが既に存在するか確認
-          const existingIndex = updatedSubtasks.findIndex(st => st.id === currentTask.id);
+          const existingIndex = existingSubtasks.findIndex(st => st.id === currentTask.id);
+          
           if (existingIndex === -1) {
             // 存在しない場合のみ追加
-            updatedSubtasks.push(currentTask);
+            parentTask.subtasks = [...existingSubtasks, currentTask];
           } else {
-            // 存在する場合は更新
-            updatedSubtasks[existingIndex] = currentTask;
+            // 存在する場合は更新（既存のサブタスクは保持）
+            const updatedSubtasks = [...existingSubtasks];
+            updatedSubtasks[existingIndex] = {
+              ...currentTask,
+              subtasks: existingSubtasks[existingIndex].subtasks || [],
+            };
+            parentTask.subtasks = updatedSubtasks;
           }
           
-          // サブタスクの順序でソート
-          parentTask.subtasks = updatedSubtasks.sort((a, b) => (a.order || 0) - (b.order || 0));
+          // サブタスクを順序でソート
+          parentTask.subtasks.sort((a, b) => (a.order || 0) - (b.order || 0));
           
           console.log(`Updated subtasks for parent ${task.parentId}:`, parentTask.subtasks);
         }
