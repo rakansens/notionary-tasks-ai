@@ -286,5 +286,4 @@ export const useTaskManager = (): TaskManagerOperations & {
     updateTaskOrder: (tasks: Task[]) => updateTaskOrder(tasks, setters.setTasks),
     updateGroupOrder: (groups: Group[]) => updateGroupOrder(groups, setters.setGroups),
     toggleGroupCollapse,
-  };
 };
