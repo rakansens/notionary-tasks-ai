@@ -11,7 +11,7 @@ export const SubtaskContainer = ({
 }: SubtaskContainerProps) => {
   return (
     <div 
-      className={cn("pl-6 space-y-0.5")} 
+      className={cn("pl-6 space-y-0.5 mt-1")} 
       onClick={onClick}
     >
       {children}

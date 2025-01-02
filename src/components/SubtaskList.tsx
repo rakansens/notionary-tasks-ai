@@ -36,7 +36,8 @@ export const SubtaskList = ({
   onReorderSubtasks,
   isCollapsed,
 }: SubtaskListProps) => {
-  if (!subtasks || subtasks.length === 0 || isCollapsed) return null;
+  if (!subtasks || subtasks.length === 0) return null;
+  if (isCollapsed) return null;
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>

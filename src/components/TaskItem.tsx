@@ -44,6 +44,7 @@ export const TaskItem = ({
   const { toast } = useToast();
   const isEditing = editingTaskId === task.id;
   const isAddingSubtask = addingSubtaskId === task.id;
+  const hasSubtasks = task.subtasks && task.subtasks.length > 0;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
@@ -87,7 +88,7 @@ export const TaskItem = ({
           title={task.title}
           completed={task.completed}
           isEditing={isEditing}
-          hasSubtasks={task.subtasks && task.subtasks.length > 0}
+          hasSubtasks={hasSubtasks}
           isCollapsed={isCollapsed || false}
           onTitleChange={(title) => {}}
           onTitleClick={() => setEditingTaskId(task.id)}
