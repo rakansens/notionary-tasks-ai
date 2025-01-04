@@ -7,7 +7,7 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
 
   // 新しい状態更新関数
   const updateTaskState = (taskId: number, updates: Partial<Task>) => {
-    setTasks(prevTasks => {
+    setTasks((prevTasks: Task[]): Task[] => {
       const newTasks = prevTasks.map(task => {
         if (task.id === taskId) {
           return { ...task, ...updates };
@@ -105,7 +105,7 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
       const currentTasks = [...tasks];
 
       // 即座に状態を更新
-      setTasks(prevTasks => 
+      setTasks((prevTasks: Task[]): Task[] => 
         prevTasks.map(task => ({
           ...task,
           subtasks: task.subtasks ? 
