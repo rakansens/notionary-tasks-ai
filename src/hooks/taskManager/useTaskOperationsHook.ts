@@ -5,73 +5,62 @@ import { useToast } from "@/components/ui/use-toast";
 export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
   const { toast } = useToast();
 
-  const createNewTaskReference = (task: Task): Task => ({
-    ...task,
-    subtasks: task.subtasks ? task.subtasks.map(createNewTaskReference) : [],
-  });
-
-  const updateTasksRecursively = (tasks: Task[], taskId: number, updater: (task: Task) => Task): Task[] => {
-    return tasks.map(task => {
-      if (task.id === taskId) {
-        const updatedTask = updater(task);
-        return createNewTaskReference(updatedTask);
-      }
-      if (task.subtasks && task.subtasks.length > 0) {
-        const updatedSubtasks = updateTasksRecursively(task.subtasks, taskId, updater);
-        if (updatedSubtasks !== task.subtasks) {
+  // 新しい状態更新関数
+  const updateTaskState = (taskId: number, updates: Partial<Task>) => {
+    setTasks(prevTasks => {
+      const newTasks = prevTasks.map(task => {
+        if (task.id === taskId) {
+          return { ...task, ...updates };
+        }
+        if (task.subtasks && task.subtasks.length > 0) {
           return {
             ...task,
-            subtasks: updatedSubtasks,
+            subtasks: updateSubtasks(task.subtasks, taskId, updates)
           };
         }
-      }
-      return task;
+        return task;
+      });
+      return newTasks;
     });
   };
 
-  const findTaskInHierarchy = (tasks: Task[], taskId: number): Task | undefined => {
-    for (const task of tasks) {
-      if (task.id === taskId) {
-        return createNewTaskReference(task);
+  // サブタスクの更新を再帰的に処理
+  const updateSubtasks = (subtasks: Task[], taskId: number, updates: Partial<Task>): Task[] => {
+    return subtasks.map(subtask => {
+      if (subtask.id === taskId) {
+        return { ...subtask, ...updates };
       }
-      if (task.subtasks && task.subtasks.length > 0) {
-        const found = findTaskInHierarchy(task.subtasks, taskId);
-        if (found) {
-          return found;
-        }
+      if (subtask.subtasks && subtask.subtasks.length > 0) {
+        return {
+          ...subtask,
+          subtasks: updateSubtasks(subtask.subtasks, taskId, updates)
+        };
       }
-    }
-    return undefined;
+      return subtask;
+    });
   };
 
   const toggleTask = async (taskId: number, parentId?: number) => {
     try {
-      const task = findTaskInHierarchy(tasks, taskId);
+      const task = tasks.find(t => t.id === taskId);
       if (!task) return;
 
       const newCompleted = !task.completed;
       
-      // 楽観的更新
-      const updatedTasks = updateTasksRecursively(tasks, taskId, task => ({
-        ...task,
-        completed: newCompleted
-      }));
+      // 即座に状態を更新
+      updateTaskState(taskId, { completed: newCompleted });
 
-      // 即座にUIを更新
-      setTasks(updatedTasks);
-
-      // サーバーに更新を送信
+      // その後でサーバーに更新を送信
       const { error } = await supabase
         .from('tasks')
         .update({ completed: newCompleted })
         .eq('id', taskId);
 
       if (error) {
-        // エラーが発生した場合は元の状態に戻す
-        setTasks(tasks);
+        // エラー時は元の状態に戻す
+        updateTaskState(taskId, { completed: !newCompleted });
         throw error;
       }
-
     } catch (error) {
       console.error('Error toggling task:', error);
       toast({
@@ -84,14 +73,8 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
 
   const updateTaskTitle = async (taskId: number, title: string, parentId?: number) => {
     try {
-      // 楽観的更新
-      const updatedTasks = updateTasksRecursively(tasks, taskId, task => ({
-        ...task,
-        title
-      }));
-      
-      // 即座にUIを更新
-      setTasks(updatedTasks);
+      // 即座に状態を更新
+      updateTaskState(taskId, { title });
 
       const { error } = await supabase
         .from('tasks')
@@ -99,8 +82,11 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
         .eq('id', taskId);
 
       if (error) {
-        // エラーが発生した場合は元の状態に戻す
-        setTasks(tasks);
+        // エラー時は元の状態に戻す
+        const originalTask = tasks.find(t => t.id === taskId);
+        if (originalTask) {
+          updateTaskState(taskId, { title: originalTask.title });
+        }
         throw error;
       }
     } catch (error) {
@@ -113,46 +99,37 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
     }
   };
 
-  const deleteTaskAndSubtasks = async (taskId: number) => {
-    const task = findTaskInHierarchy(tasks, taskId);
-    if (!task) return;
-
-    if (task.subtasks && task.subtasks.length > 0) {
-      for (const subtask of task.subtasks) {
-        await deleteTaskAndSubtasks(subtask.id);
-      }
-    }
-
-    const { error } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', taskId);
-
-    if (error) {
-      throw error;
-    }
-  };
-
   const deleteTask = async (taskId: number, parentId?: number) => {
     try {
-      // 楽観的更新
-      const removeTaskFromList = (tasks: Task[]): Task[] => {
-        return tasks.map(task => ({
+      // 現在の状態を保存
+      const currentTasks = [...tasks];
+
+      // 即座に状態を更新
+      setTasks(prevTasks => 
+        prevTasks.map(task => ({
           ...task,
-          subtasks: task.subtasks ? removeTaskFromList(task.subtasks.filter(t => t.id !== taskId)) : []
-        })).filter(task => task.id !== taskId);
-      };
+          subtasks: task.subtasks ? 
+            task.subtasks.filter(t => t.id !== taskId).map(t => ({
+              ...t,
+              subtasks: t.subtasks ? t.subtasks.filter(st => st.id !== taskId) : []
+            })) : 
+            []
+        })).filter(task => task.id !== taskId)
+      );
 
-      // 即座にUIを更新
-      const updatedTasks = removeTaskFromList([...tasks]);
-      setTasks(updatedTasks);
+      // サーバーに削除を送信
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
 
-      // その後でサーバーに削除を送信
-      await deleteTaskAndSubtasks(taskId);
+      if (error) {
+        // エラー時は元の状態に戻す
+        setTasks(currentTasks);
+        throw error;
+      }
     } catch (error) {
       console.error('Error deleting task:', error);
-      // エラーが発生した場合は元の状態に戻す
-      setTasks(tasks);
       toast({
         title: "エラー",
         description: "タスクの削除に失敗しました",
