@@ -37,8 +37,7 @@ export const useTaskManager = (): TaskManagerOperations & {
   const groupOperations = useGroupOperations();
   const { toggleTask, updateTaskTitle, deleteTask } = useTaskOperationsHook(
     state.tasks,
-    setters.setTasks,
-    taskOperations.findTaskById
+    setters.setTasks
   );
 
   useEffect(() => {
