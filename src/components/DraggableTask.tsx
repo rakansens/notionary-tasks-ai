@@ -77,7 +77,8 @@ export const DraggableTask = memo(({
       parentTaskId: parentTask?.id,
       parentTaskLevel: parentTask?.level,
       subtasksCount: subtasks.length,
-      isCollapsed
+      isCollapsed,
+      subtasks: subtasks
     });
 
     // 基本的な条件チェック
@@ -87,22 +88,36 @@ export const DraggableTask = memo(({
 
     // レベルチェック
     const currentLevel = task.level || 1;
-    if (currentLevel >= 3) {
-      console.log('Task level too deep:', currentLevel);
-      return false;
-    }
-
-    // 親タスクのレベルチェック
+    
+    // 親タスクの存在チェックと整合性の確認
     if (parentTask) {
       const parentLevel = parentTask.level || 1;
-      if (parentLevel >= 2) {
-        console.log('Parent task level too deep:', parentLevel);
+      
+      // 親子関係の整合性チェック
+      if (currentLevel <= parentLevel) {
+        console.warn('Invalid level hierarchy:', {
+          currentLevel,
+          parentLevel,
+          taskId: task.id,
+          parentId: parentTask.id
+        });
         return false;
       }
     }
 
+    // サブタスクの整合性チェック
+    const hasValidSubtasks = subtasks.every(subtask => {
+      const subtaskLevel = subtask.level || 1;
+      return subtaskLevel === currentLevel + 1;
+    });
+
+    if (!hasValidSubtasks) {
+      console.warn('Invalid subtask levels found');
+      return false;
+    }
+
     return true;
-  }, [task.id, task.level, subtasks.length, isCollapsed, parentTask]);
+  }, [task.id, task.level, subtasks, isCollapsed, parentTask]);
 
   return (
     <div 

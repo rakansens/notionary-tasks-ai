@@ -69,7 +69,8 @@ export const SubtaskList = ({
         console.log('Reordering subtasks:', {
           startIndex: oldIndex,
           endIndex: newIndex,
-          parentId: parentTask.id
+          parentId: parentTask.id,
+          subtasks: subtasks
         });
         onReorderSubtasks(oldIndex, newIndex, parentTask.id);
       }
@@ -84,8 +85,31 @@ export const SubtaskList = ({
     
     if (isCollapsed) return false;
 
-    // 親タスクが3階層目の場合はサブタスクを表示しない
-    if (parentTask.level >= 3) return false;
+    const parentLevel = parentTask.level || 1;
+    
+    // サブタスクの整合性チェック
+    const hasValidSubtasks = subtasks.every(subtask => {
+      const subtaskLevel = subtask.level || 1;
+      const isValidLevel = subtaskLevel === parentLevel + 1;
+      const hasValidParent = subtask.parentId === parentTask.id;
+
+      if (!isValidLevel || !hasValidParent) {
+        console.warn('Invalid subtask found:', {
+          subtaskId: subtask.id,
+          subtaskLevel,
+          parentLevel,
+          parentId: parentTask.id,
+          actualParentId: subtask.parentId
+        });
+        return false;
+      }
+      return true;
+    });
+
+    if (!hasValidSubtasks) {
+      console.warn('Invalid subtasks structure detected');
+      return false;
+    }
 
     return true;
   };
