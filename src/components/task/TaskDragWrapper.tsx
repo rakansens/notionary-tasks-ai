@@ -1,6 +1,7 @@
 import { Task } from "@/types/models";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { CSSProperties } from "react";
 
 interface DragHandleProps {
   attributes: Record<string, any>;
@@ -36,15 +37,15 @@ export const TaskDragWrapper = ({
     disabled: task.level >= 4,
   });
 
-  const style = {
+  const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    position: "relative" as const,
+    position: "relative",
     zIndex: isDragging ? 999 : "auto",
     backgroundColor: isDragging ? "white" : "transparent",
     touchAction: "none",
-    pointerEvents: "auto",
+    pointerEvents: "auto" as const,
   };
 
   console.log(`TaskDragWrapper: Rendering task ${task.id}, isDragging: ${isDragging}, level: ${task.level}`);
