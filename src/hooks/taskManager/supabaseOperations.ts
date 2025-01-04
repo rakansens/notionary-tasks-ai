@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Task, Group } from "./types";
 
 export const addTaskToSupabase = async (task: Omit<Task, "id" | "created_at" | "updated_at">) => {
   const { data, error } = await supabase
@@ -86,12 +85,12 @@ export const fetchInitialData = async () => {
   const { data: tasks, error: tasksError } = await supabase
     .from("tasks")
     .select("*")
-    .order("sort_order");
+    .order("id"); // 一時的にidでソート
 
   const { data: groups, error: groupsError } = await supabase
     .from("groups")
     .select("*")
-    .order("sort_order");
+    .order("id"); // 一時的にidでソート
 
   if (tasksError) throw tasksError;
   if (groupsError) throw groupsError;

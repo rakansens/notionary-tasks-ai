@@ -51,6 +51,7 @@ export type Database = {
           group_name: string
           id: number
           owner_user_id: number | null
+          sort_order: number | null
           updated_at: string
         }
         Insert: {
@@ -59,6 +60,7 @@ export type Database = {
           group_name: string
           id?: never
           owner_user_id?: number | null
+          sort_order?: number | null
           updated_at?: string
         }
         Update: {
@@ -67,6 +69,7 @@ export type Database = {
           group_name?: string
           id?: never
           owner_user_id?: number | null
+          sort_order?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -228,6 +231,7 @@ export type Database = {
           id: number
           level: number
           parent_task_id: number | null
+          sort_order: number | null
           status: string | null
           title: string
           updated_at: string
@@ -240,6 +244,7 @@ export type Database = {
           id?: never
           level?: number
           parent_task_id?: number | null
+          sort_order?: number | null
           status?: string | null
           title: string
           updated_at?: string
@@ -252,6 +257,7 @@ export type Database = {
           id?: never
           level?: number
           parent_task_id?: number | null
+          sort_order?: number | null
           status?: string | null
           title?: string
           updated_at?: string
