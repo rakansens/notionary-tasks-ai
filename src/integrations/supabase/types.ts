@@ -74,7 +74,6 @@ export type Database = {
           created_at: string
           description: string | null
           group_id: number | null
-          hierarchy_level: number
           id: number
           level: number
           order_position: number
@@ -87,7 +86,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           group_id?: number | null
-          hierarchy_level?: number
           id?: never
           level?: number
           order_position?: number
@@ -100,7 +98,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           group_id?: number | null
-          hierarchy_level?: number
           id?: never
           level?: number
           order_position?: number
@@ -147,8 +144,8 @@ export type Database = {
           created_at: string | null
           group_id: number | null
           group_name: string | null
-          hierarchy_level: number | null
           id: number | null
+          level: number | null
           order_position: number | null
           parent_id: number | null
           title: string | null
@@ -190,8 +187,8 @@ export type Database = {
           completed: boolean | null
           created_at: string | null
           group_id: number | null
-          hierarchy_level: number | null
           id: number | null
+          level: number | null
           order_position: number | null
           parent_id: number | null
           parent_title: string | null
