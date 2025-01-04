@@ -8,10 +8,10 @@ export const useSubtaskManager = () => {
   const addSubtask = async (
     parentId: number,
     title: string,
-    hierarchyLevel: number
+    level: number
   ) => {
     try {
-      if (hierarchyLevel > 2) {
+      if (level > 3) {
         toast({
           title: "エラー",
           description: "サブタスクは3階層までしか作成できません",
@@ -25,7 +25,7 @@ export const useSubtaskManager = () => {
         .insert({
           title,
           parent_id: parentId,
-          hierarchy_level: hierarchyLevel,
+          level: level,
         })
         .select()
         .single();
@@ -69,7 +69,7 @@ export const useSubtaskManager = () => {
             title: task.title,
             completed: task.completed,
             parent_id: task.parentId,
-            hierarchy_level: task.hierarchyLevel
+            level: task.level
           })
           .eq('id', task.id);
 

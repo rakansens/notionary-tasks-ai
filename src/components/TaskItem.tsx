@@ -95,7 +95,7 @@ export const TaskItem = ({
           onBlur={handleBlur}
           onKeyPress={handleKeyDown}
           onToggleCollapse={onToggleCollapse || (() => {})}
-          hierarchyLevel={task.hierarchyLevel || 0}
+          hierarchyLevel={task.level || 0}
         />
         
         {isAddingSubtask && (
@@ -123,7 +123,7 @@ export const TaskItem = ({
 
       <TaskItemActions
         onAddSubtask={() => {
-          if (task.hierarchyLevel < 2) {
+          if (task.level < 3) {
             setAddingSubtaskId(task.id);
           } else {
             toast({
@@ -139,4 +139,3 @@ export const TaskItem = ({
     </div>
   );
 };
-

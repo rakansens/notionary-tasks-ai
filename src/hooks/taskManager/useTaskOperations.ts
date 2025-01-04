@@ -28,7 +28,6 @@ export const useTaskOperations = () => {
     parentTask?: Task | null
   ): Task => {
     const level = calculateTaskLevel(parentTask);
-    const hierarchyLevel = parentTask ? parentTask.hierarchyLevel + 1 : 0;
 
     return {
       id: Date.now(),
@@ -37,7 +36,6 @@ export const useTaskOperations = () => {
       groupId: groupId || null,
       parentId: parentId || null,
       order: order || 0,
-      hierarchyLevel,
       level,
       addedAt: new Date(),
       subtasks: [],
@@ -56,7 +54,6 @@ export const useTaskOperations = () => {
           order_position: task.order,
           group_id: task.groupId,
           parent_id: task.parentId,
-          hierarchy_level: task.hierarchyLevel,
           level: task.level,
         })
         .select()
