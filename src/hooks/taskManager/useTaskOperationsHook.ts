@@ -27,17 +27,25 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
 
       const newCompleted = !task.completed;
       
-      await supabase
-        .from('tasks')
-        .update({ completed: newCompleted })
-        .eq('id', taskId);
-
+      // 楽観的更新を実装
       const updatedTasks = updateTasksRecursively(tasks, taskId, task => ({
         ...task,
         completed: newCompleted
       }));
-
       setTasks(updatedTasks);
+
+      // その後でサーバーに更新を送信
+      const { error } = await supabase
+        .from('tasks')
+        .update({ completed: newCompleted })
+        .eq('id', taskId);
+
+      if (error) {
+        // エラーが発生した場合は元の状態に戻す
+        setTasks(tasks);
+        throw error;
+      }
+
     } catch (error) {
       console.error('Error toggling task:', error);
       toast({
@@ -50,17 +58,23 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
 
   const updateTaskTitle = async (taskId: number, title: string, parentId?: number) => {
     try {
-      await supabase
-        .from('tasks')
-        .update({ title })
-        .eq('id', taskId);
-
+      // 楽観的更新を実装
       const updatedTasks = updateTasksRecursively(tasks, taskId, task => ({
         ...task,
         title
       }));
-
       setTasks(updatedTasks);
+
+      const { error } = await supabase
+        .from('tasks')
+        .update({ title })
+        .eq('id', taskId);
+
+      if (error) {
+        // エラーが発生した場合は元の状態に戻す
+        setTasks(tasks);
+        throw error;
+      }
     } catch (error) {
       console.error('Error updating task title:', error);
       toast({
@@ -73,8 +87,7 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
 
   const deleteTask = async (taskId: number, parentId?: number) => {
     try {
-      await deleteTaskAndSubtasks(taskId);
-      
+      // 楽観的更新を実装
       const removeTaskFromList = (tasks: Task[]): Task[] => {
         return tasks.filter(task => {
           if (task.id === taskId) {
@@ -89,8 +102,12 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
 
       const updatedTasks = removeTaskFromList(tasks);
       setTasks(updatedTasks);
+
+      await deleteTaskAndSubtasks(taskId);
     } catch (error) {
       console.error('Error deleting task:', error);
+      // エラーが発生した場合は元の状態に戻す
+      setTasks(tasks);
       toast({
         title: "エラー",
         description: "タスクの削除に失敗しました",
