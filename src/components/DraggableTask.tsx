@@ -4,6 +4,7 @@ import { SubtaskList } from "./SubtaskList";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useTaskCollapse } from "@/hooks/taskManager/useTaskCollapse";
+import { memo } from "react";
 
 interface DraggableTaskProps {
   task: Task;
@@ -21,7 +22,7 @@ interface DraggableTaskProps {
   onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
 }
 
-export const DraggableTask = ({
+export const DraggableTask = memo(({
   task,
   parentTask,
   editingTaskId,
@@ -73,7 +74,7 @@ export const DraggableTask = ({
   const isCollapsed = isTaskCollapsed(task.id);
 
   // 3階層目までのタスクを表示できるようにする
-  const shouldRenderSubtasks = subtasks.length > 0 && task.level <= 3;
+  const shouldRenderSubtasks = subtasks.length > 0 && task.level < 3;
 
   return (
     <div 
@@ -118,4 +119,6 @@ export const DraggableTask = ({
       )}
     </div>
   );
-};
+});
+
+DraggableTask.displayName = 'DraggableTask';

@@ -19,25 +19,13 @@ export const useTaskCreation = (
     return undefined;
   };
 
-  const createNewTask = (
-    title: string,
-    groupId?: number,
-    parentId?: number,
-    order?: number,
-    parentTask?: Task | null
-  ): Task => {
-    const level = parentTask ? (parentTask.level + 1) : 1;
-    return {
-      id: Date.now(),
-      title,
-      completed: false,
-      groupId: groupId || null,
-      parentId: parentId || null,
-      order: order || 0,
-      level,
-      addedAt: new Date(),
-      subtasks: [],
-    };
+  const calculateTaskLevel = (parentId: number | undefined | null, tasks: Task[]): number => {
+    if (!parentId) return 1;
+    
+    const parentTask = findTaskById(tasks, parentId);
+    if (!parentTask) return 1;
+    
+    return parentTask.level + 1;
   };
 
   const addTask = async (groupId?: number, parentId?: number, title?: string) => {
@@ -45,10 +33,10 @@ export const useTaskCreation = (
       const trimmedTask = title?.trim();
       if (!trimmedTask) return;
 
-      const parentTask = parentId ? findTaskById(tasks, parentId) : null;
-      const newLevel = parentTask ? (parentTask.level + 1) : 1;
+      // レベルの計算を改善
+      const newLevel = calculateTaskLevel(parentId, tasks);
+      console.log('Calculated new task level:', newLevel, 'for parent:', parentId);
 
-      // 3階層以上のチェックを先に行う
       if (newLevel > 3) {
         toast({
           title: "エラー",
@@ -58,24 +46,23 @@ export const useTaskCreation = (
         return null;
       }
 
-      const newTask = createNewTask(
-        trimmedTask,
-        groupId,
-        parentId,
-        tasks.length,
-        parentTask
+      // 同じ親を持つタスクの最大order値を取得
+      const siblingTasks = tasks.filter(t => 
+        t.parentId === parentId && t.groupId === groupId
       );
-
-      console.log('Creating new task with level:', newLevel, 'Parent task:', parentTask);
+      const maxOrder = siblingTasks.length > 0
+        ? Math.max(...siblingTasks.map(t => t.order))
+        : -1;
+      const newOrder = maxOrder + 1;
 
       const { data: savedTask, error } = await supabase
         .from('tasks')
         .insert({
-          title: newTask.title,
-          completed: newTask.completed,
-          order_position: newTask.order,
-          group_id: newTask.groupId,
-          parent_id: newTask.parentId,
+          title: trimmedTask,
+          completed: false,
+          order_position: newOrder,
+          group_id: groupId,
+          parent_id: parentId,
           level: newLevel
         })
         .select()
@@ -86,10 +73,18 @@ export const useTaskCreation = (
         throw error;
       }
 
+      console.log('Saved new task:', savedTask);
+
       const taskWithId: Task = {
-        ...newTask,
         id: savedTask.id,
-        level: savedTask.level
+        title: trimmedTask,
+        completed: false,
+        order: newOrder,
+        groupId: groupId || null,
+        parentId: parentId || null,
+        level: newLevel,
+        addedAt: new Date(),
+        subtasks: [],
       };
 
       setTasks(prevTasks => {
@@ -131,7 +126,6 @@ export const useTaskCreation = (
 
   return {
     findTaskById,
-    createNewTask,
     addTask,
   };
 };
