@@ -42,7 +42,7 @@ export const TaskUI = () => {
     handleDragStart,
     handleDragEnd,
     handleDragCancel,
-  } = useDragAndDrop(tasks, groups, updateTaskOrder);
+  } = useDragAndDrop(tasks, updateTaskOrder);
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -83,7 +83,7 @@ export const TaskUI = () => {
         addGroup={addGroup}
         newTask={newTask}
         setNewTask={setNewTask}
-        addTask={(groupId?: number) => addTask(groupId)}
+        addTask={addTask}
       />
 
       <DeleteConfirmDialog

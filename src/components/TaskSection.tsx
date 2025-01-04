@@ -1,6 +1,8 @@
+import { useTaskContext } from "@/contexts/TaskContext";
 import { TaskDndProvider } from "./providers/TaskDndProvider";
 import { TaskStateProvider } from "./providers/TaskStateProvider";
 import { TaskUI } from "./task/TaskUI";
+import { useDragAndDrop } from "@/hooks/dragAndDrop/useDragAndDrop";
 
 export const TaskSection = () => {
   return (
@@ -17,7 +19,7 @@ const TaskSectionContent = () => {
     handleDragStart,
     handleDragEnd,
     handleDragCancel,
-  } = useDragAndDrop(tasks, groups, updateTaskOrder);
+  } = useDragAndDrop(tasks, updateTaskOrder);
 
   return (
     <TaskDndProvider
