@@ -1,7 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DraggableTask } from "../DraggableTask";
 import { GroupList } from "../GroupList";
-import { Task, Group } from "@/hooks/taskManager/types";
+import { Task, Group } from "@/types/models";
 import {
   DragOverlay,
   DndContext,

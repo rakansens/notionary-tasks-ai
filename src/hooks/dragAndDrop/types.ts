@@ -1,4 +1,4 @@
-import { Task, Group } from "../taskManager/types";
+import { Task, Group } from "@/types/models";
 
 export type DraggableItem = Task | Group;
 

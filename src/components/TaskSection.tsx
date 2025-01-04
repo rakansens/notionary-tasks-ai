@@ -1,5 +1,5 @@
 import { useTaskManager } from "@/hooks/taskManager/useTaskManager";
-import type { Task, Group } from "@/hooks/taskManager/types";
+import type { Task, Group } from "@/types/models";
 import { useDragAndDrop } from "@/hooks/dragAndDrop/useDragAndDrop";
 import { TaskContainer } from "./task/TaskContainer";
 
@@ -159,3 +159,4 @@ export const TaskSection = () => {
     />
   );
 };
+

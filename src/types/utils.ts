@@ -1,4 +1,4 @@
-import { Task } from './models';
+import { Task, Group } from './models';
 
 export type TaskHierarchy = Task & {
   subtasks?: TaskHierarchy[];

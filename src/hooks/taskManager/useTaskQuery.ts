@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Task } from "./types";
+import { Task } from "@/types/models";
 import { useToast } from "@/components/ui/use-toast";
 import { mapSupabaseTaskToTask } from "./mappers";
 

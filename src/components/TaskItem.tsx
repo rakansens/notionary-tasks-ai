@@ -1,4 +1,4 @@
-import { Task } from "@/hooks/taskManager/types";
+import { Task } from "@/types/models";
 import { TaskCheckbox } from "./task/TaskCheckbox";
 import { TaskTitle } from "./task/TaskTitle";
 import { TaskItemActions } from "./task/TaskItemActions";

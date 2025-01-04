@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Task, Group } from "./types";
+import { Task, Group } from "@/types/models";
 
 export const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt">) => {
   const { data, error } = await supabase

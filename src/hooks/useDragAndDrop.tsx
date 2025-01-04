@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
-import type { Task, Group } from "./taskManager/types";
+import type { Task, Group } from "@/types/models";
 import type { DragAndDropState } from "./dragAndDrop/types";
 import { handleGroupDragEnd } from "./dragAndDrop/groupDragHandlers";
 import { handleTaskDragEnd } from "./dragAndDrop/taskDragHandlers";

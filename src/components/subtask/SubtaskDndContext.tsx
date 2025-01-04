@@ -1,4 +1,4 @@
-import { Task } from "@/hooks/taskManager/types";
+import { Task } from "@/types/models";
 import { createContext, useContext, ReactNode } from "react";
 import { DndContext } from "@dnd-kit/core";
 

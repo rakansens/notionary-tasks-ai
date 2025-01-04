@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Task, Group, TaskManagerOperations } from './types';
+import { Task, Group } from "@/types/models";
+import { TaskManagerOperations } from "@/types/api";
 import { useTaskStateManager } from './taskStateManager';
 import { useTaskEvents } from './useTaskEvents';
 import { useToast } from "@/components/ui/use-toast";

@@ -1,4 +1,4 @@
-import { Task, Group } from "../taskManager/types";
+import { Task, Group } from "@/types/models";
 import type { UpdateTaskOrderFn, UpdateGroupOrderFn } from "./types";
 
 export const handleGroupDragEnd = (

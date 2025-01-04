@@ -1,4 +1,4 @@
-import { Task, Group } from './types';
+import { Task, Group } from "@/types/models";
 import { emitTaskEvent, createTaskEvent } from '@/utils/taskEventEmitter';
 
 export const useTaskEvents = () => {

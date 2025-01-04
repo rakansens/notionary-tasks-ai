@@ -1,4 +1,4 @@
-import { Task } from "../taskManager/types";
+import { Task } from "@/types/models";
 import type { UpdateTaskOrderFn } from "./types";
 
 const preserveSubtasks = (tasks: Task[], updatedTasks: Task[]): Task[] => {

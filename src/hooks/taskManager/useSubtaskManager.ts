@@ -1,4 +1,4 @@
-import { Task } from './types';
+import { Task } from "@/types/models";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 

@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Task, Group, DeleteTarget } from './types';
-
+import { Task, Group, DeleteTarget } from "@/types/models";
 export const useTaskStateManager = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);

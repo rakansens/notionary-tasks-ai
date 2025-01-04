@@ -1,5 +1,5 @@
 import { Tables } from "@/integrations/supabase/types";
-import { Task, Group } from "./types";
+import { Task, Group } from "@/types/models";
 
 export const mapSupabaseTaskToTask = (task: Tables<"tasks">): Task => ({
   id: task.id,

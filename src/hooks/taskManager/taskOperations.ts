@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Task } from "./types";
+import { Task } from "@/types/models";
 import { useToast } from "@/components/ui/use-toast";
 
 export const useTaskOperations = () => {
@@ -44,8 +44,6 @@ export const useTaskOperations = () => {
 
   const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt" | "subtasks">) => {
     try {
-      console.log('Adding task to Supabase:', task);
-      
       const { data, error } = await supabase
         .from('tasks')
         .insert({
@@ -64,7 +62,6 @@ export const useTaskOperations = () => {
         throw error;
       }
 
-      console.log('Task added successfully:', data);
       return data;
     } catch (error) {
       console.error('Error adding task:', error);
@@ -169,25 +166,4 @@ export const useTaskOperations = () => {
     updateTaskTitleInSupabase,
     deleteTaskFromSupabase,
   };
-};
-
-export const updateTaskOrder = async (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
-  try {
-    for (const task of tasks) {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ 
-          order_position: task.order,
-          level: task.level 
-        })
-        .eq('id', task.id);
-
-      if (error) throw error;
-    }
-    
-    setTasks(tasks);
-  } catch (error) {
-    console.error('Error updating task order:', error);
-    throw error;
-  }
 };

@@ -1,4 +1,4 @@
-import { Group, Task } from './types';
+import { Group, Task } from "@/types/models";
 import { supabase } from "@/integrations/supabase/client";
 
 // グループの追加
