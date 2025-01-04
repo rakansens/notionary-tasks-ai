@@ -1,13 +1,17 @@
 import { Task } from './types';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Dispatch, SetStateAction } from 'react';
 
-export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
+export const useTaskOperationsHook = (
+  tasks: Task[], 
+  setTasks: Dispatch<SetStateAction<Task[]>>
+) => {
   const { toast } = useToast();
 
   // 新しい状態更新関数
   const updateTaskState = (taskId: number, updates: Partial<Task>) => {
-    setTasks((prevTasks: Task[]): Task[] => {
+    setTasks(prevTasks => {
       const newTasks = prevTasks.map(task => {
         if (task.id === taskId) {
           return { ...task, ...updates };
@@ -105,7 +109,7 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
       const currentTasks = [...tasks];
 
       // 即座に状態を更新
-      setTasks((prevTasks: Task[]): Task[] => 
+      setTasks(prevTasks => 
         prevTasks.map(task => ({
           ...task,
           subtasks: task.subtasks ? 
