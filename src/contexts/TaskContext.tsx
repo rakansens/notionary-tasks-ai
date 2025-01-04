@@ -19,6 +19,9 @@ interface TaskContextType extends TaskManagerOperations {
   setEditingTaskId: (id: number | null) => void;
   setEditingGroupId: (id: number | null) => void;
   setAddingSubtaskId: (id: number | null) => void;
+  handleReorderSubtasks: (startIndex: number, endIndex: number, parentId: number) => void;
+  updateTaskOrder: (tasks: Task[]) => void;
+  addGroup: (name: string) => void;
 }
 
 export const TaskContext = createContext<TaskContextType | null>(null);
