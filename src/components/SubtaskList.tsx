@@ -50,7 +50,11 @@ export const SubtaskList = ({
   isCollapsed,
 }: SubtaskListProps) => {
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -82,7 +86,14 @@ export const SubtaskList = ({
       level: parentTask.level,
       subtasksCount: subtasks.length,
       isCollapsed,
+      isAddingSubtask: addingSubtaskId === parentTask.id
     });
+
+    // 新規追加時は常に表示
+    if (addingSubtaskId === parentTask.id) {
+      console.log('Adding subtask mode - showing subtasks');
+      return true;
+    }
 
     // サブタスクが存在しない場合は表示しない
     if (!subtasks || subtasks.length === 0) {
@@ -127,16 +138,6 @@ export const SubtaskList = ({
     ));
   };
 
-  // 新規追加時は常に表示
-  if (addingSubtaskId === parentTask.id) {
-    return (
-      <SubtaskContainer onClick={(e) => e.stopPropagation()}>
-        {renderSubtasks()}
-      </SubtaskContainer>
-    );
-  }
-
-  // 通常の表示条件チェック
   if (!shouldRenderSubtasks()) {
     return null;
   }

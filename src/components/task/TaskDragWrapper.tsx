@@ -33,6 +33,7 @@ export const TaskDragWrapper = ({
       parentId: parentTask?.id,
       level: task.level,
     },
+    disabled: task.level >= 4,
   });
 
   const style = {
@@ -42,17 +43,26 @@ export const TaskDragWrapper = ({
     position: "relative" as const,
     zIndex: isDragging ? 999 : "auto",
     backgroundColor: isDragging ? "white" : "transparent",
+    touchAction: "none",
+    pointerEvents: "auto",
   };
 
-  console.log(`TaskDragWrapper: Rendering task ${task.id}, isDragging: ${isDragging}`);
+  console.log(`TaskDragWrapper: Rendering task ${task.id}, isDragging: ${isDragging}, level: ${task.level}`);
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={`${isDragging ? "shadow-lg rounded-md" : ""}`}
+      onClick={(e) => e.stopPropagation()}
     >
-      {children({ attributes, listeners })}
+      {children({ 
+        attributes: {
+          ...attributes,
+          style: { cursor: 'grab' }
+        }, 
+        listeners 
+      })}
     </div>
   );
 };
