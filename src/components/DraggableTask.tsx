@@ -63,7 +63,6 @@ export const DraggableTask = ({
   };
 
   const subtasks = task.subtasks || [];
-  const isCollapsed = isTaskCollapsed(task.id);
 
   return (
     <div 
@@ -85,7 +84,7 @@ export const DraggableTask = ({
         setNewTask={setNewTask}
         addTask={addTask}
         dragHandleProps={{ ...attributes, ...listeners }}
-        isCollapsed={isCollapsed}
+        isCollapsed={isTaskCollapsed(task.id)}
         onToggleCollapse={() => toggleTaskCollapse(task.id)}
       />
       {subtasks.length > 0 && (
@@ -103,7 +102,7 @@ export const DraggableTask = ({
           setNewTask={setNewTask}
           addTask={addTask}
           onReorderSubtasks={onReorderSubtasks}
-          isCollapsed={isCollapsed}
+          isCollapsed={isTaskCollapsed(task.id)}
         />
       )}
     </div>

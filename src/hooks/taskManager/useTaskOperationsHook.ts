@@ -5,39 +5,33 @@ import { useToast } from "@/components/ui/use-toast";
 export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
   const { toast } = useToast();
 
-  const updateTasksRecursively = (tasks: Task[], taskId: number, updater: (task: Task) => Task): Task[] => {
-    return tasks.map(task => {
-      if (task.id === taskId) {
-        return updater(task);
+  const findTaskById = (id: number): Task | undefined => {
+    for (const task of tasks) {
+      if (task.id === id) return task;
+      if (task.subtasks) {
+        const found = findTaskById(id);
+        if (found) return found;
       }
-      if (task.subtasks && task.subtasks.length > 0) {
-        return {
-          ...task,
-          subtasks: updateTasksRecursively(task.subtasks, taskId, updater)
-        };
-      }
-      return task;
-    });
+    }
+    return undefined;
   };
 
-  const toggleTask = async (taskId: number, parentId?: number) => {
+  const toggleTask = async (id: number) => {
     try {
-      const task = findTaskInHierarchy(tasks, taskId);
-      if (!task) return;
+      const task = findTaskById(id);
+      if (task) {
+        const { error } = await supabase
+          .from('tasks')
+          .update({ completed: !task.completed })
+          .eq('id', id);
 
-      const newCompleted = !task.completed;
-      
-      await supabase
-        .from('tasks')
-        .update({ completed: newCompleted })
-        .eq('id', taskId);
+        if (error) throw error;
 
-      const updatedTasks = updateTasksRecursively(tasks, taskId, task => ({
-        ...task,
-        completed: newCompleted
-      }));
-
-      setTasks(updatedTasks);
+        const updatedTasks = tasks.map(t =>
+          t.id === id ? { ...t, completed: !t.completed } : t
+        );
+        setTasks(updatedTasks);
+      }
     } catch (error) {
       console.error('Error toggling task:', error);
       toast({
@@ -48,18 +42,18 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
     }
   };
 
-  const updateTaskTitle = async (taskId: number, title: string, parentId?: number) => {
+  const updateTaskTitle = async (id: number, title: string) => {
     try {
-      await supabase
+      const { error } = await supabase
         .from('tasks')
         .update({ title })
-        .eq('id', taskId);
+        .eq('id', id);
 
-      const updatedTasks = updateTasksRecursively(tasks, taskId, task => ({
-        ...task,
-        title
-      }));
+      if (error) throw error;
 
+      const updatedTasks = tasks.map(task =>
+        task.id === id ? { ...task, title } : task
+      );
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error updating task title:', error);
@@ -71,23 +65,16 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
     }
   };
 
-  const deleteTask = async (taskId: number, parentId?: number) => {
+  const deleteTask = async (id: number) => {
     try {
-      await deleteTaskAndSubtasks(taskId);
-      
-      const removeTaskFromList = (tasks: Task[]): Task[] => {
-        return tasks.filter(task => {
-          if (task.id === taskId) {
-            return false;
-          }
-          if (task.subtasks && task.subtasks.length > 0) {
-            task.subtasks = removeTaskFromList(task.subtasks);
-          }
-          return true;
-        });
-      };
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', id);
 
-      const updatedTasks = removeTaskFromList(tasks);
+      if (error) throw error;
+
+      const updatedTasks = tasks.filter(task => task.id !== id);
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -99,40 +86,9 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
     }
   };
 
-  const deleteTaskAndSubtasks = async (taskId: number) => {
-    const task = findTaskInHierarchy(tasks, taskId);
-    if (!task) return;
-
-    if (task.subtasks && task.subtasks.length > 0) {
-      for (const subtask of task.subtasks) {
-        await deleteTaskAndSubtasks(subtask.id);
-      }
-    }
-
-    await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', taskId);
-  };
-
-  const findTaskInHierarchy = (tasks: Task[], taskId: number): Task | undefined => {
-    for (const task of tasks) {
-      if (task.id === taskId) {
-        return task;
-      }
-      if (task.subtasks && task.subtasks.length > 0) {
-        const found = findTaskInHierarchy(task.subtasks, taskId);
-        if (found) {
-          return found;
-        }
-      }
-    }
-    return undefined;
-  };
-
   return {
     toggleTask,
     updateTaskTitle,
-    deleteTask
+    deleteTask,
   };
 };
