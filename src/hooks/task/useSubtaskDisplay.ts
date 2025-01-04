@@ -35,8 +35,8 @@ export const useSubtaskDisplay = ({
       return false;
     }
 
-    // 親タスクが3階層目以上の場合はサブタスクを表示しない
-    if (task.level >= 3) {
+    // 親タスクが4階層目以上の場合はサブタスクを表示しない
+    if (task.level >= 4) {
       console.log('Task level is too deep:', task.level);
       return false;
     }
