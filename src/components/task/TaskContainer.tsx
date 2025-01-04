@@ -1,8 +1,6 @@
 import { Task } from "@/types/models";
 import { TaskItem } from "../TaskItem";
 import { SubtaskList } from "../SubtaskList";
-import { useTaskCollapse } from "@/hooks/taskManager/useTaskCollapse";
-import { useSubtaskDisplay } from "@/hooks/task/useSubtaskDisplay";
 import { memo } from "react";
 
 interface TaskContainerProps {
@@ -41,19 +39,10 @@ export const TaskContainer = memo(({
   onReorderSubtasks,
   dragHandleProps,
 }: TaskContainerProps) => {
-  const { isTaskCollapsed, toggleTaskCollapse } = useTaskCollapse();
-  const subtasks = task.subtasks || [];
-  const isCollapsed = isTaskCollapsed(task.id);
-
-  const { canRenderSubtasks } = useSubtaskDisplay({
-    task,
-    parentTask,
-    subtasks,
-    isCollapsed,
-  });
+  console.log(`TaskContainer: Rendering task ${task.id}`);
 
   return (
-    <>
+    <div className="task-container">
       <TaskItem
         task={task}
         parentTask={parentTask}
@@ -68,13 +57,11 @@ export const TaskContainer = memo(({
         setNewTask={setNewTask}
         addTask={addTask}
         dragHandleProps={dragHandleProps}
-        isCollapsed={isCollapsed}
-        onToggleCollapse={() => toggleTaskCollapse(task.id)}
       />
-      {canRenderSubtasks() && (
+      {task.subtasks && task.subtasks.length > 0 && (
         <SubtaskList
           parentTask={task}
-          subtasks={subtasks}
+          subtasks={task.subtasks}
           editingTaskId={editingTaskId}
           addingSubtaskId={addingSubtaskId}
           setEditingTaskId={setEditingTaskId}
@@ -86,10 +73,9 @@ export const TaskContainer = memo(({
           setNewTask={setNewTask}
           addTask={addTask}
           onReorderSubtasks={onReorderSubtasks}
-          isCollapsed={isCollapsed}
         />
       )}
-    </>
+    </div>
   );
 });
 

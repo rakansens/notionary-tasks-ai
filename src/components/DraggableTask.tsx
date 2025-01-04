@@ -30,12 +30,12 @@ export const DraggableTask = memo((props: DraggableTaskProps) => {
     </TaskDragWrapper>
   );
 }, (prevProps, nextProps) => {
-  // メモ化の条件を明示的に設定
   return (
     prevProps.task.id === nextProps.task.id &&
     prevProps.task.completed === nextProps.task.completed &&
     prevProps.editingTaskId === nextProps.editingTaskId &&
-    prevProps.addingSubtaskId === nextProps.addingSubtaskId
+    prevProps.addingSubtaskId === nextProps.addingSubtaskId &&
+    prevProps.task.order === nextProps.task.order // orderの変更も監視
   );
 });
 

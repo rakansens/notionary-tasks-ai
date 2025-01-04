@@ -36,7 +36,7 @@ export const TaskDragWrapper = ({
     },
   });
 
-  console.log(`TaskDragWrapper: Task ${task.id} isDragging:`, isDragging);
+  console.log(`TaskDragWrapper: Task ${task.id} isDragging:`, isDragging, 'transform:', transform);
 
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -46,8 +46,8 @@ export const TaskDragWrapper = ({
     zIndex: isDragging ? 999 : 1,
     backgroundColor: isDragging ? "white" : "transparent",
     touchAction: "none",
-    cursor: "default",
     userSelect: "none",
+    cursor: isDragging ? "grabbing" : "default",
   };
 
   return (
@@ -55,7 +55,10 @@ export const TaskDragWrapper = ({
       ref={setNodeRef}
       style={style}
       className={`${isDragging ? "shadow-lg rounded-md" : ""}`}
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        console.log('TaskDragWrapper clicked:', task.id);
+      }}
     >
       {children({ 
         attributes: {
