@@ -45,9 +45,9 @@ export const TaskDragWrapper = ({
     zIndex: isDragging ? 999 : 1,
     backgroundColor: isDragging ? "white" : "transparent",
     touchAction: "none",
-    pointerEvents: "auto" as const,
+    pointerEvents: "auto",
     cursor: isDragging ? "grabbing" : "grab",
-    userSelect: "none" as const,
+    userSelect: "none",
   };
 
   console.log(`TaskDragWrapper: Rendering task ${task.id}, isDragging: ${isDragging}, level: ${task.level}`);

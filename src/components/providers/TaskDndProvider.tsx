@@ -31,7 +31,12 @@ export const TaskDndProvider = ({
   onDragCancel,
 }: TaskDndProviderProps) => {
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3, // より小さい値に設定
+        tolerance: 5, // 許容範囲を追加
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })

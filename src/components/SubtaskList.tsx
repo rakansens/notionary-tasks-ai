@@ -52,7 +52,8 @@ export const SubtaskList = ({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 3,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -89,25 +90,21 @@ export const SubtaskList = ({
       isAddingSubtask: addingSubtaskId === parentTask.id
     });
 
-    // 新規追加時は常に表示
     if (addingSubtaskId === parentTask.id) {
       console.log('Adding subtask mode - showing subtasks');
       return true;
     }
 
-    // サブタスクが存在しない場合は表示しない
     if (!subtasks || subtasks.length === 0) {
       console.log('No subtasks found');
       return false;
     }
     
-    // 折りたたまれている場合は表示しない
     if (isCollapsed) {
       console.log('Task is collapsed');
       return false;
     }
 
-    // 4階層目以上のサブタスクは表示しない
     if (parentTask.level >= 4) {
       console.log('Task level is too deep:', parentTask.level);
       return false;
@@ -115,27 +112,6 @@ export const SubtaskList = ({
 
     console.log('Can render subtasks:', true);
     return true;
-  };
-
-  const renderSubtasks = () => {
-    return subtasks.map(subtask => (
-      <DraggableTask
-        key={subtask.id}
-        task={subtask}
-        parentTask={parentTask}
-        editingTaskId={editingTaskId}
-        addingSubtaskId={addingSubtaskId}
-        setEditingTaskId={setEditingTaskId}
-        setAddingSubtaskId={setAddingSubtaskId}
-        toggleTask={toggleTask}
-        updateTaskTitle={updateTaskTitle}
-        deleteTask={deleteTask}
-        newTask={newTask}
-        setNewTask={setNewTask}
-        addTask={addTask}
-        onReorderSubtasks={onReorderSubtasks}
-      />
-    ));
   };
 
   if (!shouldRenderSubtasks()) {
@@ -153,7 +129,24 @@ export const SubtaskList = ({
           items={subtasks.map(task => task.id.toString())}
           strategy={verticalListSortingStrategy}
         >
-          {renderSubtasks()}
+          {subtasks.map(subtask => (
+            <DraggableTask
+              key={subtask.id}
+              task={subtask}
+              parentTask={parentTask}
+              editingTaskId={editingTaskId}
+              addingSubtaskId={addingSubtaskId}
+              setEditingTaskId={setEditingTaskId}
+              setAddingSubtaskId={setAddingSubtaskId}
+              toggleTask={toggleTask}
+              updateTaskTitle={updateTaskTitle}
+              deleteTask={deleteTask}
+              newTask={newTask}
+              setNewTask={setNewTask}
+              addTask={addTask}
+              onReorderSubtasks={onReorderSubtasks}
+            />
+          ))}
         </SortableContext>
       </DndContext>
     </SubtaskContainer>
