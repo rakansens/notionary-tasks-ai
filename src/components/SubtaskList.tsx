@@ -72,7 +72,10 @@ export const SubtaskList = ({
     }
   };
   
+  // サブタスクがない場合は何も表示しない
   if (!subtasks || subtasks.length === 0) return null;
+  
+  // 親タスクが折りたたまれている場合は子タスクを表示しない
   if (isCollapsed) return null;
 
   return (
