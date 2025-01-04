@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Task } from "./types";
 import { useToast } from "@/components/ui/use-toast";
+import { mapSupabaseTaskToTask } from "./mappers";
 
 export const useTaskQuery = () => {
   const queryClient = useQueryClient();
@@ -26,7 +27,7 @@ export const useTaskQuery = () => {
         throw error;
       }
 
-      return data as Task[];
+      return data.map(mapSupabaseTaskToTask);
     },
   });
 
