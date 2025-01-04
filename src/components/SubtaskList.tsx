@@ -72,8 +72,8 @@ export const SubtaskList = ({
     }
   };
   
-  if (propIsCollapsed) return null;
   if (!subtasks || subtasks.length === 0) return null;
+  if (propIsCollapsed && parentTask.level === 1) return null;
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
