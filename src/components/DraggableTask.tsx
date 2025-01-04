@@ -3,6 +3,7 @@ import { TaskItem } from "./TaskItem";
 import { SubtaskList } from "./SubtaskList";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useTaskCollapse } from "@/hooks/taskManager/useTaskCollapse";
 
 interface DraggableTaskProps {
   task: Task;
@@ -18,8 +19,6 @@ interface DraggableTaskProps {
   setNewTask: (value: string) => void;
   addTask: (groupId?: number, parentId?: number) => void;
   onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
-  isCollapsed?: boolean;
-  onToggleCollapse?: () => void;
 }
 
 export const DraggableTask = ({
@@ -36,9 +35,8 @@ export const DraggableTask = ({
   setNewTask,
   addTask,
   onReorderSubtasks,
-  isCollapsed,
-  onToggleCollapse,
 }: DraggableTaskProps) => {
+  const { isTaskCollapsed, toggleTaskCollapse } = useTaskCollapse();
   const {
     attributes,
     listeners,
@@ -86,8 +84,8 @@ export const DraggableTask = ({
         setNewTask={setNewTask}
         addTask={addTask}
         dragHandleProps={{ ...attributes, ...listeners }}
-        isCollapsed={isCollapsed}
-        onToggleCollapse={onToggleCollapse}
+        isCollapsed={isTaskCollapsed(task.id)}
+        onToggleCollapse={() => toggleTaskCollapse(task.id)}
       />
       {subtasks.length > 0 && (
         <SubtaskList
@@ -104,7 +102,7 @@ export const DraggableTask = ({
           setNewTask={setNewTask}
           addTask={addTask}
           onReorderSubtasks={onReorderSubtasks}
-          isCollapsed={isCollapsed}
+          isCollapsed={isTaskCollapsed(task.id)}
         />
       )}
     </div>

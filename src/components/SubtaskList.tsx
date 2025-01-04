@@ -2,7 +2,6 @@ import { Task } from "@/hooks/taskManager/types";
 import { DraggableTask } from "./DraggableTask";
 import { SubtaskDndProvider } from "./subtask/SubtaskDndContext";
 import { SubtaskContainer } from "./subtask/SubtaskContainer";
-import { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -51,15 +50,6 @@ export const SubtaskList = ({
   onReorderSubtasks,
   isCollapsed: propIsCollapsed,
 }: SubtaskListProps) => {
-  const [localCollapsed, setLocalCollapsed] = useState(false);
-  
-  // propIsCollapsedが変更されたときだけlocalCollapsedを更新
-  useEffect(() => {
-    if (propIsCollapsed !== undefined) {
-      setLocalCollapsed(propIsCollapsed);
-    }
-  }, [propIsCollapsed]);
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -82,7 +72,7 @@ export const SubtaskList = ({
     }
   };
   
-  if (localCollapsed) return null;
+  if (propIsCollapsed) return null;
   if (!subtasks || subtasks.length === 0) return null;
 
   return (
@@ -112,8 +102,6 @@ export const SubtaskList = ({
               setNewTask={setNewTask}
               addTask={addTask}
               onReorderSubtasks={onReorderSubtasks}
-              isCollapsed={localCollapsed}
-              onToggleCollapse={() => setLocalCollapsed(!localCollapsed)}
             />
           ))}
         </SortableContext>
