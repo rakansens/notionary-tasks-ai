@@ -30,39 +30,20 @@ export const TaskDndProvider = ({
   onDragEnd,
   onDragCancel,
 }: TaskDndProviderProps) => {
-  console.log("TaskDndProvider: Initializing sensors");
-  
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // ドラッグ開始の距離を増やす
-        tolerance: 5,
-        delay: 0, // 遅延を削除
-      },
-    }),
+    useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
-  console.log("TaskDndProvider: Setting up DndContext");
-
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
-      onDragStart={(event) => {
-        console.log("DndContext: Drag Start", event);
-        onDragStart(event);
-      }}
-      onDragEnd={(event) => {
-        console.log("DndContext: Drag End", event);
-        onDragEnd(event);
-      }}
-      onDragCancel={() => {
-        console.log("DndContext: Drag Cancel");
-        onDragCancel();
-      }}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragCancel={onDragCancel}
       modifiers={[restrictToVerticalAxis]}
     >
       {children}

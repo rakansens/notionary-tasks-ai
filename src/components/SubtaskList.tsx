@@ -50,12 +50,7 @@ export const SubtaskList = ({
   isCollapsed,
 }: SubtaskListProps) => {
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 3,
-        tolerance: 5,
-      },
-    }),
+    useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -82,28 +77,20 @@ export const SubtaskList = ({
   };
 
   const shouldRenderSubtasks = () => {
-    if (addingSubtaskId === parentTask.id) {
-      return true;
-    }
-
     if (!subtasks || subtasks.length === 0) {
+      console.log('No subtasks found for parentId:', parentTask.id);
       return false;
     }
     
-    if (isCollapsed) {
-      return false;
-    }
+    if (isCollapsed) return false;
 
-    if (parentTask.level >= 4) {
-      return false;
-    }
+    // 親タスクが3階層目の場合はサブタスクを表示しない
+    if (parentTask.level >= 3) return false;
 
     return true;
   };
 
-  if (!shouldRenderSubtasks()) {
-    return null;
-  }
+  if (!shouldRenderSubtasks()) return null;
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>

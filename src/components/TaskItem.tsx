@@ -64,7 +64,6 @@ export const TaskItem = ({
         <div
           {...dragHandleProps}
           className="touch-none cursor-grab p-2 hover:bg-notion-hover rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          onClick={(e) => e.stopPropagation()}
         >
           <GripVertical className="h-4 w-4 text-notion-secondary" />
         </div>

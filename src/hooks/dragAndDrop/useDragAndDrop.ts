@@ -13,18 +13,13 @@ export const useDragAndDrop = (
   });
 
   const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    if (!active) return;
-
-    console.log('Drag started:', { activeId: active.id });
-    setState({ activeId: String(active.id) });
+    setState({ activeId: String(event.active.id) });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (!over || !active) {
-      console.log('Invalid drag end:', { active, over });
+    if (!over) {
       setState({ activeId: null });
       return;
     }
@@ -33,7 +28,6 @@ export const useDragAndDrop = (
     const overId = over.id.toString();
     
     if (activeId === overId) {
-      console.log('Dropped on same position:', { activeId, overId });
       setState({ activeId: null });
       return;
     }
@@ -42,20 +36,16 @@ export const useDragAndDrop = (
     const overItem = items.find(item => item.id.toString() === overId);
 
     if (!activeItem || !overItem) {
-      console.log('Items not found:', { activeItem, overItem });
       setState({ activeId: null });
       return;
     }
 
     if (!validateDrop(activeItem, overItem, items)) {
-      console.log('Invalid drop operation:', { activeItem, overItem });
       setState({ activeId: null });
       return;
     }
 
-    console.log('Calculating new order:', { activeItem, overItem });
     const updates = calculateNewOrder(activeItem, overItem, items, options);
-    
     const updatedItems = items.map(item => {
       const update = updates.find(u => u.id === item.id);
       if (update) {
@@ -69,9 +59,7 @@ export const useDragAndDrop = (
       return item;
     });
 
-    console.log('Updating order with:', { updatedItems });
     updateOrder(updatedItems);
-    
     if (options?.onOrderUpdate) {
       options.onOrderUpdate(updates);
     }
@@ -80,7 +68,6 @@ export const useDragAndDrop = (
   };
 
   const handleDragCancel = () => {
-    console.log('Drag cancelled');
     setState({ activeId: null });
   };
 
@@ -90,4 +77,4 @@ export const useDragAndDrop = (
     handleDragEnd,
     handleDragCancel,
   };
-};
+}; 
