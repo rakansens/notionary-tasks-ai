@@ -8,12 +8,15 @@ export interface Task {
   order: number;
   addedAt: Date;
   hierarchyLevel: number;
+  level: number;
+  description?: string;
 }
 
 export interface Group {
   id: number;
   name: string;
   order: number;
+  description?: string;
 }
 
 export interface DeleteTarget {

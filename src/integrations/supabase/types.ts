@@ -12,6 +12,7 @@ export type Database = {
       groups: {
         Row: {
           created_at: string
+          description: string | null
           id: number
           name: string
           order_position: number
@@ -19,6 +20,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: never
           name: string
           order_position?: number
@@ -26,6 +28,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: never
           name?: string
           order_position?: number
@@ -69,9 +72,11 @@ export type Database = {
         Row: {
           completed: boolean
           created_at: string
+          description: string | null
           group_id: number | null
           hierarchy_level: number
           id: number
+          level: number
           order_position: number
           parent_id: number | null
           title: string
@@ -80,9 +85,11 @@ export type Database = {
         Insert: {
           completed?: boolean
           created_at?: string
+          description?: string | null
           group_id?: number | null
           hierarchy_level?: number
           id?: never
+          level?: number
           order_position?: number
           parent_id?: number | null
           title: string
@@ -91,9 +98,11 @@ export type Database = {
         Update: {
           completed?: boolean
           created_at?: string
+          description?: string | null
           group_id?: number | null
           hierarchy_level?: number
           id?: never
+          level?: number
           order_position?: number
           parent_id?: number | null
           title?: string

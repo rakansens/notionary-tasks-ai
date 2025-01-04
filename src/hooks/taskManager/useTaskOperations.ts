@@ -16,6 +16,10 @@ export const useTaskOperations = () => {
     return undefined;
   };
 
+  const calculateTaskLevel = (parentTask?: Task | null): number => {
+    return parentTask ? parentTask.level + 1 : 1;
+  };
+
   const createNewTask = (
     title: string,
     groupId?: number,
@@ -23,7 +27,7 @@ export const useTaskOperations = () => {
     order?: number,
     parentTask?: Task | null
   ): Task => {
-    // 親タスクが存在する場合、その階層レベル+1を設定
+    const level = calculateTaskLevel(parentTask);
     const hierarchyLevel = parentTask ? parentTask.hierarchyLevel + 1 : 0;
 
     return {
@@ -34,6 +38,7 @@ export const useTaskOperations = () => {
       parentId: parentId || null,
       order: order || 0,
       hierarchyLevel,
+      level,
       addedAt: new Date(),
       subtasks: [],
     };
@@ -52,6 +57,7 @@ export const useTaskOperations = () => {
           group_id: task.groupId,
           parent_id: task.parentId,
           hierarchy_level: task.hierarchyLevel,
+          level: task.level,
         })
         .select()
         .single();
@@ -166,4 +172,25 @@ export const useTaskOperations = () => {
     updateTaskTitleInSupabase,
     deleteTaskFromSupabase,
   };
+};
+
+export const updateTaskOrder = async (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
+  try {
+    for (const task of tasks) {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ 
+          order_position: task.order,
+          level: task.level 
+        })
+        .eq('id', task.id);
+
+      if (error) throw error;
+    }
+    
+    setTasks(tasks);
+  } catch (error) {
+    console.error('Error updating task order:', error);
+    throw error;
+  }
 };
