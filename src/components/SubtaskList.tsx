@@ -69,6 +69,7 @@ export const SubtaskList = ({
         console.log('Reordering subtasks:', {
           parentTask: {
             id: parentTask.id,
+            title: parentTask.title,
             level: parentTask.level
           },
           startIndex: oldIndex,
@@ -83,28 +84,52 @@ export const SubtaskList = ({
 
   const shouldRenderSubtasks = () => {
     if (!subtasks || subtasks.length === 0) {
-      console.log('No subtasks found for parent:', parentTask.id);
+      console.log('No subtasks found for parent:', {
+        parentId: parentTask.id,
+        parentTitle: parentTask.title
+      });
       return false;
     }
     
-    if (isCollapsed) return false;
+    if (isCollapsed) {
+      console.log('Parent task is collapsed:', parentTask.id);
+      return false;
+    }
 
     const parentLevel = parentTask.level || 1;
     
-    // サブタスクの検証
+    // サブタスクの検証（より詳細なログ）
     const validSubtasks = subtasks.filter(subtask => {
       const subtaskLevel = subtask.level || 1;
       const isValidLevel = subtaskLevel === parentLevel + 1;
       const hasValidParent = subtask.parentId === parentTask.id;
 
+      console.log('Validating subtask:', {
+        subtaskId: subtask.id,
+        subtaskTitle: subtask.title,
+        subtaskLevel,
+        expectedLevel: parentLevel + 1,
+        parentTaskId: parentTask.id,
+        parentTaskTitle: parentTask.title,
+        actualParentId: subtask.parentId,
+        isValidLevel,
+        hasValidParent
+      });
+
       if (!isValidLevel || !hasValidParent) {
-        console.warn('Filtering out invalid subtask:', {
-          subtaskId: subtask.id,
-          subtaskLevel,
-          parentLevel,
-          parentId: parentTask.id,
-          actualParentId: subtask.parentId,
-          reason: !isValidLevel ? 'Invalid level' : 'Invalid parent'
+        console.warn('Invalid subtask found:', {
+          reason: !isValidLevel ? 'Invalid level' : 'Invalid parent',
+          subtask: {
+            id: subtask.id,
+            title: subtask.title,
+            level: subtaskLevel,
+            parentId: subtask.parentId
+          },
+          parent: {
+            id: parentTask.id,
+            title: parentTask.title,
+            level: parentLevel
+          }
         });
         return false;
       }
@@ -113,7 +138,10 @@ export const SubtaskList = ({
 
     // 有効なサブタスクが存在しない場合は表示しない
     if (validSubtasks.length === 0) {
-      console.log('No valid subtasks found after filtering');
+      console.log('No valid subtasks found after filtering for parent:', {
+        parentId: parentTask.id,
+        parentTitle: parentTask.title
+      });
       return false;
     }
 
@@ -123,10 +151,11 @@ export const SubtaskList = ({
   if (!shouldRenderSubtasks()) return null;
 
   // 有効なサブタスクのみをフィルタリング
-  const validSubtasks = subtasks.filter(subtask => 
-    (subtask.level || 1) === (parentTask.level || 1) + 1 && 
-    subtask.parentId === parentTask.id
-  );
+  const validSubtasks = subtasks.filter(subtask => {
+    const isValidLevel = (subtask.level || 1) === (parentTask.level || 1) + 1;
+    const hasValidParent = subtask.parentId === parentTask.id;
+    return isValidLevel && hasValidParent;
+  });
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>

@@ -73,16 +73,19 @@ export const DraggableTask = memo(({
     const hasSubtasks = subtasks && subtasks.length > 0;
 
     // 詳細なデバッグ情報
-    console.log('Task hierarchy check:', {
+    console.log('Task hierarchy detailed check:', {
       taskId: task.id,
+      taskTitle: task.title,
       taskLevel: currentLevel,
       parentTaskId: parentTask?.id,
+      parentTaskTitle: parentTask?.title,
       parentTaskLevel: parentTask?.level,
       hasSubtasks,
       subtasksCount: subtasks.length,
       isCollapsed,
       subtasks: subtasks.map(st => ({
         id: st.id,
+        title: st.title,
         level: st.level,
         parentId: st.parentId
       }))
@@ -90,6 +93,13 @@ export const DraggableTask = memo(({
 
     // 基本的な条件チェック
     if (isCollapsed || !hasSubtasks) {
+      console.log('Basic check failed:', { isCollapsed, hasSubtasks });
+      return false;
+    }
+
+    // レベル制限チェック（3階層まで）
+    if (currentLevel >= 3) {
+      console.log('Maximum level reached:', currentLevel);
       return false;
     }
 
@@ -112,16 +122,19 @@ export const DraggableTask = memo(({
     // サブタスクの整合性チェック
     const hasValidSubtasks = subtasks.every(subtask => {
       const subtaskLevel = subtask.level || 1;
-      const isValidLevel = subtaskLevel === currentLevel + 1;
+      const expectedLevel = currentLevel + 1;
       const hasValidParent = subtask.parentId === task.id;
+      const isValidLevel = subtaskLevel === expectedLevel;
 
       if (!isValidLevel || !hasValidParent) {
         console.warn('Invalid subtask configuration:', {
           subtaskId: subtask.id,
+          subtaskTitle: subtask.title,
           subtaskLevel,
-          expectedLevel: currentLevel + 1,
+          expectedLevel,
           parentId: task.id,
-          actualParentId: subtask.parentId
+          actualParentId: subtask.parentId,
+          reason: !isValidLevel ? 'Invalid level' : 'Invalid parent'
         });
         return false;
       }
@@ -129,17 +142,12 @@ export const DraggableTask = memo(({
     });
 
     if (!hasValidSubtasks) {
-      return false;
-    }
-
-    // レベル制限チェック（3階層まで）
-    if (currentLevel >= 3) {
-      console.log('Maximum nesting level reached:', currentLevel);
+      console.log('No valid subtasks found');
       return false;
     }
 
     return true;
-  }, [task.id, task.level, subtasks, isCollapsed, parentTask]);
+  }, [task.id, task.level, task.title, subtasks, isCollapsed, parentTask]);
 
   return (
     <div 
