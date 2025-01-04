@@ -60,7 +60,7 @@ export const useTaskManager = (): TaskManagerOperations & {
 
     try {
       const parentTask = parentId ? taskOperations.findTaskById(state.tasks, parentId) : null;
-      const hierarchyLevel = parentTask ? parentTask.hierarchyLevel + 1 : 0;
+      const level = parentTask ? parentTask.level + 1 : 1;
       
       const newTask = taskOperations.createNewTask(
         trimmedTask,
@@ -70,7 +70,6 @@ export const useTaskManager = (): TaskManagerOperations & {
         parentTask
       );
 
-      // Supabaseにタスクを保存
       const { data: savedTask, error } = await supabase
         .from('tasks')
         .insert({
@@ -79,7 +78,7 @@ export const useTaskManager = (): TaskManagerOperations & {
           order_position: newTask.order,
           group_id: newTask.groupId,
           parent_id: newTask.parentId,
-          hierarchy_level: hierarchyLevel
+          level: level
         })
         .select()
         .single();
@@ -91,7 +90,7 @@ export const useTaskManager = (): TaskManagerOperations & {
       const taskWithId: Task = {
         ...newTask,
         id: savedTask.id,
-        hierarchyLevel: savedTask.hierarchy_level
+        level: savedTask.level
       };
 
       const updatedTasks = [...state.tasks, taskWithId];

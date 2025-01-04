@@ -8,7 +8,6 @@ export const mapSupabaseTaskToTask = (task: Tables<"tasks">): Task => ({
   order: task.order_position,
   groupId: task.group_id || undefined,
   parentId: task.parent_id || undefined,
-  hierarchyLevel: task.hierarchy_level,
   level: task.level,
   addedAt: new Date(task.created_at),
   description: task.description || undefined,
