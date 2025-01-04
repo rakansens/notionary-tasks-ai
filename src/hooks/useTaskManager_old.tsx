@@ -10,6 +10,7 @@ import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './taskManager/ma
 import { updateGroupOrder, deleteGroup } from './taskManager/groupOperations';
 import { updateTaskOrder } from './taskManager/taskOperations';
 import { supabase } from "@/integrations/supabase/client";
+import { useTaskOperationsHook } from './taskManager/useTaskOperationsHook';
 
 export const useTaskManager = (): TaskManagerOperations & {
   tasks: Task[];
@@ -34,6 +35,11 @@ export const useTaskManager = (): TaskManagerOperations & {
   const { toast } = useToast();
   const taskOperations = useTaskOperations();
   const groupOperations = useGroupOperations();
+  const { toggleTask, updateTaskTitle, deleteTask } = useTaskOperationsHook(
+    state.tasks,
+    setters.setTasks,
+    taskOperations.findTaskById
+  );
 
   useEffect(() => {
     const loadInitialData = async () => {
