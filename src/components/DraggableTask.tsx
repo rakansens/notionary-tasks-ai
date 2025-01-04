@@ -70,12 +70,14 @@ export const DraggableTask = memo(({
 
   // サブタスクの表示条件を判定（修正）
   const canRenderSubtasks = useCallback(() => {
+    // デバッグ情報の出力
     console.log('Checking subtasks for task:', {
       taskId: task.id,
       level: task.level,
       subtasksCount: subtasks.length,
       isCollapsed,
-      parentTaskLevel: parentTask?.level
+      parentTaskLevel: parentTask?.level,
+      parentTaskId: parentTask?.id
     });
 
     // 折りたたまれている場合は表示しない
@@ -90,15 +92,31 @@ export const DraggableTask = memo(({
       return false;
     }
 
-    // 親タスクが3階層目以上の場合はサブタスクを表示しない
-    if (task.level >= 3) {
-      console.log('Task level is too deep:', task.level);
+    // 現在のタスクレベルを確認
+    const currentLevel = task.level || 1;
+    console.log('Current task level:', currentLevel);
+
+    // 3階層目以上のタスクはサブタスクを持てない
+    if (currentLevel >= 3) {
+      console.log('Task level is too deep:', currentLevel);
       return false;
+    }
+
+    // 親タスクがある場合、親タスクのレベルを確認
+    if (parentTask) {
+      const parentLevel = parentTask.level || 1;
+      console.log('Parent task level:', parentLevel);
+      
+      // 親タスクのレベルが2以上の場合、サブタスクを表示しない
+      if (parentLevel >= 2) {
+        console.log('Parent task level is too deep:', parentLevel);
+        return false;
+      }
     }
 
     console.log('Can render subtasks:', true);
     return true;
-  }, [task.level, subtasks.length, isCollapsed, task.id, parentTask?.level]);
+  }, [task.level, subtasks.length, isCollapsed, task.id, parentTask]);
 
   return (
     <div 
