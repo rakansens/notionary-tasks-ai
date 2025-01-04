@@ -48,7 +48,7 @@ export const SubtaskList = ({
   setNewTask,
   addTask,
   onReorderSubtasks,
-  isCollapsed: propIsCollapsed,
+  isCollapsed,
 }: SubtaskListProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -72,8 +72,8 @@ export const SubtaskList = ({
     }
   };
   
-  if (propIsCollapsed) return null;
   if (!subtasks || subtasks.length === 0) return null;
+  if (isCollapsed) return null;
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
