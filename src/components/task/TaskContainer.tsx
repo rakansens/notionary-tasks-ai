@@ -19,7 +19,10 @@ interface TaskContainerProps {
   setNewTask: (value: string) => void;
   addTask: (groupId?: number, parentId?: number) => void;
   onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
-  dragHandleProps?: Record<string, any>;
+  dragHandleProps: {
+    attributes: Record<string, any>;
+    listeners: Record<string, any>;
+  };
 }
 
 export const TaskContainer = memo(({
