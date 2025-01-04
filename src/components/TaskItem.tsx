@@ -79,16 +79,16 @@ export const TaskItem = ({
     setAddingSubtaskId(task.id);
   };
 
-  const handleAddSubtaskKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleAddSubtaskKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
       e.preventDefault();
       if (newTask.trim()) {
-        addTask(undefined, task.id);
+        await addTask(undefined, task.id);
         // サブタスクの追加が完了した後にsetAddingSubtaskIdをnullにする
         setTimeout(() => {
           setAddingSubtaskId(null);
           setNewTask("");
-        }, 100);
+        }, 500); // タイミングを500msに延長
       }
     } else if (e.key === "Escape") {
       setAddingSubtaskId(null);
@@ -96,14 +96,14 @@ export const TaskItem = ({
     }
   };
 
-  const handleAddSubtaskBlur = () => {
+  const handleAddSubtaskBlur = async () => {
     if (newTask.trim()) {
-      addTask(undefined, task.id);
+      await addTask(undefined, task.id);
       // サブタスクの追加が完了した後にsetAddingSubtaskIdをnullにする
       setTimeout(() => {
         setAddingSubtaskId(null);
         setNewTask("");
-      }, 100);
+      }, 500); // タイミングを500msに延長
     } else {
       setAddingSubtaskId(null);
       setNewTask("");

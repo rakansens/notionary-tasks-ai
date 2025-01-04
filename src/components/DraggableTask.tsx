@@ -74,7 +74,7 @@ export const DraggableTask = ({
   const isCollapsed = isTaskCollapsed(task.id);
 
   // 3階層目のタスクも表示できるようにする
-  const shouldRenderSubtasks = subtasks.length > 0 && task.level < 3;
+  const shouldRenderSubtasks = subtasks.length > 0 && task.level <= 3;
 
   return (
     <div 
