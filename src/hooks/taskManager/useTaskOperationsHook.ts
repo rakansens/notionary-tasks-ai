@@ -20,18 +20,36 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
     });
   };
 
+  const findTaskInHierarchy = (tasks: Task[], taskId: number): Task | undefined => {
+    for (const task of tasks) {
+      if (task.id === taskId) {
+        return task;
+      }
+      if (task.subtasks && task.subtasks.length > 0) {
+        const found = findTaskInHierarchy(task.subtasks, taskId);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return undefined;
+  };
+
   const toggleTask = async (taskId: number, parentId?: number) => {
     try {
       const task = findTaskInHierarchy(tasks, taskId);
       if (!task) return;
 
       const newCompleted = !task.completed;
+      console.log('Toggling task:', taskId, 'to', newCompleted);
       
       // 楽観的更新を実装
       const updatedTasks = updateTasksRecursively(tasks, taskId, task => ({
         ...task,
         completed: newCompleted
       }));
+
+      // 即座にUIを更新
       setTasks(updatedTasks);
 
       // その後でサーバーに更新を送信
@@ -42,9 +60,12 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
 
       if (error) {
         // エラーが発生した場合は元の状態に戻す
+        console.error('Error updating task in Supabase:', error);
         setTasks(tasks);
         throw error;
       }
+
+      console.log('Task updated successfully:', taskId);
 
     } catch (error) {
       console.error('Error toggling task:', error);
@@ -63,6 +84,8 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
         ...task,
         title
       }));
+      
+      // 即座にUIを更新
       setTasks(updatedTasks);
 
       const { error } = await supabase
@@ -85,6 +108,26 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
     }
   };
 
+  const deleteTaskAndSubtasks = async (taskId: number) => {
+    const task = findTaskInHierarchy(tasks, taskId);
+    if (!task) return;
+
+    if (task.subtasks && task.subtasks.length > 0) {
+      for (const subtask of task.subtasks) {
+        await deleteTaskAndSubtasks(subtask.id);
+      }
+    }
+
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', taskId);
+
+    if (error) {
+      throw error;
+    }
+  };
+
   const deleteTask = async (taskId: number, parentId?: number) => {
     try {
       // 楽観的更新を実装
@@ -100,9 +143,11 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
         });
       };
 
+      // 即座にUIを更新
       const updatedTasks = removeTaskFromList(tasks);
       setTasks(updatedTasks);
 
+      // その後でサーバーに削除を送信
       await deleteTaskAndSubtasks(taskId);
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -114,37 +159,6 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
         variant: "destructive",
       });
     }
-  };
-
-  const deleteTaskAndSubtasks = async (taskId: number) => {
-    const task = findTaskInHierarchy(tasks, taskId);
-    if (!task) return;
-
-    if (task.subtasks && task.subtasks.length > 0) {
-      for (const subtask of task.subtasks) {
-        await deleteTaskAndSubtasks(subtask.id);
-      }
-    }
-
-    await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', taskId);
-  };
-
-  const findTaskInHierarchy = (tasks: Task[], taskId: number): Task | undefined => {
-    for (const task of tasks) {
-      if (task.id === taskId) {
-        return task;
-      }
-      if (task.subtasks && task.subtasks.length > 0) {
-        const found = findTaskInHierarchy(task.subtasks, taskId);
-        if (found) {
-          return found;
-        }
-      }
-    }
-    return undefined;
   };
 
   return {
