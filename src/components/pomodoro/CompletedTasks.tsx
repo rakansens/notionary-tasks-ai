@@ -11,6 +11,7 @@ import { toast } from "@/components/ui/use-toast";
 import { TaskEventData } from "@/types/taskEvents";
 import { TaskHistorySession } from "./TaskHistorySession";
 import type { PomodoroSession } from "@/types/pomodoro";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CompletedTasksProps {
   sessions: PomodoroSession[];
