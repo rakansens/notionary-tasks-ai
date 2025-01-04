@@ -145,8 +145,42 @@ export const useTaskOperations = (
     }
   };
 
+  const deleteChildTasks = async (taskId: number) => {
+    try {
+      // 子タスクを取得
+      const { data: childTasks, error: fetchError } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('parent_id', taskId);
+
+      if (fetchError) throw fetchError;
+
+      // 各子タスクに対して再帰的に削除を実行
+      if (childTasks) {
+        for (const childTask of childTasks) {
+          await deleteChildTasks(childTask.id);
+        }
+      }
+
+      // 子タスクを削除
+      const { error: deleteError } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('parent_id', taskId);
+
+      if (deleteError) throw deleteError;
+    } catch (error) {
+      console.error('Error deleting child tasks:', error);
+      throw error;
+    }
+  };
+
   const deleteTask = async (id: number) => {
     try {
+      // まず子タスクを削除
+      await deleteChildTasks(id);
+
+      // 親タスクを削除
       const { error } = await supabase
         .from('tasks')
         .delete()
@@ -154,9 +188,19 @@ export const useTaskOperations = (
 
       if (error) throw error;
 
-      setTasks(prevTasks =>
-        prevTasks.filter(task => task.id !== id)
-      );
+      // UIの状態を更新
+      setTasks(prevTasks => {
+        const removeTask = (tasks: Task[]): Task[] => {
+          return tasks.filter(task => {
+            if (task.id === id) return false;
+            if (task.subtasks) {
+              task.subtasks = removeTask(task.subtasks);
+            }
+            return true;
+          });
+        };
+        return removeTask(prevTasks);
+      });
     } catch (error) {
       console.error('Error deleting task:', error);
       toast({
