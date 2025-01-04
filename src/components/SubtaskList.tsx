@@ -82,35 +82,22 @@ export const SubtaskList = ({
   };
 
   const shouldRenderSubtasks = () => {
-    console.log('Checking subtasks for task:', {
-      taskId: parentTask.id,
-      level: parentTask.level,
-      subtasksCount: subtasks.length,
-      isCollapsed,
-      isAddingSubtask: addingSubtaskId === parentTask.id
-    });
-
     if (addingSubtaskId === parentTask.id) {
-      console.log('Adding subtask mode - showing subtasks');
       return true;
     }
 
     if (!subtasks || subtasks.length === 0) {
-      console.log('No subtasks found');
       return false;
     }
     
     if (isCollapsed) {
-      console.log('Task is collapsed');
       return false;
     }
 
     if (parentTask.level >= 4) {
-      console.log('Task level is too deep:', parentTask.level);
       return false;
     }
 
-    console.log('Can render subtasks:', true);
     return true;
   };
 
