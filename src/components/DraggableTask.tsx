@@ -47,9 +47,11 @@ export const DraggableTask = memo(({
     isDragging,
   } = useSortable({ 
     id: task.id.toString(),
-    transition: {
-      duration: 150,
-      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+    data: {
+      type: 'task',
+      task,
+      parentId: parentTask?.id,
+      level: task.level,
     },
   });
 
@@ -63,24 +65,17 @@ export const DraggableTask = memo(({
     touchAction: "none",
   };
 
-  console.log('DraggableTask rendering:', {
-    taskId: task.id,
-    level: task.level,
-    parentId: task.parentId,
-    subtasksCount: task.subtasks?.length
-  });
-
   const subtasks = task.subtasks || [];
   const isCollapsed = isTaskCollapsed(task.id);
 
   // サブタスクの表示条件を判定
   const canRenderSubtasks = useCallback(() => {
-    // タスクが3階層目の場合はサブタスクを持てない
-    if (task.level >= 3) return false;
     // サブタスクが存在しない場合は表示しない
     if (!subtasks.length) return false;
     // 折りたたまれている場合は表示しない
     if (isCollapsed) return false;
+    // 3階層目のタスクはサブタスクを持てない
+    if (task.level >= 3) return false;
     return true;
   }, [task.level, subtasks.length, isCollapsed]);
 

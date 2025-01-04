@@ -59,24 +59,29 @@ export const SubtaskList = ({
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over) return;
+    if (!over || !subtasks) return;
 
     if (active.id !== over.id) {
       const oldIndex = subtasks.findIndex(task => task.id.toString() === active.id);
       const newIndex = subtasks.findIndex(task => task.id.toString() === over.id);
       
-      if (onReorderSubtasks) {
+      if (oldIndex !== -1 && newIndex !== -1 && onReorderSubtasks) {
+        console.log('Reordering subtasks:', {
+          startIndex: oldIndex,
+          endIndex: newIndex,
+          parentId: parentTask.id
+        });
         onReorderSubtasks(oldIndex, newIndex, parentTask.id);
       }
     }
   };
 
-  // 表示条件のチェック
   const shouldRenderSubtasks = () => {
-    // サブタスクが存在しない場合は表示しない
-    if (!subtasks || subtasks.length === 0) return false;
+    if (!subtasks || subtasks.length === 0) {
+      console.log('No subtasks found for parentId:', parentTask.id);
+      return false;
+    }
     
-    // 親タスクが折りたたまれている場合は表示しない
     if (isCollapsed) return false;
 
     // 親タスクが3階層目の場合はサブタスクを表示しない
@@ -86,12 +91,6 @@ export const SubtaskList = ({
   };
 
   if (!shouldRenderSubtasks()) return null;
-
-  console.log('SubtaskList rendering for parent:', parentTask.id, 'subtasks:', subtasks.map(s => ({
-    id: s.id,
-    level: s.level,
-    parentId: s.parentId
-  })));
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
