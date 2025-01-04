@@ -5,18 +5,23 @@ import { useToast } from "@/components/ui/use-toast";
 export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
   const { toast } = useToast();
 
+  const createNewTaskReference = (task: Task): Task => ({
+    ...task,
+    subtasks: task.subtasks ? task.subtasks.map(createNewTaskReference) : [],
+  });
+
   const updateTasksRecursively = (tasks: Task[], taskId: number, updater: (task: Task) => Task): Task[] => {
     return tasks.map(task => {
       if (task.id === taskId) {
-        return updater(task);
+        const updatedTask = updater(task);
+        return createNewTaskReference(updatedTask);
       }
       if (task.subtasks && task.subtasks.length > 0) {
         const updatedSubtasks = updateTasksRecursively(task.subtasks, taskId, updater);
-        // サブタスクが更新された場合のみ、新しいタスクオブジェクトを作成
         if (updatedSubtasks !== task.subtasks) {
           return {
             ...task,
-            subtasks: updatedSubtasks
+            subtasks: updatedSubtasks,
           };
         }
       }
@@ -27,7 +32,7 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
   const findTaskInHierarchy = (tasks: Task[], taskId: number): Task | undefined => {
     for (const task of tasks) {
       if (task.id === taskId) {
-        return task;
+        return createNewTaskReference(task);
       }
       if (task.subtasks && task.subtasks.length > 0) {
         const found = findTaskInHierarchy(task.subtasks, taskId);
@@ -45,15 +50,14 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
       if (!task) return;
 
       const newCompleted = !task.completed;
-      console.log('Toggling task:', taskId, 'to', newCompleted);
       
-      // 楽観的更新: 即座にUIを更新
+      // 楽観的更新
       const updatedTasks = updateTasksRecursively(tasks, taskId, task => ({
         ...task,
         completed: newCompleted
       }));
 
-      // 状態を更新
+      // 即座にUIを更新
       setTasks(updatedTasks);
 
       // サーバーに更新を送信
@@ -64,12 +68,9 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
 
       if (error) {
         // エラーが発生した場合は元の状態に戻す
-        console.error('Error updating task in Supabase:', error);
         setTasks(tasks);
         throw error;
       }
-
-      console.log('Task updated successfully:', taskId);
 
     } catch (error) {
       console.error('Error toggling task:', error);
@@ -83,7 +84,7 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
 
   const updateTaskTitle = async (taskId: number, title: string, parentId?: number) => {
     try {
-      // 楽観的更新を実装
+      // 楽観的更新
       const updatedTasks = updateTasksRecursively(tasks, taskId, task => ({
         ...task,
         title
@@ -134,17 +135,12 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
 
   const deleteTask = async (taskId: number, parentId?: number) => {
     try {
-      // 楽観的更新を実装
+      // 楽観的更新
       const removeTaskFromList = (tasks: Task[]): Task[] => {
-        return tasks.filter(task => {
-          if (task.id === taskId) {
-            return false;
-          }
-          if (task.subtasks && task.subtasks.length > 0) {
-            task.subtasks = removeTaskFromList(task.subtasks);
-          }
-          return true;
-        });
+        return tasks.map(task => ({
+          ...task,
+          subtasks: task.subtasks ? removeTaskFromList(task.subtasks.filter(t => t.id !== taskId)) : []
+        })).filter(task => task.id !== taskId);
       };
 
       // 即座にUIを更新
