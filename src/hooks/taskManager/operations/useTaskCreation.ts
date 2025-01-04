@@ -23,7 +23,10 @@ export const useTaskCreation = (
     if (!parentId) return 1;
     
     const parentTask = findTaskById(tasks, parentId);
-    if (!parentTask) return 1;
+    if (!parentTask) {
+      console.warn('Parent task not found:', parentId);
+      return 1;
+    }
     
     return parentTask.level + 1;
   };
@@ -33,7 +36,7 @@ export const useTaskCreation = (
       const trimmedTask = title?.trim();
       if (!trimmedTask) return;
 
-      // レベルの計算を改善
+      // 先にレベルをチェック
       const newLevel = calculateTaskLevel(parentId, tasks);
       console.log('Calculated new task level:', newLevel, 'for parent:', parentId);
 
@@ -41,6 +44,18 @@ export const useTaskCreation = (
         toast({
           title: "エラー",
           description: "3階層以上のサブタスクは作成できません",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      // 親タスクの取得と検証
+      const parentTask = parentId ? findTaskById(tasks, parentId) : null;
+      if (parentId && !parentTask) {
+        console.error('Parent task not found:', parentId);
+        toast({
+          title: "エラー",
+          description: "親タスクが見つかりません",
           variant: "destructive",
         });
         return null;
@@ -54,6 +69,14 @@ export const useTaskCreation = (
         ? Math.max(...siblingTasks.map(t => t.order))
         : -1;
       const newOrder = maxOrder + 1;
+
+      console.log('Creating new task:', {
+        title: trimmedTask,
+        level: newLevel,
+        parentId,
+        groupId,
+        order: newOrder
+      });
 
       const { data: savedTask, error } = await supabase
         .from('tasks')
