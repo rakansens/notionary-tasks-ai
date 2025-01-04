@@ -78,9 +78,6 @@ export const SubtaskList = ({
   // 親タスクが折りたたまれている場合は子タスクを表示しない
   if (isCollapsed) return null;
 
-  // 新しい配列として扱う
-  const subtasksList = [...subtasks];
-
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
       <DndContext
@@ -89,10 +86,10 @@ export const SubtaskList = ({
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={subtasksList.map(task => task.id.toString())}
+          items={subtasks.map(task => task.id.toString())}
           strategy={verticalListSortingStrategy}
         >
-          {subtasksList.map(subtask => (
+          {subtasks.map(subtask => (
             <DraggableTask
               key={subtask.id}
               task={subtask}
