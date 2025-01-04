@@ -1,16 +1,15 @@
 import { useEffect } from 'react';
-import { Task, Group, TaskManagerOperations } from './taskManager/types';
-import { useTaskStateManager } from './taskManager/taskStateManager';
-import { useTaskEvents } from './taskManager/useTaskEvents';
+import { Task, Group, TaskManagerOperations } from './types';
+import { useTaskStateManager } from './taskStateManager';
+import { useTaskEvents } from './useTaskEvents';
 import { useToast } from "@/components/ui/use-toast";
-import { useTaskOperations } from './taskManager/useTaskOperations';
-import { useGroupOperations } from './taskManager/useGroupOperations';
-import { fetchInitialData } from './taskManager/supabaseOperations';
-import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './taskManager/mappers';
-import { updateGroupOrder, deleteGroup } from './taskManager/groupOperations';
-import { updateTaskOrder } from './taskManager/taskOperations';
-
-export type { Task, Group };
+import { useTaskOperations } from './useTaskOperations';
+import { useGroupOperations } from './useGroupOperations';
+import { fetchInitialData } from './supabaseOperations';
+import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './mappers';
+import { updateGroupOrder, deleteGroup } from './groupOperations';
+import { updateTaskOrder } from './taskOperations';
+import { supabase } from "@/integrations/supabase/client";
 
 export const useTaskManager = (): TaskManagerOperations & {
   tasks: Task[];
@@ -77,6 +76,7 @@ export const useTaskManager = (): TaskManagerOperations & {
         groupId: newTask.groupId,
         parentId: newTask.parentId,
         hierarchyLevel: newTask.hierarchyLevel,
+        level: newTask.level,
       });
 
       const taskWithId: Task = { ...newTask, id: savedTask.id };
@@ -96,171 +96,74 @@ export const useTaskManager = (): TaskManagerOperations & {
     }
   };
 
-  const toggleTask = async (id: number, parentId?: number) => {
+  const toggleTask = async (id: number) => {
     try {
-      const taskToToggle = taskOperations.findTaskById(state.tasks, id);
-      if (!taskToToggle) return;
-
-      await taskOperations.toggleTaskInSupabase(id, !taskToToggle.completed);
-      
-      setters.setTasks(prevTasks => 
-        prevTasks.map(task =>
-          task.id === id ? { ...task, completed: !task.completed } : task
-        )
-      );
-
-      const parentTask = parentId ? taskOperations.findTaskById(state.tasks, parentId) : undefined;
-      const group = taskToToggle.groupId ? state.groups.find(g => g.id === taskToToggle.groupId) : undefined;
-
-      taskEvents.emitTaskCompleted(taskToToggle, parentTask, group);
+      const task = taskOperations.findTaskById(state.tasks, id);
+      if (task) {
+        await taskOperations.toggleTaskInSupabase(id, !task.completed);
+        setters.setTasks(prevTasks =>
+          prevTasks.map(t =>
+            t.id === id ? { ...t, completed: !t.completed } : t
+          )
+        );
+      }
     } catch (error) {
       console.error('Error toggling task:', error);
+      toast({
+        title: "エラー",
+        description: "タスクの状態の更新に失敗しました",
+        variant: "destructive",
+      });
     }
   };
 
   const updateTaskTitle = async (id: number, title: string) => {
-    if (!title.trim()) return;
-
     try {
       await taskOperations.updateTaskTitleInSupabase(id, title);
-      
       setters.setTasks(prevTasks =>
         prevTasks.map(task =>
           task.id === id ? { ...task, title } : task
         )
       );
-      setters.setEditingTaskId(null);
     } catch (error) {
       console.error('Error updating task title:', error);
+      toast({
+        title: "エラー",
+        description: "タスクのタイトル更新に失敗しました",
+        variant: "destructive",
+      });
     }
   };
 
   const deleteTask = async (id: number) => {
     try {
       await taskOperations.deleteTaskFromSupabase(id);
-      
-      const taskToDelete = state.tasks.find(t => t.id === id);
-      if (!taskToDelete) return;
-
-      const parentTask = taskToDelete.parentId ? state.tasks.find(t => t.id === taskToDelete.parentId) : undefined;
-      const group = taskToDelete.groupId ? state.groups.find(g => g.id === taskToDelete.groupId) : undefined;
-
-      taskEvents.emitTaskDeleted(taskToDelete, parentTask, group);
-
-      setters.setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+      setters.setTasks(prevTasks =>
+        prevTasks.filter(task => task.id !== id)
+      );
     } catch (error) {
       console.error('Error deleting task:', error);
-    }
-  };
-
-  const initiateGroupDelete = async (id: number) => {
-    try {
-      const groupToDelete = state.groups.find(g => g.id === id);
-      if (groupToDelete) {
-        setters.setDeleteTarget({ type: "group", id });
-      }
-    } catch (error) {
-      console.error('Error setting up group deletion:', error);
       toast({
         title: "エラー",
-        description: "グループの削除準備に失敗しました",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleGroupDelete = async (id: number) => {
-    try {
-      const groupToDelete = state.groups.find(g => g.id === id);
-      if (!groupToDelete) return;
-
-      await deleteGroup(id);
-
-      setters.setGroups(prevGroups => prevGroups.filter(g => g.id !== id));
-      setters.setTasks(prevTasks => prevTasks.filter(t => t.groupId !== id));
-      
-      taskEvents.emitGroupDeleted(groupToDelete);
-
-      toast({
-        title: "成功",
-        description: `グループ「${groupToDelete.name}」を削除しました`,
-      });
-    } catch (error) {
-      console.error('Error deleting group:', error);
-      toast({
-        title: "エラー",
-        description: "グループの削除に失敗しました",
+        description: "タスクの削除に失敗しました",
         variant: "destructive",
       });
     }
   };
 
   const confirmDelete = () => {
-    if (!state.deleteTarget) return;
-
-    if (state.deleteTarget.type === "task") {
-      deleteTask(state.deleteTarget.id);
-    } else {
-      handleGroupDelete(state.deleteTarget.id);
+    if (state.deleteTarget) {
+      if (state.deleteTarget.type === 'task') {
+        deleteTask(state.deleteTarget.id);
+      } else if (state.deleteTarget.type === 'group') {
+        deleteGroup(state.deleteTarget.id);
+      }
+      setters.setDeleteTarget(null);
     }
-    
-    setters.setDeleteTarget(null);
   };
 
   const cancelDelete = () => {
     setters.setDeleteTarget(null);
-  };
-
-  const toggleGroupCollapse = (groupId: number) => {
-    setters.setCollapsedGroups(prev => {
-      const newCollapsed = new Set(prev);
-      if (newCollapsed.has(groupId)) {
-        newCollapsed.delete(groupId);
-      } else {
-        newCollapsed.add(groupId);
-      }
-      return newCollapsed;
-    });
-  };
-
-  const addNewGroup = async (name: string) => {
-    if (!name.trim()) return;
-
-    try {
-      const newGroup: Omit<Group, "id"> = {
-        name: name.trim(),
-        order: state.groups.length,
-      };
-
-      const savedGroup = await groupOperations.addGroupToSupabase(newGroup);
-      console.log('Group saved to Supabase:', savedGroup);
-      
-      if (savedGroup && savedGroup.id) {
-        const group: Group = {
-          id: savedGroup.id,
-          name: savedGroup.name,
-          order: savedGroup.order_position,
-        };
-        
-        setters.setGroups(prevGroups => [...prevGroups, group]);
-        taskEvents.emitGroupAdded(group);
-        
-        toast({
-          title: "成功",
-          description: `グループ「${name.trim()}」を追加しました`,
-        });
-        
-        setters.setNewGroup("");
-        setters.setIsAddingGroup(false);
-      }
-    } catch (error) {
-      console.error('Error adding group:', error);
-      toast({
-        title: "エラー",
-        description: "グループの追加に失敗しました",
-        variant: "destructive",
-      });
-    }
   };
 
   return {
@@ -284,13 +187,39 @@ export const useTaskManager = (): TaskManagerOperations & {
     toggleTask,
     updateTaskTitle,
     deleteTask,
-    deleteGroup: initiateGroupDelete,
     confirmDelete,
     cancelDelete,
+    toggleGroupCollapse: (groupId: number) => {
+      setters.setCollapsedGroups(prev => {
+        const newCollapsed = new Set(prev);
+        if (newCollapsed.has(groupId)) {
+          newCollapsed.delete(groupId);
+        } else {
+          newCollapsed.add(groupId);
+        }
+        return newCollapsed;
+      });
+    },
+    deleteGroup: (id: number) => {
+      try {
+        const groupToDelete = state.groups.find(g => g.id === id);
+        if (groupToDelete) {
+          setters.setDeleteTarget({ type: "group", id });
+        }
+      } catch (error) {
+        console.error('Error setting up group deletion:', error);
+        toast({
+          title: "エラー",
+          description: "グループの削除準備に失敗しました",
+          variant: "destructive",
+        });
+      }
+    },
     updateTaskOrder: (tasks: Task[]) => updateTaskOrder(tasks, setters.setTasks),
     updateGroupOrder: (groups: Group[]) => updateGroupOrder(groups, setters.setGroups),
-    toggleGroupCollapse,
-    addGroup: addNewGroup,
+    addGroup: (name: string) => {
+      window.dispatchEvent(new CustomEvent('addGroup', { detail: { name } }));
+    },
     updateGroupName: async (id: number, name: string) => {
       try {
         await groupOperations.updateGroupNameInSupabase(id, name);

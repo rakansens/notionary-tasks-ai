@@ -16,6 +16,10 @@ export const useTaskOperations = () => {
     return undefined;
   };
 
+  const calculateTaskLevel = (parentTask?: Task | null): number => {
+    return parentTask ? parentTask.level + 1 : 1;
+  };
+
   const createNewTask = (
     title: string,
     groupId?: number,
@@ -23,17 +27,18 @@ export const useTaskOperations = () => {
     order?: number,
     parentTask?: Task | null
   ): Task => {
-    // 親タスクが存在する場合、その階層レベル+1を設定
+    const level = calculateTaskLevel(parentTask);
     const hierarchyLevel = parentTask ? parentTask.hierarchyLevel + 1 : 0;
 
     return {
-      id: Date.now(), // 一時的なID（Supabase保存後に更新される）
+      id: Date.now(),
       title,
       completed: false,
       groupId: groupId || null,
       parentId: parentId || null,
       order: order || 0,
       hierarchyLevel,
+      level,
       addedAt: new Date(),
       subtasks: [],
     };
@@ -168,14 +173,15 @@ export const useTaskOperations = () => {
   };
 };
 
-// タスクの並び順を更新する関数を追加
 export const updateTaskOrder = async (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
   try {
-    // タスクの順序を更新
     for (const task of tasks) {
       const { error } = await supabase
         .from('tasks')
-        .update({ order_position: task.order })
+        .update({ 
+          order_position: task.order,
+          level: task.level 
+        })
         .eq('id', task.id);
 
       if (error) throw error;
