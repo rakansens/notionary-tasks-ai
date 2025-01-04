@@ -42,10 +42,12 @@ export const TaskDragWrapper = ({
     transition,
     opacity: isDragging ? 0.5 : 1,
     position: "relative",
-    zIndex: isDragging ? 999 : "auto",
+    zIndex: isDragging ? 999 : 1,
     backgroundColor: isDragging ? "white" : "transparent",
     touchAction: "none",
     pointerEvents: "auto" as const,
+    cursor: isDragging ? "grabbing" : "grab",
+    userSelect: "none" as const,
   };
 
   console.log(`TaskDragWrapper: Rendering task ${task.id}, isDragging: ${isDragging}, level: ${task.level}`);
@@ -60,7 +62,7 @@ export const TaskDragWrapper = ({
       {children({ 
         attributes: {
           ...attributes,
-          style: { cursor: 'grab' }
+          style: { cursor: isDragging ? "grabbing" : "grab" }
         }, 
         listeners 
       })}
