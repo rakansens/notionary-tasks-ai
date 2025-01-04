@@ -1,18 +1,16 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Task, Group } from "./types";
 
-export const addTaskToSupabase = async (task: Omit<Task, "id" | "created_at" | "updated_at">) => {
+export const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt">) => {
   const { data, error } = await supabase
     .from("tasks")
     .insert({
       title: task.title,
-      status: task.status,
-      group_id: task.group_id,
-      parent_task_id: task.parent_task_id,
-      level: task.level,
-      sort_order: task.sort_order,
-      user_id: task.user_id,
-      description: task.description
+      completed: task.completed,
+      order_position: task.order,
+      group_id: task.groupId,
+      parent_id: task.parentId,
+      hierarchy_level: task.hierarchyLevel,
     })
     .select()
     .single();
@@ -21,10 +19,10 @@ export const addTaskToSupabase = async (task: Omit<Task, "id" | "created_at" | "
   return data;
 };
 
-export const toggleTaskInSupabase = async (id: number, status: string) => {
+export const toggleTaskInSupabase = async (id: number, completed: boolean) => {
   const { error } = await supabase
     .from("tasks")
-    .update({ status })
+    .update({ completed })
     .eq("id", id);
 
   if (error) throw error;
@@ -48,14 +46,12 @@ export const deleteTaskFromSupabase = async (id: number) => {
   if (error) throw error;
 };
 
-export const addGroupToSupabase = async (group: Omit<Group, "id" | "created_at" | "updated_at">) => {
+export const addGroupToSupabase = async (group: Omit<Group, "id">) => {
   const { data, error } = await supabase
     .from("groups")
     .insert({
-      group_name: group.group_name,
-      sort_order: group.sort_order,
-      owner_user_id: group.owner_user_id,
-      description: group.description
+      name: group.name,
+      order_position: group.order,
     })
     .select()
     .single();
@@ -64,10 +60,10 @@ export const addGroupToSupabase = async (group: Omit<Group, "id" | "created_at" 
   return data;
 };
 
-export const updateGroupNameInSupabase = async (id: number, group_name: string) => {
+export const updateGroupNameInSupabase = async (id: number, name: string) => {
   const { error } = await supabase
     .from("groups")
-    .update({ group_name })
+    .update({ name })
     .eq("id", id);
 
   if (error) throw error;
@@ -86,12 +82,12 @@ export const fetchInitialData = async () => {
   const { data: tasks, error: tasksError } = await supabase
     .from("tasks")
     .select("*")
-    .order("id"); // 一時的にidでソート
+    .order("order_position");
 
   const { data: groups, error: groupsError } = await supabase
     .from("groups")
     .select("*")
-    .order("id"); // 一時的にidでソート
+    .order("order_position");
 
   if (tasksError) throw tasksError;
   if (groupsError) throw groupsError;

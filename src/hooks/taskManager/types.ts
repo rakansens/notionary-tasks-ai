@@ -1,26 +1,19 @@
 export interface Task {
   id: number;
   title: string;
-  status: string;
-  group_id?: number | null;
-  parent_task_id?: number | null;
+  completed: boolean;
+  groupId?: number;
+  parentId?: number;
   subtasks?: Task[];
-  level: number;
-  sort_order?: number;
-  user_id: number;
-  description?: string;
-  created_at: Date;
-  updated_at: Date;
+  order: number;
+  addedAt: Date;
+  hierarchyLevel: number;
 }
 
 export interface Group {
   id: number;
-  group_name: string;
-  sort_order?: number;
-  owner_user_id?: number;
-  description?: string;
-  created_at: Date;
-  updated_at: Date;
+  name: string;
+  order: number;
 }
 
 export interface DeleteTarget {
@@ -29,31 +22,16 @@ export interface DeleteTarget {
 }
 
 export interface TaskManagerOperations {
-  addTask: (group_id?: number, parent_task_id?: number, title?: string) => void;
-  toggleTask: (id: number, parent_task_id?: number) => void;
-  updateTaskTitle: (id: number, title: string, parent_task_id?: number) => void;
-  deleteTask: (id: number, parent_task_id?: number) => void;
-  addGroup: (group_name: string) => void;
-  updateGroupName: (id: number, group_name: string) => void;
+  addTask: (groupId?: number, parentId?: number, title?: string) => void;
+  toggleTask: (id: number, parentId?: number) => void;
+  updateTaskTitle: (id: number, title: string, parentId?: number) => void;
+  deleteTask: (id: number, parentId?: number) => void;
+  addGroup: (name: string) => void;
+  updateGroupName: (id: number, name: string) => void;
   deleteGroup: (id: number) => void;
   confirmDelete: () => void;
   cancelDelete: () => void;
   updateTaskOrder: (tasks: Task[]) => void;
   updateGroupOrder: (groups: Group[]) => void;
-  toggleGroupCollapse: (group_id: number) => void;
-}
-
-export interface DragAndDropState {
-  activeId: string | null;
-}
-
-export interface DragAndDropOptions {
-  onDragEnd?: (result: any) => void;
-}
-
-export interface OrderUpdate {
-  id: number;
-  sort_order: number;
-  group_id?: number;
-  parent_task_id?: number;
+  toggleGroupCollapse: (groupId: number) => void;
 }

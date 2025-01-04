@@ -9,259 +9,95 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      ai_conversations: {
-        Row: {
-          content: string
-          conversation_id: string
-          created_at: string
-          id: number
-          role: string
-          user_id: number
-        }
-        Insert: {
-          content: string
-          conversation_id: string
-          created_at?: string
-          id?: never
-          role: string
-          user_id: number
-        }
-        Update: {
-          content?: string
-          conversation_id?: string
-          created_at?: string
-          id?: never
-          role?: string
-          user_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_conversations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       groups: {
         Row: {
           created_at: string
-          description: string | null
-          group_name: string
           id: number
-          owner_user_id: number | null
-          sort_order: number | null
+          name: string
+          order_position: number
           updated_at: string
         }
         Insert: {
           created_at?: string
-          description?: string | null
-          group_name: string
           id?: never
-          owner_user_id?: number | null
-          sort_order?: number | null
+          name: string
+          order_position?: number
           updated_at?: string
         }
         Update: {
           created_at?: string
-          description?: string | null
-          group_name?: string
           id?: never
-          owner_user_id?: number | null
-          sort_order?: number | null
+          name?: string
+          order_position?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "groups_owner_user_id_fkey"
-            columns: ["owner_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      memo_tags: {
+      task_suggestions: {
         Row: {
-          id: number
-          memo_id: number
-          tag_name: string
-        }
-        Insert: {
-          id?: never
-          memo_id: number
-          tag_name: string
-        }
-        Update: {
-          id?: never
-          memo_id?: number
-          tag_name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "memo_tags_memo_id_fkey"
-            columns: ["memo_id"]
-            isOneToOne: false
-            referencedRelation: "memos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      memos: {
-        Row: {
-          content: string
           created_at: string
           id: number
+          parent_id: number | null
+          title: string
           updated_at: string
-          user_id: number
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: never
-          updated_at?: string
-          user_id: number
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: never
-          updated_at?: string
-          user_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "memos_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      pomodoros: {
-        Row: {
-          created_at: string
-          end_time: string | null
-          id: number
-          is_active: boolean | null
-          start_time: string
-          updated_at: string
-          user_id: number
         }
         Insert: {
           created_at?: string
-          end_time?: string | null
           id?: never
-          is_active?: boolean | null
-          start_time: string
+          parent_id?: number | null
+          title: string
           updated_at?: string
-          user_id: number
         }
         Update: {
           created_at?: string
-          end_time?: string | null
           id?: never
-          is_active?: boolean | null
-          start_time?: string
+          parent_id?: number | null
+          title?: string
           updated_at?: string
-          user_id?: number
         }
         Relationships: [
           {
-            foreignKeyName: "pomodoros_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "task_suggestions_parent_id_fkey"
+            columns: ["parent_id"]
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      task_logs: {
-        Row: {
-          id: number
-          operation_type: string
-          pomodoro_id: number | null
-          record_id: number | null
-          table_name: string
-          timestamp: string
-          user_id: number
-        }
-        Insert: {
-          id?: never
-          operation_type: string
-          pomodoro_id?: number | null
-          record_id?: number | null
-          table_name: string
-          timestamp?: string
-          user_id: number
-        }
-        Update: {
-          id?: never
-          operation_type?: string
-          pomodoro_id?: number | null
-          record_id?: number | null
-          table_name?: string
-          timestamp?: string
-          user_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "task_logs_pomodoro_id_fkey"
-            columns: ["pomodoro_id"]
-            isOneToOne: false
-            referencedRelation: "pomodoros"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "task_suggestions"
             referencedColumns: ["id"]
           },
         ]
       }
       tasks: {
         Row: {
+          completed: boolean
           created_at: string
-          description: string | null
           group_id: number | null
+          hierarchy_level: number
           id: number
-          level: number
-          parent_task_id: number | null
-          sort_order: number | null
-          status: string | null
+          order_position: number
+          parent_id: number | null
           title: string
           updated_at: string
-          user_id: number
         }
         Insert: {
+          completed?: boolean
           created_at?: string
-          description?: string | null
           group_id?: number | null
+          hierarchy_level?: number
           id?: never
-          level?: number
-          parent_task_id?: number | null
-          sort_order?: number | null
-          status?: string | null
+          order_position?: number
+          parent_id?: number | null
           title: string
           updated_at?: string
-          user_id: number
         }
         Update: {
+          completed?: boolean
           created_at?: string
-          description?: string | null
           group_id?: number | null
+          hierarchy_level?: number
           id?: never
-          level?: number
-          parent_task_id?: number | null
-          sort_order?: number | null
-          status?: string | null
+          order_position?: number
+          parent_id?: number | null
           title?: string
           updated_at?: string
-          user_id?: number
         }
         Relationships: [
           {
@@ -272,225 +108,121 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "tasks_parent_task_id_fkey"
-            columns: ["parent_task_id"]
+            foreignKeyName: "tasks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "group_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "subtasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_id_fkey"
+            columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
+        ]
+      }
+    }
+    Views: {
+      group_tasks: {
+        Row: {
+          completed: boolean | null
+          created_at: string | null
+          group_id: number | null
+          group_name: string | null
+          hierarchy_level: number | null
+          id: number | null
+          order_position: number | null
+          parent_id: number | null
+          title: string | null
+          updated_at: string | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "tasks_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "tasks_group_id_fkey"
+            columns: ["group_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "group_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "subtasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
       }
-      users: {
+      subtasks: {
         Row: {
-          created_at: string
-          email: string
-          id: number
-          name: string
-          password_hash: string
-          updated_at: string
+          completed: boolean | null
+          created_at: string | null
+          group_id: number | null
+          hierarchy_level: number | null
+          id: number | null
+          order_position: number | null
+          parent_id: number | null
+          parent_title: string | null
+          title: string | null
+          updated_at: string | null
         }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: never
-          name: string
-          password_hash: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: never
-          name?: string
-          password_hash?: string
-          updated_at?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "group_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "subtasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-    }
-    Views: {
-      [_ in never]: never
     }
     Functions: {
-      binary_quantize:
-        | {
-            Args: {
-              "": string
-            }
-            Returns: unknown
-          }
-        | {
-            Args: {
-              "": unknown
-            }
-            Returns: unknown
-          }
-      halfvec_avg: {
-        Args: {
-          "": number[]
-        }
-        Returns: unknown
-      }
-      halfvec_out: {
-        Args: {
-          "": unknown
-        }
-        Returns: unknown
-      }
-      halfvec_send: {
-        Args: {
-          "": unknown
-        }
-        Returns: string
-      }
-      halfvec_typmod_in: {
-        Args: {
-          "": unknown[]
-        }
-        Returns: number
-      }
-      hnsw_bit_support: {
-        Args: {
-          "": unknown
-        }
-        Returns: unknown
-      }
-      hnsw_halfvec_support: {
-        Args: {
-          "": unknown
-        }
-        Returns: unknown
-      }
-      hnsw_sparsevec_support: {
-        Args: {
-          "": unknown
-        }
-        Returns: unknown
-      }
-      hnswhandler: {
-        Args: {
-          "": unknown
-        }
-        Returns: unknown
-      }
-      ivfflat_bit_support: {
-        Args: {
-          "": unknown
-        }
-        Returns: unknown
-      }
-      ivfflat_halfvec_support: {
-        Args: {
-          "": unknown
-        }
-        Returns: unknown
-      }
-      ivfflathandler: {
-        Args: {
-          "": unknown
-        }
-        Returns: unknown
-      }
-      l2_norm:
-        | {
-            Args: {
-              "": unknown
-            }
-            Returns: number
-          }
-        | {
-            Args: {
-              "": unknown
-            }
-            Returns: number
-          }
-      l2_normalize:
-        | {
-            Args: {
-              "": string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              "": unknown
-            }
-            Returns: unknown
-          }
-        | {
-            Args: {
-              "": unknown
-            }
-            Returns: unknown
-          }
-      sparsevec_out: {
-        Args: {
-          "": unknown
-        }
-        Returns: unknown
-      }
-      sparsevec_send: {
-        Args: {
-          "": unknown
-        }
-        Returns: string
-      }
-      sparsevec_typmod_in: {
-        Args: {
-          "": unknown[]
-        }
-        Returns: number
-      }
-      vector_avg: {
-        Args: {
-          "": number[]
-        }
-        Returns: string
-      }
-      vector_dims:
-        | {
-            Args: {
-              "": string
-            }
-            Returns: number
-          }
-        | {
-            Args: {
-              "": unknown
-            }
-            Returns: number
-          }
-      vector_norm: {
-        Args: {
-          "": string
-        }
-        Returns: number
-      }
-      vector_out: {
-        Args: {
-          "": string
-        }
-        Returns: unknown
-      }
-      vector_send: {
-        Args: {
-          "": string
-        }
-        Returns: string
-      }
-      vector_typmod_in: {
-        Args: {
-          "": unknown[]
-        }
-        Returns: number
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
