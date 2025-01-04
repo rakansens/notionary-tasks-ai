@@ -1,12 +1,14 @@
 import { Task } from "@/types/models";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ReactNode } from "react";
 
 interface TaskDragWrapperProps {
   task: Task;
   parentTask?: Task;
-  children: ReactNode;
+  children: (dragHandleProps: {
+    attributes: Record<string, any>;
+    listeners: Record<string, any>;
+  }) => React.ReactElement;
 }
 
 export const TaskDragWrapper = ({
@@ -41,15 +43,15 @@ export const TaskDragWrapper = ({
     touchAction: "none",
   };
 
+  console.log(`TaskDragWrapper: Rendering task ${task.id}, isDragging: ${isDragging}`);
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={`${isDragging ? "shadow-lg rounded-md" : ""}`}
     >
-      {typeof children === 'function'
-        ? children({ attributes, listeners })
-        : children}
+      {children({ attributes, listeners })}
     </div>
   );
 };

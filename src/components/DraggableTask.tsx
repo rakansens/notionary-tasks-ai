@@ -20,6 +20,8 @@ interface DraggableTaskProps {
 }
 
 export const DraggableTask = memo((props: DraggableTaskProps) => {
+  console.log(`DraggableTask: Rendering task ${props.task.id}`);
+  
   return (
     <TaskDragWrapper task={props.task} parentTask={props.parentTask}>
       {(dragHandleProps) => (
