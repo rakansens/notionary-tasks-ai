@@ -74,7 +74,8 @@ export const DraggableTask = memo(({
       taskId: task.id,
       level: task.level,
       subtasksCount: subtasks.length,
-      isCollapsed
+      isCollapsed,
+      parentTaskLevel: parentTask?.level
     });
 
     // 折りたたまれている場合は表示しない
@@ -89,15 +90,15 @@ export const DraggableTask = memo(({
       return false;
     }
 
-    // 親タスクが2階層目以下の場合のみサブタスクを表示
-    if (task.level >= 2) {
-      console.log('Parent task level is too deep:', task.level);
+    // 親タスクが3階層目以上の場合はサブタスクを表示しない
+    if (task.level >= 3) {
+      console.log('Task level is too deep:', task.level);
       return false;
     }
 
     console.log('Can render subtasks:', true);
     return true;
-  }, [task.level, subtasks.length, isCollapsed, task.id]);
+  }, [task.level, subtasks.length, isCollapsed, task.id, parentTask?.level]);
 
   return (
     <div 
