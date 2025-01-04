@@ -71,14 +71,21 @@ export const SubtaskList = ({
     }
   };
 
-  // サブタスクがない場合は何も表示しない
-  if (!subtasks || subtasks.length === 0) return null;
-  
-  // 親タスクが折りたたまれている場合は子タスクを表示しない
-  if (isCollapsed) return null;
+  // 表示条件のチェック
+  const shouldRenderSubtasks = () => {
+    // サブタスクが存在しない場合は表示しない
+    if (!subtasks || subtasks.length === 0) return false;
+    
+    // 親タスクが折りたたまれている場合は表示しない
+    if (isCollapsed) return false;
 
-  // 親タスクのレベルが3以上の場合はサブタスクを表示しない
-  if (parentTask.level >= 3) return null;
+    // 親タスクが3階層目の場合はサブタスクを表示しない
+    if (parentTask.level >= 3) return false;
+
+    return true;
+  };
+
+  if (!shouldRenderSubtasks()) return null;
 
   console.log('SubtaskList rendering for parent:', parentTask.id, 'subtasks:', subtasks.map(s => ({
     id: s.id,

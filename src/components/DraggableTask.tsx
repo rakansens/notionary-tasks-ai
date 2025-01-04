@@ -73,11 +73,16 @@ export const DraggableTask = memo(({
   const subtasks = task.subtasks || [];
   const isCollapsed = isTaskCollapsed(task.id);
 
-  // 3階層目までのタスクを表示できるようにする
-  // level 3のタスクはサブタスクを持てないようにする
-  const shouldRenderSubtasks = useCallback(() => {
-    return subtasks.length > 0 && task.level <= 3;
-  }, [subtasks.length, task.level]);
+  // サブタスクの表示条件を判定
+  const canRenderSubtasks = useCallback(() => {
+    // タスクが3階層目の場合はサブタスクを持てない
+    if (task.level >= 3) return false;
+    // サブタスクが存在しない場合は表示しない
+    if (!subtasks.length) return false;
+    // 折りたたまれている場合は表示しない
+    if (isCollapsed) return false;
+    return true;
+  }, [task.level, subtasks.length, isCollapsed]);
 
   return (
     <div 
@@ -102,7 +107,7 @@ export const DraggableTask = memo(({
         isCollapsed={isCollapsed}
         onToggleCollapse={() => toggleTaskCollapse(task.id)}
       />
-      {shouldRenderSubtasks() && !isCollapsed && (
+      {canRenderSubtasks() && (
         <SubtaskList
           parentTask={task}
           subtasks={subtasks}
