@@ -60,6 +60,7 @@ export const useTaskManager = (): TaskManagerOperations & {
 
     try {
       const parentTask = parentId ? taskOperations.findTaskById(state.tasks, parentId) : null;
+      const level = parentTask ? parentTask.level + 1 : 1;
       
       const newTask = taskOperations.createNewTask(
         trimmedTask,
@@ -69,22 +70,33 @@ export const useTaskManager = (): TaskManagerOperations & {
         parentTask
       );
 
-      const savedTask = await taskOperations.addTaskToSupabase({
-        title: newTask.title,
-        completed: newTask.completed,
-        order: newTask.order,
-        groupId: newTask.groupId,
-        parentId: newTask.parentId,
-        hierarchyLevel: newTask.hierarchyLevel,
-        level: newTask.level,
-      });
+      const { data: savedTask, error } = await supabase
+        .from('tasks')
+        .insert({
+          title: newTask.title,
+          completed: newTask.completed,
+          order_position: newTask.order,
+          group_id: newTask.groupId,
+          parent_id: newTask.parentId,
+          level: level
+        })
+        .select()
+        .single();
 
-      const taskWithId: Task = { ...newTask, id: savedTask.id };
+      if (error) {
+        throw error;
+      }
+
+      const taskWithId: Task = {
+        ...newTask,
+        id: savedTask.id,
+        level: savedTask.level
+      };
+
       const updatedTasks = [...state.tasks, taskWithId];
       setters.setTasks(updatedTasks);
 
       const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
-
       taskEvents.emitTaskAdded(taskWithId, parentTask || undefined, group);
       
       setters.setNewTask("");
@@ -93,59 +105,9 @@ export const useTaskManager = (): TaskManagerOperations & {
       }
     } catch (error) {
       console.error('Error adding task:', error);
-    }
-  };
-
-  const toggleTask = async (id: number) => {
-    try {
-      const task = taskOperations.findTaskById(state.tasks, id);
-      if (task) {
-        await taskOperations.toggleTaskInSupabase(id, !task.completed);
-        setters.setTasks(prevTasks =>
-          prevTasks.map(t =>
-            t.id === id ? { ...t, completed: !t.completed } : t
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error toggling task:', error);
       toast({
         title: "エラー",
-        description: "タスクの状態の更新に失敗しました",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const updateTaskTitle = async (id: number, title: string) => {
-    try {
-      await taskOperations.updateTaskTitleInSupabase(id, title);
-      setters.setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task.id === id ? { ...task, title } : task
-        )
-      );
-    } catch (error) {
-      console.error('Error updating task title:', error);
-      toast({
-        title: "エラー",
-        description: "タスクのタイトル更新に失敗しました",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteTask = async (id: number) => {
-    try {
-      await taskOperations.deleteTaskFromSupabase(id);
-      setters.setTasks(prevTasks =>
-        prevTasks.filter(task => task.id !== id)
-      );
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      toast({
-        title: "エラー",
-        description: "タスクの削除に失敗しました",
+        description: "タスクの追加に失敗しました",
         variant: "destructive",
       });
     }
