@@ -36,6 +36,8 @@ export const TaskDragWrapper = ({
     },
   });
 
+  console.log(`TaskDragWrapper: Task ${task.id} isDragging:`, isDragging);
+
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -44,12 +46,9 @@ export const TaskDragWrapper = ({
     zIndex: isDragging ? 999 : 1,
     backgroundColor: isDragging ? "white" : "transparent",
     touchAction: "none",
-    pointerEvents: "auto",
-    cursor: isDragging ? "grabbing" : "grab",
+    cursor: "default",
     userSelect: "none",
   };
-
-  console.log(`TaskDragWrapper: Rendering task ${task.id}, isDragging: ${isDragging}, level: ${task.level}`);
 
   return (
     <div
