@@ -83,7 +83,7 @@ export const TaskUI = () => {
         addGroup={addGroup}
         newTask={newTask}
         setNewTask={setNewTask}
-        addTask={() => addTask()}
+        addTask={addTask}
       />
 
       <DeleteConfirmDialog
