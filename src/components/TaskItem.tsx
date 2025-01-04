@@ -2,9 +2,9 @@ import { Task } from "@/types/models";
 import { TaskCheckbox } from "./task/TaskCheckbox";
 import { TaskTitle } from "./task/TaskTitle";
 import { TaskItemActions } from "./task/TaskItemActions";
-import { Input } from "@/components/ui/input";
+import { TaskSubtaskInput } from "./task/TaskSubtaskInput";
+import { useTaskItemHandlers } from "@/hooks/task/useTaskItemHandlers";
 import { GripVertical } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 
 interface TaskItemProps {
   task: Task;
@@ -41,92 +41,22 @@ export const TaskItem = ({
   isCollapsed,
   onToggleCollapse,
 }: TaskItemProps) => {
-  const { toast } = useToast();
   const isEditing = editingTaskId === task.id;
   const isAddingSubtask = addingSubtaskId === task.id;
   const hasSubtasks = task.subtasks && task.subtasks.length > 0;
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
-      e.preventDefault();
-      const value = e.currentTarget.value.trim();
-      if (value) {
-        updateTaskTitle(task.id, value, parentTask?.id);
-      }
-      setEditingTaskId(null);
-    } else if (e.key === "Escape") {
-      setEditingTaskId(null);
-    }
-  };
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const value = e.target.value.trim();
-    if (value && value !== task.title) {
-      updateTaskTitle(task.id, value, parentTask?.id);
-    }
-    setEditingTaskId(null);
-  };
-
-  const handleAddSubtask = () => {
-    if (task.level >= 3) {
-      toast({
-        title: "エラー",
-        description: "サブタスクは3階層までしか作成できません",
-        variant: "destructive",
-      });
-      return;
-    }
-    setAddingSubtaskId(task.id);
-  };
-
-  const handleAddSubtaskKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
-      e.preventDefault();
-      if (newTask.trim()) {
-        try {
-          await addTask(undefined, task.id);
-          // サブタスクの追加が完了した後にsetAddingSubtaskIdをnullにする
-          setTimeout(() => {
-            setAddingSubtaskId(null);
-            setNewTask("");
-          }, 1000); // タイミングを1000msに延長
-        } catch (error) {
-          console.error('Error adding subtask:', error);
-          toast({
-            title: "エラー",
-            description: "サブタスクの追加に失敗しました",
-            variant: "destructive",
-          });
-        }
-      }
-    } else if (e.key === "Escape") {
-      setAddingSubtaskId(null);
-      setNewTask("");
-    }
-  };
-
-  const handleAddSubtaskBlur = async () => {
-    if (newTask.trim()) {
-      try {
-        await addTask(undefined, task.id);
-        // サブタスクの追加が完了した後にsetAddingSubtaskIdをnullにする
-        setTimeout(() => {
-          setAddingSubtaskId(null);
-          setNewTask("");
-        }, 1000); // タイミングを1000msに延長
-      } catch (error) {
-        console.error('Error adding subtask:', error);
-        toast({
-          title: "エラー",
-          description: "サブタスクの追加に失敗しました",
-          variant: "destructive",
-        });
-      }
-    } else {
-      setAddingSubtaskId(null);
-      setNewTask("");
-    }
-  };
+  const {
+    handleKeyDown,
+    handleBlur,
+    handleAddSubtask,
+  } = useTaskItemHandlers(
+    task,
+    parentTask,
+    updateTaskTitle,
+    setEditingTaskId,
+    setAddingSubtaskId,
+    addTask
+  );
 
   return (
     <div className="group flex items-center gap-2 py-0.5">
@@ -151,7 +81,7 @@ export const TaskItem = ({
           isEditing={isEditing}
           hasSubtasks={hasSubtasks}
           isCollapsed={isCollapsed || false}
-          onTitleChange={(title) => {}}
+          onTitleChange={() => {}}
           onTitleClick={() => setEditingTaskId(task.id)}
           onBlur={handleBlur}
           onKeyPress={handleKeyDown}
@@ -160,17 +90,13 @@ export const TaskItem = ({
         />
         
         {isAddingSubtask && (
-          <div className="pl-6 mt-1">
-            <Input
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              onBlur={handleAddSubtaskBlur}
-              onKeyDown={handleAddSubtaskKeyDown}
-              placeholder="新しいサブタスク"
-              className="h-6 text-sm"
-              autoFocus
-            />
-          </div>
+          <TaskSubtaskInput
+            task={task}
+            newTask={newTask}
+            setNewTask={setNewTask}
+            addTask={addTask}
+            setAddingSubtaskId={setAddingSubtaskId}
+          />
         )}
       </div>
 
