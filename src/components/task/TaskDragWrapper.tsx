@@ -42,7 +42,6 @@ export const TaskDragWrapper = ({
     position: "relative" as const,
     zIndex: isDragging ? 999 : "auto",
     backgroundColor: isDragging ? "white" : "transparent",
-    touchAction: "none",
   };
 
   console.log(`TaskDragWrapper: Rendering task ${task.id}, isDragging: ${isDragging}`);
@@ -52,7 +51,6 @@ export const TaskDragWrapper = ({
       ref={setNodeRef}
       style={style}
       className={`${isDragging ? "shadow-lg rounded-md" : ""}`}
-      onClick={(e) => e.stopPropagation()}
     >
       {children({ attributes, listeners })}
     </div>

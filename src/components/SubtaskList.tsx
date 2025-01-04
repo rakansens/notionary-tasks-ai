@@ -77,49 +77,67 @@ export const SubtaskList = ({
   };
 
   const shouldRenderSubtasks = () => {
+    console.log('Checking subtasks for task:', {
+      taskId: parentTask.id,
+      level: parentTask.level,
+      subtasksCount: subtasks.length,
+      isCollapsed,
+    });
+
+    // サブタスクが存在しない場合は表示しない
     if (!subtasks || subtasks.length === 0) {
-      console.log('No subtasks found for parentId:', parentTask.id);
+      console.log('No subtasks found');
       return false;
     }
     
-    if (isCollapsed) return false;
-
-    // 4階層目以上のサブタスクは表示しない
-    if (parentTask.level >= 3) {
-      console.log('Parent task level is too deep:', parentTask.level);
+    // 折りたたまれている場合は表示しない
+    if (isCollapsed) {
+      console.log('Task is collapsed');
       return false;
     }
 
+    // 4階層目以上のサブタスクは表示しない
+    if (parentTask.level >= 4) {
+      console.log('Task level is too deep:', parentTask.level);
+      return false;
+    }
+
+    console.log('Can render subtasks:', true);
     return true;
   };
 
-  // サブタスクの表示条件をチェック
+  const renderSubtasks = () => {
+    return subtasks.map(subtask => (
+      <DraggableTask
+        key={subtask.id}
+        task={subtask}
+        parentTask={parentTask}
+        editingTaskId={editingTaskId}
+        addingSubtaskId={addingSubtaskId}
+        setEditingTaskId={setEditingTaskId}
+        setAddingSubtaskId={setAddingSubtaskId}
+        toggleTask={toggleTask}
+        updateTaskTitle={updateTaskTitle}
+        deleteTask={deleteTask}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        addTask={addTask}
+        onReorderSubtasks={onReorderSubtasks}
+      />
+    ));
+  };
+
+  // 新規追加時は常に表示
+  if (addingSubtaskId === parentTask.id) {
+    return (
+      <SubtaskContainer onClick={(e) => e.stopPropagation()}>
+        {renderSubtasks()}
+      </SubtaskContainer>
+    );
+  }
+
+  // 通常の表示条件チェック
   if (!shouldRenderSubtasks()) {
-    // 新規追加時は常に表示する
-    if (addingSubtaskId === parentTask.id) {
-      return (
-        <SubtaskContainer onClick={(e) => e.stopPropagation()}>
-          {subtasks.map(subtask => (
-            <DraggableTask
-              key={subtask.id}
-              task={subtask}
-              parentTask={parentTask}
-              editingTaskId={editingTaskId}
-              addingSubtaskId={addingSubtaskId}
-              setEditingTaskId={setEditingTaskId}
-              setAddingSubtaskId={setAddingSubtaskId}
-              toggleTask={toggleTask}
-              updateTaskTitle={updateTaskTitle}
-              deleteTask={deleteTask}
-              newTask={newTask}
-              setNewTask={setNewTask}
-              addTask={addTask}
-              onReorderSubtasks={onReorderSubtasks}
-            />
-          ))}
-        </SubtaskContainer>
-      );
-    }
     return null;
   }
 
@@ -134,24 +152,7 @@ export const SubtaskList = ({
           items={subtasks.map(task => task.id.toString())}
           strategy={verticalListSortingStrategy}
         >
-          {subtasks.map(subtask => (
-            <DraggableTask
-              key={subtask.id}
-              task={subtask}
-              parentTask={parentTask}
-              editingTaskId={editingTaskId}
-              addingSubtaskId={addingSubtaskId}
-              setEditingTaskId={setEditingTaskId}
-              setAddingSubtaskId={setAddingSubtaskId}
-              toggleTask={toggleTask}
-              updateTaskTitle={updateTaskTitle}
-              deleteTask={deleteTask}
-              newTask={newTask}
-              setNewTask={setNewTask}
-              addTask={addTask}
-              onReorderSubtasks={onReorderSubtasks}
-            />
-          ))}
+          {renderSubtasks()}
         </SortableContext>
       </DndContext>
     </SubtaskContainer>
