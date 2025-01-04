@@ -33,12 +33,18 @@ export const TaskDndProvider = ({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 3, // より小さい値に設定
-        tolerance: 5, // 許容範囲を追加
+        distance: 3,
+        tolerance: 5,
+        delay: 100,
       },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
+      keyboardCodes: {
+        start: ['Space'],
+        cancel: ['Escape'],
+        end: ['Space'],
+      },
     })
   );
 

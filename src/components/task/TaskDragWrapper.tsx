@@ -29,7 +29,7 @@ export const TaskDragWrapper = ({
   } = useSortable({
     id: task.id.toString(),
     data: {
-      type: 'task',
+      type: "task",
       task,
       parentId: parentTask?.id,
       level: task.level,
@@ -41,10 +41,12 @@ export const TaskDragWrapper = ({
     transition,
     opacity: isDragging ? 0.5 : 1,
     position: "relative",
-    zIndex: isDragging ? 999 : "auto",
+    zIndex: isDragging ? 999 : 1,
     backgroundColor: isDragging ? "white" : "transparent",
-    cursor: isDragging ? "grabbing" : "default",
     touchAction: "none",
+    pointerEvents: "auto",
+    cursor: isDragging ? "grabbing" : "grab",
+    userSelect: "none",
   };
 
   console.log(`TaskDragWrapper: Rendering task ${task.id}, isDragging: ${isDragging}, level: ${task.level}`);
@@ -54,6 +56,7 @@ export const TaskDragWrapper = ({
       ref={setNodeRef}
       style={style}
       className={`${isDragging ? "shadow-lg rounded-md" : ""}`}
+      onClick={(e) => e.stopPropagation()}
     >
       {children({ 
         attributes: {
