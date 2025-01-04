@@ -1,6 +1,5 @@
 import { Task } from "@/types/models";
 import { DraggableTask } from "./DraggableTask";
-import { SubtaskDndProvider } from "./subtask/SubtaskDndContext";
 import { SubtaskContainer } from "./subtask/SubtaskContainer";
 import {
   DndContext,
@@ -77,6 +76,9 @@ export const SubtaskList = ({
   
   // 親タスクが折りたたまれている場合は子タスクを表示しない
   if (isCollapsed) return null;
+
+  // 親タスクのレベルが3以上の場合はサブタスクを表示しない
+  if (parentTask.level >= 3) return null;
 
   console.log('SubtaskList rendering for parent:', parentTask.id, 'subtasks:', subtasks.map(s => ({
     id: s.id,
