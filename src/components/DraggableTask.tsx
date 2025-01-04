@@ -68,16 +68,36 @@ export const DraggableTask = memo(({
   const subtasks = task.subtasks || [];
   const isCollapsed = isTaskCollapsed(task.id);
 
-  // サブタスクの表示条件を判定
+  // サブタスクの表示条件を判定（修正）
   const canRenderSubtasks = useCallback(() => {
-    // サブタスクが存在しない場合は表示しない
-    if (!subtasks.length) return false;
+    console.log('Checking subtasks for task:', {
+      taskId: task.id,
+      level: task.level,
+      subtasksCount: subtasks.length,
+      isCollapsed
+    });
+
     // 折りたたまれている場合は表示しない
-    if (isCollapsed) return false;
-    // 3階層目のタスクはサブタスクを持てない
-    if (task.level >= 3) return false;
+    if (isCollapsed) {
+      console.log('Task is collapsed, not rendering subtasks');
+      return false;
+    }
+
+    // サブタスクが存在しない場合は表示しない
+    if (!subtasks.length) {
+      console.log('No subtasks found');
+      return false;
+    }
+
+    // 親タスクが2階層目以下の場合のみサブタスクを表示
+    if (task.level >= 2) {
+      console.log('Parent task level is too deep:', task.level);
+      return false;
+    }
+
+    console.log('Can render subtasks:', true);
     return true;
-  }, [task.level, subtasks.length, isCollapsed]);
+  }, [task.level, subtasks.length, isCollapsed, task.id]);
 
   return (
     <div 
