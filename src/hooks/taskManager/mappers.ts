@@ -17,7 +17,6 @@ export const mapSupabaseTaskToTask = (task: Tables<"tasks">): Task => ({
 export const mapSupabaseGroupToGroup = (group: Tables<"groups">): Group => ({
   id: group.id,
   group_name: group.group_name,
-  order_position: group.order_position || 0,
   owner_user_id: group.owner_user_id,
   description: group.description,
   created_at: new Date(group.created_at),

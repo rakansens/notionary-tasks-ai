@@ -52,7 +52,6 @@ export const addGroupToSupabase = async (group: Omit<Group, "id" | "created_at" 
     .from("groups")
     .insert({
       group_name: group.group_name,
-      order_position: group.order_position,
       owner_user_id: group.owner_user_id,
       description: group.description
     })
@@ -85,12 +84,11 @@ export const fetchInitialData = async () => {
   const { data: tasks, error: tasksError } = await supabase
     .from("tasks")
     .select("*")
-    .order("order_position");
+    .order("level");
 
   const { data: groups, error: groupsError } = await supabase
     .from("groups")
-    .select("*")
-    .order("order_position");
+    .select("*");
 
   if (tasksError) throw tasksError;
   if (groupsError) throw groupsError;
