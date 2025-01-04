@@ -11,10 +11,14 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
         return updater(task);
       }
       if (task.subtasks && task.subtasks.length > 0) {
-        return {
-          ...task,
-          subtasks: updateTasksRecursively(task.subtasks, taskId, updater)
-        };
+        const updatedSubtasks = updateTasksRecursively(task.subtasks, taskId, updater);
+        // サブタスクが更新された場合のみ、新しいタスクオブジェクトを作成
+        if (updatedSubtasks !== task.subtasks) {
+          return {
+            ...task,
+            subtasks: updatedSubtasks
+          };
+        }
       }
       return task;
     });
@@ -43,16 +47,16 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
       const newCompleted = !task.completed;
       console.log('Toggling task:', taskId, 'to', newCompleted);
       
-      // 楽観的更新を実装
+      // 楽観的更新: 即座にUIを更新
       const updatedTasks = updateTasksRecursively(tasks, taskId, task => ({
         ...task,
         completed: newCompleted
       }));
 
-      // 即座にUIを更新
+      // 状態を更新
       setTasks(updatedTasks);
 
-      // その後でサーバーに更新を送信
+      // サーバーに更新を送信
       const { error } = await supabase
         .from('tasks')
         .update({ completed: newCompleted })
@@ -144,7 +148,7 @@ export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) =
       };
 
       // 即座にUIを更新
-      const updatedTasks = removeTaskFromList(tasks);
+      const updatedTasks = removeTaskFromList([...tasks]);
       setTasks(updatedTasks);
 
       // その後でサーバーに削除を送信
