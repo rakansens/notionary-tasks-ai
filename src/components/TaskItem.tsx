@@ -5,6 +5,7 @@ import { TaskItemActions } from "./task/TaskItemActions";
 import { TaskSubtaskInput } from "./task/TaskSubtaskInput";
 import { useTaskItemHandlers } from "@/hooks/task/useTaskItemHandlers";
 import { GripVertical } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface TaskItemProps {
   task: Task;
@@ -41,6 +42,7 @@ export const TaskItem = ({
   isCollapsed,
   onToggleCollapse,
 }: TaskItemProps) => {
+  const { toast } = useToast();
   const isEditing = editingTaskId === task.id;
   const isAddingSubtask = addingSubtaskId === task.id;
   const hasSubtasks = task.subtasks && task.subtasks.length > 0;
@@ -48,7 +50,6 @@ export const TaskItem = ({
   const {
     handleKeyDown,
     handleBlur,
-    handleAddSubtask,
   } = useTaskItemHandlers(
     task,
     parentTask,
@@ -57,6 +58,28 @@ export const TaskItem = ({
     setAddingSubtaskId,
     addTask
   );
+
+  const handleAddSubtask = () => {
+    // レベルチェックを追加
+    const currentLevel = task.level || 1;
+    if (currentLevel >= 2) {
+      toast({
+        title: "エラー",
+        description: "これ以上深い階層のサブタスクは作成できません",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Adding subtask to:', {
+      taskId: task.id,
+      taskLevel: task.level,
+      parentTaskId: parentTask?.id,
+      parentTaskLevel: parentTask?.level
+    });
+
+    setAddingSubtaskId(task.id);
+  };
 
   return (
     <div className="group flex items-center gap-2 py-0.5">

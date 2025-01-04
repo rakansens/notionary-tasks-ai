@@ -68,55 +68,41 @@ export const DraggableTask = memo(({
   const subtasks = task.subtasks || [];
   const isCollapsed = isTaskCollapsed(task.id);
 
-  // サブタスクの表示条件を判定（修正）
+  // サブタスクの表示条件を判定（シンプル化）
   const canRenderSubtasks = useCallback(() => {
     // デバッグ情報の出力
-    console.log('Checking subtasks for task:', {
+    console.log('Task details:', {
       taskId: task.id,
-      level: task.level,
-      subtasksCount: subtasks.length,
-      isCollapsed,
+      taskLevel: task.level,
+      parentTaskId: parentTask?.id,
       parentTaskLevel: parentTask?.level,
-      parentTaskId: parentTask?.id
+      subtasksCount: subtasks.length,
+      isCollapsed
     });
 
-    // 折りたたまれている場合は表示しない
-    if (isCollapsed) {
-      console.log('Task is collapsed, not rendering subtasks');
+    // 基本的な条件チェック
+    if (isCollapsed || !subtasks.length) {
       return false;
     }
 
-    // サブタスクが存在しない場合は表示しない
-    if (!subtasks.length) {
-      console.log('No subtasks found');
-      return false;
-    }
-
-    // 現在のタスクレベルを確認
+    // レベルチェック
     const currentLevel = task.level || 1;
-    console.log('Current task level:', currentLevel);
-
-    // 3階層目以上のタスクはサブタスクを持てない
     if (currentLevel >= 3) {
-      console.log('Task level is too deep:', currentLevel);
+      console.log('Task level too deep:', currentLevel);
       return false;
     }
 
-    // 親タスクがある場合、親タスクのレベルを確認
+    // 親タスクのレベルチェック
     if (parentTask) {
       const parentLevel = parentTask.level || 1;
-      console.log('Parent task level:', parentLevel);
-      
-      // 親タスクのレベルが2以上の場合、サブタスクを表示しない
       if (parentLevel >= 2) {
-        console.log('Parent task level is too deep:', parentLevel);
+        console.log('Parent task level too deep:', parentLevel);
         return false;
       }
     }
 
-    console.log('Can render subtasks:', true);
     return true;
-  }, [task.level, subtasks.length, isCollapsed, task.id, parentTask]);
+  }, [task.id, task.level, subtasks.length, isCollapsed, parentTask]);
 
   return (
     <div 
