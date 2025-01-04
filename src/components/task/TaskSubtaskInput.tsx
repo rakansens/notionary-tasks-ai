@@ -70,6 +70,7 @@ export const TaskSubtaskInput = ({
     <div className="pl-6 mt-1">
       <TaskItemInput
         value={newTask}
+        onChange={setNewTask}
         onBlur={handleAddSubtaskBlur}
         onKeyDown={handleAddSubtaskKeyDown}
         placeholder="新しいサブタスク"
