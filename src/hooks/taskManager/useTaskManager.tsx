@@ -69,7 +69,27 @@ export const useTaskManager = (): TaskManagerOperations & {
   return {
     ...state,
     ...setters,
-    addTask: taskOperations.addTask,
+    addTask: async (groupId?: number, parentId?: number, title?: string) => {
+      const trimmedTitle = title?.trim() || state.newTask.trim();
+      if (!trimmedTitle) return;
+
+      try {
+        const newTask = await taskOperations.addTask(groupId, parentId, trimmedTitle);
+        if (newTask) {
+          setters.setNewTask('');
+          // 新しいタスクを追加した後、タスクリストを再取得
+          const { tasks } = await fetchInitialData();
+          setters.setTasks(tasks.map(mapSupabaseTaskToTask));
+        }
+      } catch (error) {
+        console.error('Error adding task:', error);
+        toast({
+          title: "エラー",
+          description: "タスクの追加に失敗しました",
+          variant: "destructive",
+        });
+      }
+    },
     toggleTask: taskOperations.toggleTask,
     updateTaskTitle: taskOperations.updateTaskTitle,
     deleteTask: taskOperations.deleteTask,

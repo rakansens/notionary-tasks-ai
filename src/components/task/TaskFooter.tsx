@@ -5,10 +5,10 @@ interface TaskFooterProps {
   newGroup: string;
   setNewGroup: (value: string) => void;
   setIsAddingGroup: (value: boolean) => void;
-  addGroup: () => void;
+  addGroup: (name: string) => void;
   newTask: string;
   setNewTask: (value: string) => void;
-  addTask: (groupId?: number) => void;
+  addTask: (groupId?: number, parentId?: number, title?: string) => void;
 }
 
 export const TaskFooter = ({
@@ -22,7 +22,7 @@ export const TaskFooter = ({
         <TaskInput
           value={newTask}
           onChange={setNewTask}
-          onSubmit={() => addTask()}
+          onSubmit={() => addTask(undefined, undefined, newTask)}
           className="bg-white/80 hover:bg-white transition-colors duration-200"
         />
       </div>

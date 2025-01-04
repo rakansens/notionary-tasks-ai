@@ -80,7 +80,7 @@ export const TaskUI = () => {
         newGroup={newGroup}
         setNewGroup={setNewGroup}
         setIsAddingGroup={setIsAddingGroup}
-        addGroup={() => addGroup(newGroup)}
+        addGroup={addGroup}
         newTask={newTask}
         setNewTask={setNewTask}
         addTask={addTask}
