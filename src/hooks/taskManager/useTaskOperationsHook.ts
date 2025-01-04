@@ -20,11 +20,9 @@ export const useTaskOperationsHook = (
 
         if (error) throw error;
 
-        setTasks(prevTasks =>
-          prevTasks.map(t =>
-            t.id === id ? { ...t, completed: !t.completed } : t
-          )
-        );
+        setTasks(tasks.map(t =>
+          t.id === id ? { ...t, completed: !t.completed } : t
+        ));
       }
     } catch (error) {
       console.error('Error toggling task:', error);
@@ -45,11 +43,9 @@ export const useTaskOperationsHook = (
 
       if (error) throw error;
 
-      setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task.id === id ? { ...task, title } : task
-        )
-      );
+      setTasks(tasks.map(task =>
+        task.id === id ? { ...task, title } : task
+      ));
     } catch (error) {
       console.error('Error updating task title:', error);
       toast({
@@ -69,9 +65,7 @@ export const useTaskOperationsHook = (
 
       if (error) throw error;
 
-      setTasks(prevTasks =>
-        prevTasks.filter(task => task.id !== id)
-      );
+      setTasks(tasks.filter(task => task.id !== id));
     } catch (error) {
       console.error('Error deleting task:', error);
       toast({
