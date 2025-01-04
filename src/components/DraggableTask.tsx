@@ -62,8 +62,19 @@ export const DraggableTask = ({
     touchAction: "none",
   };
 
+  // デバッグ用のログ
+  console.log('DraggableTask rendering:', {
+    taskId: task.id,
+    level: task.level,
+    parentId: task.parentId,
+    subtasksCount: task.subtasks?.length
+  });
+
   const subtasks = task.subtasks || [];
   const isCollapsed = isTaskCollapsed(task.id);
+
+  // 3階層目のタスクも表示できるようにする
+  const shouldRenderSubtasks = subtasks.length > 0 && task.level < 3;
 
   return (
     <div 
@@ -88,7 +99,7 @@ export const DraggableTask = ({
         isCollapsed={isCollapsed}
         onToggleCollapse={() => toggleTaskCollapse(task.id)}
       />
-      {subtasks.length > 0 && (
+      {shouldRenderSubtasks && (
         <SubtaskList
           parentTask={task}
           subtasks={subtasks}
