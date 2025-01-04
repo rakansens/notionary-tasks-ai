@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
-import { Task, Group, TaskManagerOperations } from './types';
-import { useTaskStateManager } from './taskStateManager';
-import { useTaskEvents } from './useTaskEvents';
+import { Task, Group, TaskManagerOperations } from './taskManager/types';
+import { useTaskStateManager } from './taskManager/taskStateManager';
+import { useTaskEvents } from './taskManager/useTaskEvents';
 import { useToast } from "@/components/ui/use-toast";
-import { useTaskOperations } from './useTaskOperations';
-import { useGroupOperations } from './useGroupOperations';
-import { fetchInitialData } from './supabaseOperations';
-import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './mappers';
-import { updateGroupOrder, deleteGroup } from './groupOperations';
-import { updateTaskOrder } from './taskOperations';
+import { useTaskOperations } from './taskManager/useTaskOperations';
+import { useGroupOperations } from './taskManager/useGroupOperations';
+import { fetchInitialData } from './taskManager/supabaseOperations';
+import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './taskManager/mappers';
+import { updateGroupOrder, deleteGroup } from './taskManager/groupOperations';
+import { updateTaskOrder } from './taskManager/taskOperations';
 import { supabase } from "@/integrations/supabase/client";
 
 export const useTaskManager = (): TaskManagerOperations & {
