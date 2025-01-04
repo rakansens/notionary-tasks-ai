@@ -72,6 +72,54 @@ export const DraggableTask = memo(({
     const currentLevel = task.level || 1;
     const hasSubtasks = subtasks && subtasks.length > 0;
 
+    // 基本的な条件チェック
+    if (isCollapsed || !hasSubtasks) {
+      console.log('Basic check failed:', { isCollapsed, hasSubtasks });
+      return false;
+    }
+
+    // レベル制限チェック（3階層まで）
+    if (currentLevel >= 3) {
+      console.log('Maximum level reached:', currentLevel);
+      return false;
+    }
+
+    // サブタスクの整合性チェック
+    const hasValidSubtasks = subtasks.every(subtask => {
+      const subtaskLevel = subtask.level || 1;
+      const expectedLevel = currentLevel + 1;
+      const hasValidParent = subtask.parentId === task.id;
+      const isValidLevel = subtaskLevel === expectedLevel;
+
+      console.log('Validating subtask:', {
+        subtaskId: subtask.id,
+        subtaskTitle: subtask.title,
+        subtaskLevel,
+        expectedLevel,
+        parentTaskId: task.id,
+        parentTaskTitle: task.title,
+        actualParentId: subtask.parentId,
+        isValidLevel,
+        hasValidParent
+      });
+
+      return isValidLevel && hasValidParent;
+    });
+
+    // 親タスクの存在チェックと整合性の確認
+    if (parentTask) {
+      const parentLevel = parentTask.level || 1;
+      if (currentLevel <= parentLevel) {
+        console.warn('Invalid parent-child level hierarchy:', {
+          taskId: task.id,
+          taskLevel: currentLevel,
+          parentId: parentTask.id,
+          parentLevel
+        });
+        return false;
+      }
+    }
+
     // 詳細なデバッグ情報
     console.log('Task hierarchy detailed check:', {
       taskId: task.id,
@@ -91,62 +139,7 @@ export const DraggableTask = memo(({
       }))
     });
 
-    // 基本的な条件チェック
-    if (isCollapsed || !hasSubtasks) {
-      console.log('Basic check failed:', { isCollapsed, hasSubtasks });
-      return false;
-    }
-
-    // レベル制限チェック（3階層まで）
-    if (currentLevel >= 3) {
-      console.log('Maximum level reached:', currentLevel);
-      return false;
-    }
-
-    // 親タスクの存在チェックと整合性の確認
-    if (parentTask) {
-      const parentLevel = parentTask.level || 1;
-      
-      // 親子関係の整合性チェック
-      if (currentLevel <= parentLevel) {
-        console.warn('Invalid parent-child level hierarchy:', {
-          taskId: task.id,
-          taskLevel: currentLevel,
-          parentId: parentTask.id,
-          parentLevel
-        });
-        return false;
-      }
-    }
-
-    // サブタスクの整合性チェック
-    const hasValidSubtasks = subtasks.every(subtask => {
-      const subtaskLevel = subtask.level || 1;
-      const expectedLevel = currentLevel + 1;
-      const hasValidParent = subtask.parentId === task.id;
-      const isValidLevel = subtaskLevel === expectedLevel;
-
-      if (!isValidLevel || !hasValidParent) {
-        console.warn('Invalid subtask configuration:', {
-          subtaskId: subtask.id,
-          subtaskTitle: subtask.title,
-          subtaskLevel,
-          expectedLevel,
-          parentId: task.id,
-          actualParentId: subtask.parentId,
-          reason: !isValidLevel ? 'Invalid level' : 'Invalid parent'
-        });
-        return false;
-      }
-      return true;
-    });
-
-    if (!hasValidSubtasks) {
-      console.log('No valid subtasks found');
-      return false;
-    }
-
-    return true;
+    return hasValidSubtasks;
   }, [task.id, task.level, task.title, subtasks, isCollapsed, parentTask]);
 
   return (
