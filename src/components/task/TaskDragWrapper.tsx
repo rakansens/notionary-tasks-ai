@@ -2,13 +2,15 @@ import { Task } from "@/types/models";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+interface DragHandleProps {
+  attributes: Record<string, any>;
+  listeners: Record<string, any>;
+}
+
 interface TaskDragWrapperProps {
   task: Task;
   parentTask?: Task;
-  children: (dragHandleProps: {
-    attributes: Record<string, any>;
-    listeners: Record<string, any>;
-  }) => React.ReactElement;
+  children: (dragHandleProps: DragHandleProps) => React.ReactElement;
 }
 
 export const TaskDragWrapper = ({
