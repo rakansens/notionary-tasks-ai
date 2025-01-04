@@ -46,9 +46,10 @@ export const useTaskCreation = (
       if (!trimmedTask) return;
 
       const parentTask = parentId ? findTaskById(tasks, parentId) : null;
-      const level = parentTask ? (parentTask.level + 1) : 1;
-      
-      if (level > 3) {
+      const newLevel = parentTask ? (parentTask.level + 1) : 1;
+
+      // 3階層以上のチェックを先に行う
+      if (newLevel > 3) {
         toast({
           title: "エラー",
           description: "3階層以上のサブタスクは作成できません",
@@ -65,6 +66,8 @@ export const useTaskCreation = (
         parentTask
       );
 
+      console.log('Creating new task with level:', newLevel, 'Parent task:', parentTask);
+
       const { data: savedTask, error } = await supabase
         .from('tasks')
         .insert({
@@ -73,12 +76,15 @@ export const useTaskCreation = (
           order_position: newTask.order,
           group_id: newTask.groupId,
           parent_id: newTask.parentId,
-          level: level
+          level: newLevel
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving task:', error);
+        throw error;
+      }
 
       const taskWithId: Task = {
         ...newTask,
