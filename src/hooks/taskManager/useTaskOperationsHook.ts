@@ -1,17 +1,24 @@
-import { Task } from "./types";
-import { useToast } from "@/components/ui/use-toast";
+import { Task } from './types';
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
-export const useTaskOperationsHook = (
-  tasks: Task[],
-  setTasks: (tasks: Task[]) => void,
-  findTaskById: (tasks: Task[], id: number) => Task | undefined
-) => {
+export const useTaskOperationsHook = (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
   const { toast } = useToast();
+
+  const findTaskById = (id: number): Task | undefined => {
+    for (const task of tasks) {
+      if (task.id === id) return task;
+      if (task.subtasks) {
+        const found = findTaskById(id);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  };
 
   const toggleTask = async (id: number) => {
     try {
-      const task = findTaskById(tasks, id);
+      const task = findTaskById(id);
       if (task) {
         const { error } = await supabase
           .from('tasks')
@@ -20,9 +27,10 @@ export const useTaskOperationsHook = (
 
         if (error) throw error;
 
-        setTasks(tasks.map(t =>
+        const updatedTasks = tasks.map(t =>
           t.id === id ? { ...t, completed: !t.completed } : t
-        ));
+        );
+        setTasks(updatedTasks);
       }
     } catch (error) {
       console.error('Error toggling task:', error);
@@ -43,9 +51,10 @@ export const useTaskOperationsHook = (
 
       if (error) throw error;
 
-      setTasks(tasks.map(task =>
+      const updatedTasks = tasks.map(task =>
         task.id === id ? { ...task, title } : task
-      ));
+      );
+      setTasks(updatedTasks);
     } catch (error) {
       console.error('Error updating task title:', error);
       toast({
@@ -65,7 +74,8 @@ export const useTaskOperationsHook = (
 
       if (error) throw error;
 
-      setTasks(tasks.filter(task => task.id !== id));
+      const updatedTasks = tasks.filter(task => task.id !== id);
+      setTasks(updatedTasks);
     } catch (error) {
       console.error('Error deleting task:', error);
       toast({
