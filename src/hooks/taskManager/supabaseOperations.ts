@@ -1,16 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Task, Group } from "./types";
 
-export const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt">) => {
+export const addTaskToSupabase = async (task: Omit<Task, "id" | "created_at" | "updated_at">) => {
   const { data, error } = await supabase
     .from("tasks")
     .insert({
       title: task.title,
-      completed: task.completed,
-      order_position: task.order,
-      group_id: task.groupId,
-      parent_id: task.parentId,
-      hierarchy_level: task.hierarchyLevel,
+      status: task.status,
+      level: task.level,
+      group_id: task.group_id,
+      parent_task_id: task.parent_task_id,
+      user_id: task.user_id,
+      description: task.description
     })
     .select()
     .single();
@@ -19,10 +20,10 @@ export const addTaskToSupabase = async (task: Omit<Task, "id" | "addedAt">) => {
   return data;
 };
 
-export const toggleTaskInSupabase = async (id: number, completed: boolean) => {
+export const toggleTaskInSupabase = async (id: number, status: string) => {
   const { error } = await supabase
     .from("tasks")
-    .update({ completed })
+    .update({ status })
     .eq("id", id);
 
   if (error) throw error;
@@ -46,12 +47,14 @@ export const deleteTaskFromSupabase = async (id: number) => {
   if (error) throw error;
 };
 
-export const addGroupToSupabase = async (group: Omit<Group, "id">) => {
+export const addGroupToSupabase = async (group: Omit<Group, "id" | "created_at" | "updated_at">) => {
   const { data, error } = await supabase
     .from("groups")
     .insert({
-      name: group.name,
-      order_position: group.order,
+      group_name: group.group_name,
+      order_position: group.order_position,
+      owner_user_id: group.owner_user_id,
+      description: group.description
     })
     .select()
     .single();
@@ -60,10 +63,10 @@ export const addGroupToSupabase = async (group: Omit<Group, "id">) => {
   return data;
 };
 
-export const updateGroupNameInSupabase = async (id: number, name: string) => {
+export const updateGroupNameInSupabase = async (id: number, group_name: string) => {
   const { error } = await supabase
     .from("groups")
-    .update({ name })
+    .update({ group_name })
     .eq("id", id);
 
   if (error) throw error;

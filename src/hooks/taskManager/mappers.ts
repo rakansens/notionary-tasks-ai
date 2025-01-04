@@ -4,16 +4,22 @@ import { Task, Group } from "./types";
 export const mapSupabaseTaskToTask = (task: Tables<"tasks">): Task => ({
   id: task.id,
   title: task.title,
-  completed: task.completed,
-  order: task.order_position,
-  groupId: task.group_id,
-  parentId: task.parent_id,
-  hierarchyLevel: task.hierarchy_level,
-  addedAt: new Date(task.created_at),
+  status: task.status,
+  level: task.level,
+  group_id: task.group_id,
+  parent_task_id: task.parent_task_id,
+  user_id: task.user_id,
+  description: task.description,
+  created_at: new Date(task.created_at),
+  updated_at: new Date(task.updated_at)
 });
 
 export const mapSupabaseGroupToGroup = (group: Tables<"groups">): Group => ({
   id: group.id,
-  name: group.name,
-  order: group.order_position,
+  group_name: group.group_name,
+  order_position: group.order_position || 0,
+  owner_user_id: group.owner_user_id,
+  description: group.description,
+  created_at: new Date(group.created_at),
+  updated_at: new Date(group.updated_at)
 });
