@@ -2,12 +2,14 @@ import { Task } from './types';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Dispatch, SetStateAction } from 'react';
+import { useTaskQuery } from './useTaskQuery';
 
 export const useTaskOperationsHook = (
   tasks: Task[], 
   setTasks: Dispatch<SetStateAction<Task[]>>
 ) => {
   const { toast } = useToast();
+  const { updateTask } = useTaskQuery();
 
   // 新しい状態更新関数
   const updateTaskState = (taskId: number, updates: Partial<Task>) => {
@@ -54,17 +56,8 @@ export const useTaskOperationsHook = (
       // 即座に状態を更新
       updateTaskState(taskId, { completed: newCompleted });
 
-      // その後でサーバーに更新を送信
-      const { error } = await supabase
-        .from('tasks')
-        .update({ completed: newCompleted })
-        .eq('id', taskId);
-
-      if (error) {
-        // エラー時は元の状態に戻す
-        updateTaskState(taskId, { completed: !newCompleted });
-        throw error;
-      }
+      // React Queryのmutationを使用してサーバーに更新を送信
+      updateTask({ id: taskId, completed: newCompleted });
     } catch (error) {
       console.error('Error toggling task:', error);
       toast({
