@@ -4,10 +4,10 @@ import { Task, Group } from "./types";
 export const mapSupabaseTaskToTask = (task: Tables<"tasks">): Task => ({
   id: task.id,
   title: task.title,
-  status: task.status,
-  level: task.level,
+  status: task.status || 'open',
   group_id: task.group_id,
   parent_task_id: task.parent_task_id,
+  level: task.level,
   user_id: task.user_id,
   description: task.description,
   created_at: new Date(task.created_at),

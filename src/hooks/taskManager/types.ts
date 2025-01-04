@@ -1,7 +1,7 @@
 export interface Task {
   id: number;
   title: string;
-  status: string;  // 'completed' | 'open' などのステータス
+  status: string;
   group_id?: number;
   parent_task_id?: number;
   subtasks?: Task[];
