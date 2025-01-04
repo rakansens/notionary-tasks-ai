@@ -6,6 +6,7 @@ export interface Task {
   parent_task_id?: number;
   subtasks?: Task[];
   level: number;
+  sort_order?: number;
   user_id: number;
   description?: string;
   created_at: Date;
@@ -15,6 +16,7 @@ export interface Task {
 export interface Group {
   id: number;
   group_name: string;
+  sort_order?: number;
   owner_user_id?: number;
   description?: string;
   created_at: Date;
