@@ -1,26 +1,25 @@
-export interface Task {
+import { Task, Group } from './models';
+
+export interface TaskResponse {
   id: number;
   title: string;
   completed: boolean;
-  groupId?: number;
-  parentId?: number;
-  subtasks?: Task[];
-  order: number;
-  addedAt: Date;
+  order_position: number;
+  group_id: number | null;
+  parent_id: number | null;
   level: number;
   description?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface Group {
+export interface GroupResponse {
   id: number;
   name: string;
-  order: number;
+  order_position: number;
   description?: string;
-}
-
-export interface DeleteTarget {
-  type: "task" | "group";
-  id: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface TaskManagerOperations {

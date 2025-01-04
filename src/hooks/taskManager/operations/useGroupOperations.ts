@@ -1,6 +1,7 @@
-import { Group } from '../types';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Group } from '@/types/models';
+import { GroupResponse } from '@/types/api';
 
 export const useGroupOperations = (
   groups: Group[], 

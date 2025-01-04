@@ -1,7 +1,9 @@
-import { Task } from '../types';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useTaskEvents } from '../useTaskEvents';
+import { Task } from '@/types/models';
+import { TaskResponse } from '@/types/api';
+import { TasksUpdateFunction } from '@/types/utils';
 
 export const useTaskOperations = (
   tasks: Task[], 
