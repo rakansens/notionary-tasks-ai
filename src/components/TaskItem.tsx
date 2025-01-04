@@ -60,22 +60,30 @@ export const TaskItem = ({
   );
 
   const handleAddSubtask = () => {
-    // レベルチェックを追加
+    // 現在のタスクレベルを取得（デフォルトは1）
     const currentLevel = task.level || 1;
-    if (currentLevel >= 2) {
+    console.log('Adding subtask check:', {
+      taskId: task.id,
+      currentLevel,
+      parentTaskId: parentTask?.id,
+      parentTaskLevel: parentTask?.level
+    });
+
+    // レベル3以上のタスクにはサブタスクを追加できない
+    if (currentLevel >= 3) {
       toast({
         title: "エラー",
-        description: "これ以上深い階層のサブタスクは作成できません",
+        description: "3階層以上のサブタスクは作成できません",
         variant: "destructive",
       });
       return;
     }
 
+    // サブタスク追加を許可
     console.log('Adding subtask to:', {
       taskId: task.id,
-      taskLevel: task.level,
+      newLevel: currentLevel + 1,
       parentTaskId: parentTask?.id,
-      parentTaskLevel: parentTask?.level
     });
 
     setAddingSubtaskId(task.id);
