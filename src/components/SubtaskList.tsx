@@ -78,8 +78,11 @@ export const SubtaskList = ({
   // 親タスクが折りたたまれている場合は子タスクを表示しない
   if (isCollapsed) return null;
 
-  // デバッグ用のログ
-  console.log('SubtaskList rendering for parent:', parentTask.id, 'subtasks:', subtasks);
+  console.log('SubtaskList rendering for parent:', parentTask.id, 'subtasks:', subtasks.map(s => ({
+    id: s.id,
+    level: s.level,
+    parentId: s.parentId
+  })));
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
@@ -92,27 +95,24 @@ export const SubtaskList = ({
           items={subtasks.map(task => task.id.toString())}
           strategy={verticalListSortingStrategy}
         >
-          {subtasks.map(subtask => {
-            console.log('Rendering subtask:', subtask.id, 'level:', subtask.level);
-            return (
-              <DraggableTask
-                key={subtask.id}
-                task={subtask}
-                parentTask={parentTask}
-                editingTaskId={editingTaskId}
-                addingSubtaskId={addingSubtaskId}
-                setEditingTaskId={setEditingTaskId}
-                setAddingSubtaskId={setAddingSubtaskId}
-                toggleTask={toggleTask}
-                updateTaskTitle={updateTaskTitle}
-                deleteTask={deleteTask}
-                newTask={newTask}
-                setNewTask={setNewTask}
-                addTask={addTask}
-                onReorderSubtasks={onReorderSubtasks}
-              />
-            );
-          })}
+          {subtasks.map(subtask => (
+            <DraggableTask
+              key={subtask.id}
+              task={subtask}
+              parentTask={parentTask}
+              editingTaskId={editingTaskId}
+              addingSubtaskId={addingSubtaskId}
+              setEditingTaskId={setEditingTaskId}
+              setAddingSubtaskId={setAddingSubtaskId}
+              toggleTask={toggleTask}
+              updateTaskTitle={updateTaskTitle}
+              deleteTask={deleteTask}
+              newTask={newTask}
+              setNewTask={setNewTask}
+              addTask={addTask}
+              onReorderSubtasks={onReorderSubtasks}
+            />
+          ))}
         </SortableContext>
       </DndContext>
     </SubtaskContainer>

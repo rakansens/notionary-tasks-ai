@@ -83,12 +83,21 @@ export const TaskItem = ({
     if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
       e.preventDefault();
       if (newTask.trim()) {
-        await addTask(undefined, task.id);
-        // サブタスクの追加が完了した後にsetAddingSubtaskIdをnullにする
-        setTimeout(() => {
-          setAddingSubtaskId(null);
-          setNewTask("");
-        }, 500); // タイミングを500msに延長
+        try {
+          await addTask(undefined, task.id);
+          // サブタスクの追加が完了した後にsetAddingSubtaskIdをnullにする
+          setTimeout(() => {
+            setAddingSubtaskId(null);
+            setNewTask("");
+          }, 1000); // タイミングを1000msに延長
+        } catch (error) {
+          console.error('Error adding subtask:', error);
+          toast({
+            title: "エラー",
+            description: "サブタスクの追加に失敗しました",
+            variant: "destructive",
+          });
+        }
       }
     } else if (e.key === "Escape") {
       setAddingSubtaskId(null);
@@ -98,12 +107,21 @@ export const TaskItem = ({
 
   const handleAddSubtaskBlur = async () => {
     if (newTask.trim()) {
-      await addTask(undefined, task.id);
-      // サブタスクの追加が完了した後にsetAddingSubtaskIdをnullにする
-      setTimeout(() => {
-        setAddingSubtaskId(null);
-        setNewTask("");
-      }, 500); // タイミングを500msに延長
+      try {
+        await addTask(undefined, task.id);
+        // サブタスクの追加が完了した後にsetAddingSubtaskIdをnullにする
+        setTimeout(() => {
+          setAddingSubtaskId(null);
+          setNewTask("");
+        }, 1000); // タイミングを1000msに延長
+      } catch (error) {
+        console.error('Error adding subtask:', error);
+        toast({
+          title: "エラー",
+          description: "サブタスクの追加に失敗しました",
+          variant: "destructive",
+        });
+      }
     } else {
       setAddingSubtaskId(null);
       setNewTask("");
