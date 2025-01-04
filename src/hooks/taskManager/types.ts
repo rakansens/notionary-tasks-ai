@@ -42,3 +42,18 @@ export interface TaskManagerOperations {
   updateGroupOrder: (groups: Group[]) => void;
   toggleGroupCollapse: (group_id: number) => void;
 }
+
+export interface DragAndDropState {
+  activeId: string | null;
+}
+
+export interface DragAndDropOptions {
+  onDragEnd?: (result: any) => void;
+}
+
+export interface OrderUpdate {
+  id: number;
+  sort_order: number;
+  group_id?: number;
+  parent_task_id?: number;
+}
