@@ -51,6 +51,8 @@ export const TaskDragWrapper = ({
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
       className={`${isDragging ? "shadow-lg rounded-md" : ""}`}
     >
       {children({ attributes, listeners })}
