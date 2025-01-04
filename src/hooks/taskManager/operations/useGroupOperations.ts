@@ -2,7 +2,10 @@ import { Group } from '../types';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useGroupOperations = (groups: Group[], setGroups: (groups: Group[]) => void) => {
+export const useGroupOperations = (
+  groups: Group[], 
+  setGroups: (groups: Group[] | ((prev: Group[]) => Group[])) => void
+) => {
   const { toast } = useToast();
 
   const updateGroupName = async (id: number, name: string) => {

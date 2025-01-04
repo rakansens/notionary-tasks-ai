@@ -3,7 +3,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useTaskEvents } from '../useTaskEvents';
 
-export const useTaskOperations = (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
+export const useTaskOperations = (
+  tasks: Task[], 
+  setTasks: (tasks: Task[] | ((prev: Task[]) => Task[])) => void
+) => {
   const { toast } = useToast();
   const taskEvents = useTaskEvents();
 
@@ -76,9 +79,7 @@ export const useTaskOperations = (tasks: Task[], setTasks: (tasks: Task[]) => vo
         level: savedTask.level
       };
 
-      const updatedTasks = [...tasks, taskWithId];
-      setTasks(updatedTasks);
-
+      setTasks(prevTasks => [...prevTasks, taskWithId]);
       return taskWithId;
     } catch (error) {
       console.error('Error adding task:', error);
