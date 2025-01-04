@@ -3,13 +3,10 @@ import { Task, Group, TaskManagerOperations } from './types';
 import { useTaskStateManager } from './taskStateManager';
 import { useTaskEvents } from './useTaskEvents';
 import { useToast } from "@/components/ui/use-toast";
-import { useTaskOperations } from './useTaskOperations';
-import { useGroupOperations } from './useGroupOperations';
 import { fetchInitialData } from './supabaseOperations';
 import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './mappers';
-import { updateGroupOrder, deleteGroup } from './groupOperations';
-import { updateTaskOrder } from './taskOperations';
-import { supabase } from "@/integrations/supabase/client";
+import { useTaskOperations } from './operations/useTaskOperations';
+import { useGroupOperations } from './operations/useGroupOperations';
 
 export const useTaskManager = (): TaskManagerOperations & {
   tasks: Task[];
@@ -30,10 +27,9 @@ export const useTaskManager = (): TaskManagerOperations & {
   setAddingSubtaskId: (id: number | null) => void;
 } => {
   const { state, setters } = useTaskStateManager();
-  const taskEvents = useTaskEvents();
   const { toast } = useToast();
-  const taskOperations = useTaskOperations();
-  const groupOperations = useGroupOperations();
+  const taskOperations = useTaskOperations(state.tasks, setters.setTasks);
+  const groupOperations = useGroupOperations(state.groups, setters.setGroups);
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -54,126 +50,12 @@ export const useTaskManager = (): TaskManagerOperations & {
     loadInitialData();
   }, []);
 
-  const addTask = async (groupId?: number, parentId?: number, title?: string) => {
-    const trimmedTask = title || state.newTask.trim();
-    if (!trimmedTask) return;
-
-    try {
-      const parentTask = parentId ? taskOperations.findTaskById(state.tasks, parentId) : null;
-      const level = parentTask ? parentTask.level + 1 : 1;
-      
-      const newTask = taskOperations.createNewTask(
-        trimmedTask,
-        groupId,
-        parentId,
-        state.tasks.length,
-        parentTask
-      );
-
-      const { data: savedTask, error } = await supabase
-        .from('tasks')
-        .insert({
-          title: newTask.title,
-          completed: newTask.completed,
-          order_position: newTask.order,
-          group_id: newTask.groupId,
-          parent_id: newTask.parentId,
-          level: level
-        })
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      const taskWithId: Task = {
-        ...newTask,
-        id: savedTask.id,
-        level: savedTask.level
-      };
-
-      const updatedTasks = [...state.tasks, taskWithId];
-      setters.setTasks(updatedTasks);
-
-      const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
-      taskEvents.emitTaskAdded(taskWithId, parentTask || undefined, group);
-      
-      setters.setNewTask("");
-      if (groupId) {
-        setters.setEditingTaskId(savedTask.id);
-      }
-    } catch (error) {
-      console.error('Error adding task:', error);
-      toast({
-        title: "エラー",
-        description: "タスクの追加に失敗しました",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const toggleTask = async (id: number) => {
-    try {
-      const task = taskOperations.findTaskById(state.tasks, id);
-      if (task) {
-        await taskOperations.toggleTaskInSupabase(id, !task.completed);
-        setters.setTasks(prevTasks =>
-          prevTasks.map(t =>
-            t.id === id ? { ...t, completed: !t.completed } : t
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error toggling task:', error);
-      toast({
-        title: "エラー",
-        description: "タスクの状態の更新に失敗しました",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const updateTaskTitle = async (id: number, title: string) => {
-    try {
-      await taskOperations.updateTaskTitleInSupabase(id, title);
-      setters.setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task.id === id ? { ...task, title } : task
-        )
-      );
-    } catch (error) {
-      console.error('Error updating task title:', error);
-      toast({
-        title: "エラー",
-        description: "タスクのタイトル更新に失敗しました",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteTask = async (id: number) => {
-    try {
-      await taskOperations.deleteTaskFromSupabase(id);
-      setters.setTasks(prevTasks =>
-        prevTasks.filter(task => task.id !== id)
-      );
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      toast({
-        title: "エラー",
-        description: "タスクの削除に失敗しました",
-        variant: "destructive",
-      });
-    }
-  };
-
   const confirmDelete = () => {
     if (state.deleteTarget) {
       if (state.deleteTarget.type === 'task') {
-        deleteTask(state.deleteTarget.id);
+        taskOperations.deleteTask(state.deleteTarget.id);
       } else if (state.deleteTarget.type === 'group') {
-        deleteGroup(state.deleteTarget.id);
+        groupOperations.deleteGroup(state.deleteTarget.id);
       }
       setters.setDeleteTarget(null);
     }
@@ -184,26 +66,12 @@ export const useTaskManager = (): TaskManagerOperations & {
   };
 
   return {
-    tasks: state.tasks,
-    groups: state.groups,
-    newTask: state.newTask,
-    newGroup: state.newGroup,
-    isAddingGroup: state.isAddingGroup,
-    editingTaskId: state.editingTaskId,
-    editingGroupId: state.editingGroupId,
-    addingSubtaskId: state.addingSubtaskId,
-    deleteTarget: state.deleteTarget,
-    collapsedGroups: state.collapsedGroups,
-    setNewTask: setters.setNewTask,
-    setNewGroup: setters.setNewGroup,
-    setIsAddingGroup: setters.setIsAddingGroup,
-    setEditingTaskId: setters.setEditingTaskId,
-    setEditingGroupId: setters.setEditingGroupId,
-    setAddingSubtaskId: setters.setAddingSubtaskId,
-    addTask,
-    toggleTask,
-    updateTaskTitle,
-    deleteTask,
+    ...state,
+    ...setters,
+    addTask: taskOperations.addTask,
+    toggleTask: taskOperations.toggleTask,
+    updateTaskTitle: taskOperations.updateTaskTitle,
+    deleteTask: taskOperations.deleteTask,
     confirmDelete,
     cancelDelete,
     toggleGroupCollapse: (groupId: number) => {
@@ -218,41 +86,18 @@ export const useTaskManager = (): TaskManagerOperations & {
       });
     },
     deleteGroup: (id: number) => {
-      try {
-        const groupToDelete = state.groups.find(g => g.id === id);
-        if (groupToDelete) {
-          setters.setDeleteTarget({ type: "group", id });
-        }
-      } catch (error) {
-        console.error('Error setting up group deletion:', error);
-        toast({
-          title: "エラー",
-          description: "グループの削除準備に失敗しました",
-          variant: "destructive",
-        });
+      const groupToDelete = state.groups.find(g => g.id === id);
+      if (groupToDelete) {
+        setters.setDeleteTarget({ type: "group", id });
       }
     },
-    updateTaskOrder: (tasks: Task[]) => updateTaskOrder(tasks, setters.setTasks),
-    updateGroupOrder: (groups: Group[]) => updateGroupOrder(groups, setters.setGroups),
+    updateTaskOrder: (tasks: Task[]) => {
+      setters.setTasks(tasks);
+    },
+    updateGroupOrder: groupOperations.updateGroupOrder,
     addGroup: (name: string) => {
       window.dispatchEvent(new CustomEvent('addGroup', { detail: { name } }));
     },
-    updateGroupName: async (id: number, name: string) => {
-      try {
-        await groupOperations.updateGroupNameInSupabase(id, name);
-        setters.setGroups(prevGroups =>
-          prevGroups.map(group =>
-            group.id === id ? { ...group, name } : group
-          )
-        );
-      } catch (error) {
-        console.error('Error updating group name:', error);
-        toast({
-          title: "エラー",
-          description: "グループ名の更新に失敗しました",
-          variant: "destructive",
-        });
-      }
-    },
+    updateGroupName: groupOperations.updateGroupName,
   };
 };
