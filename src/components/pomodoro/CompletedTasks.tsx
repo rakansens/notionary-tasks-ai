@@ -96,7 +96,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
               parent_task_title: parentTask,
               group_name: groupName,
               message: description,
-              timestamp: event.detail.timestamp
+              timestamp: event.detail.timestamp.toISOString()
             })
             .select()
             .single();
