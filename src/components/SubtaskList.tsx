@@ -84,13 +84,44 @@ export const SubtaskList = ({
     
     if (isCollapsed) return false;
 
-    // 親タスクが3階層目の場合はサブタスクを表示しない
-    if (parentTask.level >= 3) return false;
+    // 4階層目以上のサブタスクは表示しない
+    if (parentTask.level >= 3) {
+      console.log('Parent task level is too deep:', parentTask.level);
+      return false;
+    }
 
     return true;
   };
 
-  if (!shouldRenderSubtasks()) return null;
+  // サブタスクの表示条件をチェック
+  if (!shouldRenderSubtasks()) {
+    // 新規追加時は常に表示する
+    if (addingSubtaskId === parentTask.id) {
+      return (
+        <SubtaskContainer onClick={(e) => e.stopPropagation()}>
+          {subtasks.map(subtask => (
+            <DraggableTask
+              key={subtask.id}
+              task={subtask}
+              parentTask={parentTask}
+              editingTaskId={editingTaskId}
+              addingSubtaskId={addingSubtaskId}
+              setEditingTaskId={setEditingTaskId}
+              setAddingSubtaskId={setAddingSubtaskId}
+              toggleTask={toggleTask}
+              updateTaskTitle={updateTaskTitle}
+              deleteTask={deleteTask}
+              newTask={newTask}
+              setNewTask={setNewTask}
+              addTask={addTask}
+              onReorderSubtasks={onReorderSubtasks}
+            />
+          ))}
+        </SubtaskContainer>
+      );
+    }
+    return null;
+  }
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
