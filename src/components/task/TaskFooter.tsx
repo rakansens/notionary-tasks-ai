@@ -8,7 +8,7 @@ interface TaskFooterProps {
   addGroup: () => void;
   newTask: string;
   setNewTask: (value: string) => void;
-  addTask: () => void;
+  addTask: (groupId?: number) => void;
 }
 
 export const TaskFooter = ({
@@ -22,7 +22,7 @@ export const TaskFooter = ({
         <TaskInput
           value={newTask}
           onChange={setNewTask}
-          onSubmit={addTask}
+          onSubmit={() => addTask()}
           className="bg-white/80 hover:bg-white transition-colors duration-200"
         />
       </div>
