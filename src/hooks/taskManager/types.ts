@@ -2,8 +2,8 @@ export interface Task {
   id: number;
   title: string;
   status: string;
-  group_id?: number;
-  parent_task_id?: number;
+  group_id?: number | null;
+  parent_task_id?: number | null;
   subtasks?: Task[];
   level: number;
   sort_order?: number;

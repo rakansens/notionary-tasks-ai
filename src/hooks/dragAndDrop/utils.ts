@@ -1,34 +1,32 @@
 import { DraggableItem, OrderUpdate } from "./types";
+import { Task } from "../taskManager/types";
 
 export const calculateNewOrder = (
   activeItem: DraggableItem,
   overItem: DraggableItem,
   items: DraggableItem[],
   options?: {
-    parentId?: number;
-    groupId?: number;
+    parent_task_id?: number;
+    group_id?: number;
   }
 ): OrderUpdate[] => {
   const updates: OrderUpdate[] = [];
-  const sortedItems = [...items].sort((a, b) => a.order - b.order);
+  const sortedItems = [...items].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
   const activeIndex = sortedItems.findIndex(item => item.id === activeItem.id);
   const overIndex = sortedItems.findIndex(item => item.id === overItem.id);
 
   if (activeIndex === -1 || overIndex === -1) return updates;
 
-  // 移動するアイテムを一時的に削除
   const [movedItem] = sortedItems.splice(activeIndex, 1);
-  // 新しい位置に挿入
   sortedItems.splice(overIndex, 0, movedItem);
 
-  // 順序の更新を計算
   sortedItems.forEach((item, index) => {
-    if (item.order !== index) {
+    if ((item.sort_order || 0) !== index) {
       updates.push({
         id: item.id,
-        order: index,
-        groupId: 'groupId' in item ? item.groupId : undefined,
-        parentId: 'parentId' in item ? item.parentId : undefined,
+        sort_order: index,
+        group_id: 'group_id' in item ? item.group_id : undefined,
+        parent_task_id: 'parent_task_id' in item ? item.parent_task_id : undefined,
       });
     }
   });
@@ -41,15 +39,13 @@ export const validateDrop = (
   overItem: DraggableItem,
   items: DraggableItem[]
 ): boolean => {
-  // 同じ位置へのドロップを防ぐ
   if (activeItem.id === overItem.id) return false;
 
-  // タスクの場合、循環参照をチェック
-  if ('parentId' in activeItem && 'parentId' in overItem) {
+  if ('parent_task_id' in activeItem && 'parent_task_id' in overItem) {
     const wouldCreateCycle = checkForCyclicDependency(
       activeItem.id,
       overItem.id,
-      items as any[]
+      items as Task[]
     );
     if (wouldCreateCycle) return false;
   }
@@ -60,7 +56,7 @@ export const validateDrop = (
 const checkForCyclicDependency = (
   sourceId: number,
   targetId: number,
-  items: { id: number; parentId?: number }[]
+  items: { id: number; parent_task_id?: number }[]
 ): boolean => {
   const visited = new Set<number>();
 
@@ -70,10 +66,10 @@ const checkForCyclicDependency = (
 
     visited.add(currentId);
     const item = items.find(i => i.id === currentId);
-    if (!item?.parentId) return false;
+    if (!item?.parent_task_id) return false;
 
-    return checkCycle(item.parentId);
+    return checkCycle(item.parent_task_id);
   };
 
   return checkCycle(targetId);
-}; 
+};
