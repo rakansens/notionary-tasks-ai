@@ -36,6 +36,133 @@ export type Database = {
         }
         Relationships: []
       }
+      memo_tags: {
+        Row: {
+          created_at: string
+          id: number
+          memo_id: number | null
+          tag_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          memo_id?: number | null
+          tag_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          memo_id?: number | null
+          tag_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memo_tags_memo_id_fkey"
+            columns: ["memo_id"]
+            isOneToOne: false
+            referencedRelation: "memos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memos: {
+        Row: {
+          content: string
+          created_at: string
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: never
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: never
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pomodoro_sessions: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          id: number
+          name: string
+          pomodoro_count: number | null
+          start_time: string
+          total_minutes: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          id?: never
+          name: string
+          pomodoro_count?: number | null
+          start_time?: string
+          total_minutes?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          id?: never
+          name?: string
+          pomodoro_count?: number | null
+          start_time?: string
+          total_minutes?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      task_logs: {
+        Row: {
+          group_name: string | null
+          id: number
+          message: string | null
+          operation_type: string
+          parent_task_title: string | null
+          pomodoro_session_id: number | null
+          task_id: number | null
+          task_title: string
+          timestamp: string
+        }
+        Insert: {
+          group_name?: string | null
+          id?: never
+          message?: string | null
+          operation_type: string
+          parent_task_title?: string | null
+          pomodoro_session_id?: number | null
+          task_id?: number | null
+          task_title: string
+          timestamp?: string
+        }
+        Update: {
+          group_name?: string | null
+          id?: never
+          message?: string | null
+          operation_type?: string
+          parent_task_title?: string | null
+          pomodoro_session_id?: number | null
+          task_id?: number | null
+          task_title?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_logs_pomodoro_session_id_fkey"
+            columns: ["pomodoro_session_id"]
+            isOneToOne: false
+            referencedRelation: "pomodoro_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_suggestions: {
         Row: {
           created_at: string

@@ -40,7 +40,7 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
   }, []);
 
   useEffect(() => {
-    const handleTaskOperation = (event: CustomEvent<TaskEventData>) => {
+    const handleTaskOperation = async (event: CustomEvent<TaskEventData>) => {
       console.log('Task operation detected:', event.detail);
       if (currentSession) {
         const { type, title, parentTask, groupName } = event.detail;
@@ -85,19 +85,44 @@ export const CompletedTasks = ({ sessions, currentSession, onAddCompletedTask }:
             break;
         }
 
-        const task = {
-          id: Date.now(),
-          title: description,
-          originalTitle: title,
-          completedAt: event.detail.timestamp,
-          sessionId: currentSession.id,
-          status: 'operation',
-          isSubtask: type === 'SUBTASK_COMPLETED',
-          parentTaskTitle: parentTask,
-          groupName: groupName
-        };
+        try {
+          const { data, error } = await supabase
+            .from('task_logs')
+            .insert({
+              pomodoro_session_id: currentSession.id,
+              operation_type: type,
+              task_title: title,
+              parent_task_title: parentTask,
+              group_name: groupName,
+              message: description,
+              timestamp: event.detail.timestamp
+            })
+            .select()
+            .single();
 
-        setNewTasks(prev => [...prev, task]);
+          if (error) throw error;
+
+          const task = {
+            id: Date.now(),
+            title: description,
+            originalTitle: title,
+            completedAt: event.detail.timestamp,
+            sessionId: currentSession.id,
+            status: 'operation',
+            isSubtask: type === 'SUBTASK_COMPLETED',
+            parentTaskTitle: parentTask,
+            groupName: groupName
+          };
+
+          setNewTasks(prev => [...prev, task]);
+        } catch (error) {
+          console.error('Error logging task operation:', error);
+          toast({
+            title: "エラー",
+            description: "タスク操作の記録に失敗しました",
+            variant: "destructive",
+          });
+        }
       }
     };
 
