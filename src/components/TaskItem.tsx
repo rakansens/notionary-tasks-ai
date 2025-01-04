@@ -67,6 +67,49 @@ export const TaskItem = ({
     setEditingTaskId(null);
   };
 
+  const handleAddSubtask = () => {
+    if (task.level >= 3) {
+      toast({
+        title: "エラー",
+        description: "サブタスクは3階層までしか作成できません",
+        variant: "destructive",
+      });
+      return;
+    }
+    setAddingSubtaskId(task.id);
+  };
+
+  const handleAddSubtaskKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+      e.preventDefault();
+      if (newTask.trim()) {
+        addTask(undefined, task.id);
+        // サブタスクの追加が完了した後にsetAddingSubtaskIdをnullにする
+        setTimeout(() => {
+          setAddingSubtaskId(null);
+          setNewTask("");
+        }, 100);
+      }
+    } else if (e.key === "Escape") {
+      setAddingSubtaskId(null);
+      setNewTask("");
+    }
+  };
+
+  const handleAddSubtaskBlur = () => {
+    if (newTask.trim()) {
+      addTask(undefined, task.id);
+      // サブタスクの追加が完了した後にsetAddingSubtaskIdをnullにする
+      setTimeout(() => {
+        setAddingSubtaskId(null);
+        setNewTask("");
+      }, 100);
+    } else {
+      setAddingSubtaskId(null);
+      setNewTask("");
+    }
+  };
+
   return (
     <div className="group flex items-center gap-2 py-0.5">
       {dragHandleProps && (
@@ -103,16 +146,8 @@ export const TaskItem = ({
             <Input
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
-              onBlur={() => setAddingSubtaskId(null)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
-                  e.preventDefault();
-                  if (newTask.trim()) {
-                    addTask(undefined, task.id);
-                    setAddingSubtaskId(null);
-                  }
-                }
-              }}
+              onBlur={handleAddSubtaskBlur}
+              onKeyDown={handleAddSubtaskKeyDown}
               placeholder="新しいサブタスク"
               className="h-6 text-sm"
               autoFocus
@@ -122,17 +157,7 @@ export const TaskItem = ({
       </div>
 
       <TaskItemActions
-        onAddSubtask={() => {
-          if (task.level < 3) {
-            setAddingSubtaskId(task.id);
-          } else {
-            toast({
-              title: "エラー",
-              description: "サブタスクは3階層までしか作成できません",
-              variant: "destructive",
-            });
-          }
-        }}
+        onAddSubtask={handleAddSubtask}
         onDelete={() => deleteTask(task.id, parentTask?.id)}
         onDropdownDelete={() => deleteTask(task.id, parentTask?.id)}
       />
