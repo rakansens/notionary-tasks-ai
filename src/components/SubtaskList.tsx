@@ -36,12 +36,12 @@ interface SubtaskListProps {
   isCollapsed?: boolean;
 }
 
-type TaskOrderUpdate = {
-  [key: string]: string | number;
+type TaskUpdate = {
   task_id: number;
   new_order: number;
   parent_id: number;
   level: number;
+  [key: string]: number;
 };
 
 export const SubtaskList = ({
@@ -80,16 +80,11 @@ export const SubtaskList = ({
       
       if (oldIndex !== -1 && newIndex !== -1 && onReorderSubtasks) {
         console.log('Reordering subtasks:', {
-          parentTask: {
-            id: parentTask.id,
-            title: parentTask.title,
-            level: parentTask.level
-          },
+          parentTask,
           startIndex: oldIndex,
           endIndex: newIndex,
           movedTask: subtasks[oldIndex],
-          targetTask: subtasks[newIndex],
-          currentOrder: subtasks.map(t => ({ id: t.id, order: t.order }))
+          targetTask: subtasks[newIndex]
         });
 
         try {
@@ -97,17 +92,16 @@ export const SubtaskList = ({
           const [movedTask] = reorderedTasks.splice(oldIndex, 1);
           reorderedTasks.splice(newIndex, 0, movedTask);
 
-          // 新しい順序を計算
-          const taskUpdates = reorderedTasks.map((task, index) => ({
+          const taskUpdates: TaskUpdate[] = reorderedTasks.map((task, index) => ({
             task_id: task.id,
             new_order: index,
             parent_id: parentTask.id,
-            level: task.level || parentTask.level + 1
+            level: task.level || (parentTask.level + 1)
           }));
 
           console.log('Updating task orders:', {
             updates: taskUpdates,
-            parentTask: parentTask,
+            parentTask,
             reorderedTasks: reorderedTasks.map(t => ({
               id: t.id,
               title: t.title,
@@ -126,8 +120,6 @@ export const SubtaskList = ({
           }
 
           console.log('Database update result:', data);
-
-          // UIの更新
           onReorderSubtasks(oldIndex, newIndex, parentTask.id);
 
         } catch (error) {
@@ -143,8 +135,7 @@ export const SubtaskList = ({
   };
 
   const validationResult = validateSubtasks(parentTask, subtasks, isCollapsed);
-  console.log('Subtask validation result:', validationResult.debugInfo);
-
+  
   if (!validationResult.isValid) {
     console.log('Skipping subtask rendering:', validationResult.debugInfo.invalidReason);
     return null;
