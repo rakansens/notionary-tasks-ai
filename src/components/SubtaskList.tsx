@@ -36,6 +36,13 @@ interface SubtaskListProps {
   isCollapsed?: boolean;
 }
 
+interface TaskOrderUpdate {
+  task_id: number;
+  new_order: number;
+  parent_id: number;
+  level: number;
+}
+
 export const SubtaskList = ({
   parentTask,
   subtasks,
@@ -89,14 +96,15 @@ export const SubtaskList = ({
           const [movedTask] = reorderedTasks.splice(oldIndex, 1);
           reorderedTasks.splice(newIndex, 0, movedTask);
 
-          // トランザクションを使用して一括更新
+          const taskUpdates: TaskOrderUpdate[] = reorderedTasks.map((task, index) => ({
+            task_id: task.id,
+            new_order: index,
+            parent_id: parentTask.id,
+            level: task.level || 1
+          }));
+
           const { data, error } = await supabase.rpc('update_task_orders', {
-            task_updates: reorderedTasks.map((task, index) => ({
-              task_id: task.id,
-              new_order: index,
-              parent_id: parentTask.id,
-              level: task.level || 1
-            }))
+            task_updates: taskUpdates
           });
 
           if (error) {
