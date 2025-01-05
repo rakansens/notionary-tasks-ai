@@ -87,10 +87,16 @@ export const SubtaskList = ({
           const [movedTask] = reorderedTasks.splice(oldIndex, 1);
           reorderedTasks.splice(newIndex, 0, movedTask);
 
+          // 順序を更新
+          const updatedTasks = reorderedTasks.map((task, index) => ({
+            ...task,
+            order: index
+          }));
+
           const taskUpdates = {
-            task_updates: reorderedTasks.map((task, index) => ({
+            task_updates: updatedTasks.map((task) => ({
               task_id: task.id,
-              new_order: index,
+              new_order: task.order,
               parent_id: parentTask.id,
               level: task.level || (parentTask.level + 1)
             }))
