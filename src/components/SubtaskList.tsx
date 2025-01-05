@@ -83,24 +83,29 @@ export const SubtaskList = ({
             parentTaskLevel: parentTask.level
           });
 
+          // 新しい配列を作成
           const reorderedTasks = [...subtasks];
           const [movedTask] = reorderedTasks.splice(oldIndex, 1);
           reorderedTasks.splice(newIndex, 0, movedTask);
 
           // 新しい順序でタスクを更新
-          const updatedTasks = reorderedTasks.map((task, index) => ({
-            ...task,
-            order: index,
-            level: Math.min(task.level || (parentTask.level + 1), 3)
-          }));
+          const updatedTasks = reorderedTasks.map((task, index) => {
+            const newLevel = parentTask.level + 1;
+            return {
+              ...task,
+              order: index,
+              level: Math.min(newLevel, 3),
+              parentId: parentTask.id
+            };
+          });
 
           // タスク更新用のデータを準備
           const taskUpdates = {
-            task_updates: updatedTasks.map((task) => ({
+            task_updates: updatedTasks.map((task, index) => ({
               task_id: task.id,
-              new_order: task.order,
+              new_order: index,
               parent_id: parentTask.id,
-              level: Math.min(task.level || (parentTask.level + 1), 3)
+              level: Math.min(parentTask.level + 1, 3)
             }))
           };
 

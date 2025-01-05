@@ -4,16 +4,17 @@ import { useTaskModification } from './useTaskModification';
 import { useTaskDeletion } from './useTaskDeletion';
 import { useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export const useTaskOperations = (
   tasks: Task[], 
   setTasks: (tasks: Task[] | ((prev: Task[]) => Task[])) => void
 ) => {
+  const { toast } = useToast();
   const taskCreation = useTaskCreation(tasks, setTasks);
   const taskModification = useTaskModification(tasks, setTasks);
   const taskDeletion = useTaskDeletion(tasks, setTasks);
 
-  // メモ化されたタスク更新関数
   const updateTasksWithStructure = useCallback(async (newTasks: Task[]) => {
     try {
       const buildTaskHierarchy = (tasks: Task[]): Task[] => {
@@ -57,17 +58,28 @@ export const useTaskOperations = (
 
       // タスクの更新をデータベースに反映
       for (const task of newTasks) {
+        const parentTask = task.parentId ? newTasks.find(t => t.id === task.parentId) : null;
+        const newLevel = parentTask ? Math.min(parentTask.level + 1, 3) : 1;
+
         const { error } = await supabase
           .from('tasks')
           .update({ 
             order_position: task.order,
-            level: Math.min(task.level || 1, 3), // 最大レベルを3に制限
+            level: newLevel,
             parent_id: task.parentId,
             updated_at: new Date().toISOString()
           })
           .eq('id', task.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating task:', error);
+          toast({
+            title: "エラー",
+            description: "タスクの更新に失敗しました",
+            variant: "destructive",
+          });
+          throw error;
+        }
       }
 
       // 階層構造を再構築してステートを更新
@@ -77,7 +89,7 @@ export const useTaskOperations = (
       console.error('Error updating tasks structure:', error);
       throw error;
     }
-  }, [setTasks]);
+  }, [setTasks, toast]);
 
   return {
     ...taskCreation,
