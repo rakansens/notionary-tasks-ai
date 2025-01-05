@@ -87,7 +87,7 @@ export const SubtaskList = ({
           const [movedTask] = reorderedTasks.splice(oldIndex, 1);
           reorderedTasks.splice(newIndex, 0, movedTask);
 
-          const taskUpdates = reorderedTasks.map((task, index) => ({
+          const taskUpdates: TaskUpdate[] = reorderedTasks.map((task, index) => ({
             task_id: task.id,
             new_order: index,
             parent_id: parentTask.id,
@@ -96,7 +96,7 @@ export const SubtaskList = ({
 
           console.log('Task updates before API call:', taskUpdates);
 
-          const { error } = await supabase.rpc('update_task_orders', {
+          const { data, error } = await supabase.rpc('update_task_orders', {
             task_updates: taskUpdates
           });
 
@@ -105,6 +105,7 @@ export const SubtaskList = ({
             throw error;
           }
 
+          console.log('Update response:', data);
           onReorderSubtasks(oldIndex, newIndex, parentTask.id);
 
         } catch (error) {
