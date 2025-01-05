@@ -16,8 +16,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useSubtaskValidation } from "@/hooks/task/useSubtaskValidation";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
 
 interface SubtaskListProps {
   parentTask: Task;
@@ -53,19 +51,14 @@ export const SubtaskList = ({
   isCollapsed,
 }: SubtaskListProps) => {
   const { validateSubtasks } = useSubtaskValidation();
-  const { toast } = useToast();
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
+    useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (!over || !subtasks) return;
@@ -75,75 +68,30 @@ export const SubtaskList = ({
       const newIndex = subtasks.findIndex(task => task.id.toString() === over.id);
       
       if (oldIndex !== -1 && newIndex !== -1 && onReorderSubtasks) {
-        try {
-          console.log('Reordering subtasks:', {
-            oldIndex,
-            newIndex,
-            parentTaskId: parentTask.id,
-            parentTaskLevel: parentTask.level
-          });
-
-          // 新しい配列を作成
-          const reorderedTasks = [...subtasks];
-          const [movedTask] = reorderedTasks.splice(oldIndex, 1);
-          reorderedTasks.splice(newIndex, 0, movedTask);
-
-          // 新しい順序でタスクを更新
-          const updatedTasks = reorderedTasks.map((task, index) => {
-            const newLevel = parentTask.level + 1;
-            return {
-              ...task,
-              order: index,
-              level: Math.min(newLevel, 3),
-              parentId: parentTask.id
-            };
-          });
-
-          // タスク更新用のデータを準備
-          const taskUpdates = {
-            task_updates: updatedTasks.map((task, index) => ({
-              task_id: task.id,
-              new_order: index,
-              parent_id: parentTask.id,
-              level: Math.min(parentTask.level + 1, 3)
-            }))
-          };
-
-          console.log('Sending task updates:', taskUpdates);
-
-          const { data, error } = await supabase.rpc('update_task_orders', taskUpdates);
-
-          if (error) {
-            console.error('Database error:', error);
-            throw error;
-          }
-
-          console.log('Update response:', data);
-          onReorderSubtasks(oldIndex, newIndex, parentTask.id);
-
-        } catch (error) {
-          console.error('Error updating task order:', error);
-          toast({
-            title: "エラー",
-            description: "タスクの順序の更新に失敗しました",
-            variant: "destructive",
-          });
-        }
+        console.log('Reordering subtasks:', {
+          parentTask: {
+            id: parentTask.id,
+            title: parentTask.title,
+            level: parentTask.level
+          },
+          startIndex: oldIndex,
+          endIndex: newIndex,
+          movedTask: subtasks[oldIndex],
+          targetTask: subtasks[newIndex],
+          currentOrder: subtasks.map(t => ({ id: t.id, order: t.order }))
+        });
+        onReorderSubtasks(oldIndex, newIndex, parentTask.id);
       }
     }
   };
 
   const validationResult = validateSubtasks(parentTask, subtasks, isCollapsed);
-  
+  console.log('Subtask validation result:', validationResult.debugInfo);
+
   if (!validationResult.isValid) {
+    console.log('Skipping subtask rendering:', validationResult.debugInfo.invalidReason);
     return null;
   }
-
-  const sortedTasks = [...validationResult.validTasks].sort((a, b) => {
-    const orderA = a.order || 0;
-    const orderB = b.order || 0;
-    return orderA - orderB;
-  });
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
@@ -153,10 +101,10 @@ export const SubtaskList = ({
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={sortedTasks.map(task => task.id.toString())}
+          items={validationResult.validTasks.map(task => task.id.toString())}
           strategy={verticalListSortingStrategy}
         >
-          {sortedTasks.map(subtask => (
+          {validationResult.validTasks.map(subtask => (
             <DraggableTask
               key={subtask.id}
               task={subtask}

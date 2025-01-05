@@ -355,12 +355,7 @@ export type Database = {
       }
     }
     Functions: {
-      update_task_orders: {
-        Args: {
-          task_updates: Json[]
-        }
-        Returns: Json
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

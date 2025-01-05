@@ -1,4 +1,4 @@
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Task } from '@/types/models';
 
@@ -6,6 +6,8 @@ export const useTaskDeletion = (
   tasks: Task[], 
   setTasks: (tasks: Task[] | ((prev: Task[]) => Task[])) => void
 ) => {
+  const { toast } = useToast();
+
   const deleteChildTasks = async (taskId: number) => {
     try {
       const { data: childTasks, error: fetchError } = await supabase

@@ -71,17 +71,54 @@ export const DraggableTask = memo(({
   const canRenderSubtasks = useCallback(() => {
     const currentLevel = task.level || 1;
     const hasSubtasks = subtasks && subtasks.length > 0;
-    const maxLevel = 3;
 
-    if (isCollapsed || !hasSubtasks || currentLevel >= maxLevel) {
+    console.log('Checking subtask rendering conditions:', {
+      taskId: task.id,
+      taskTitle: task.title,
+      currentLevel,
+      hasSubtasks,
+      subtasksCount: subtasks.length,
+      isCollapsed,
+      parentInfo: parentTask ? {
+        id: parentTask.id,
+        title: parentTask.title,
+        level: parentTask.level
+      } : null
+    });
+
+    if (isCollapsed || !hasSubtasks) {
+      console.log('Basic rendering check failed:', { isCollapsed, hasSubtasks });
       return false;
     }
 
-    return subtasks.every(subtask => {
-      const subtaskLevel = subtask.level || (currentLevel + 1);
-      return subtaskLevel === currentLevel + 1 && subtask.parentId === task.id;
+    if (currentLevel >= 3) {
+      console.log('Maximum level reached:', currentLevel);
+      return false;
+    }
+
+    const hasValidSubtasks = subtasks.every(subtask => {
+      const subtaskLevel = subtask.level || 1;
+      const expectedLevel = currentLevel + 1;
+      const hasValidParent = subtask.parentId === task.id;
+      const isValidLevel = subtaskLevel === expectedLevel;
+
+      console.log('Validating subtask structure:', {
+        subtaskId: subtask.id,
+        subtaskTitle: subtask.title,
+        subtaskLevel,
+        expectedLevel,
+        parentTaskId: task.id,
+        actualParentId: subtask.parentId,
+        isValidLevel,
+        hasValidParent,
+        order: subtask.order
+      });
+
+      return isValidLevel && hasValidParent;
     });
-  }, [task.id, task.level, subtasks, isCollapsed]);
+
+    return hasValidSubtasks;
+  }, [task.id, task.level, task.title, subtasks, isCollapsed, parentTask]);
 
   return (
     <div 
