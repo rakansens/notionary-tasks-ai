@@ -69,7 +69,6 @@ export const DraggableTask = memo(({
   const isCollapsed = isTaskCollapsed(task.id);
 
   const canRenderSubtasks = useCallback(() => {
-    // コンソールログを追加して現在の状態を確認
     console.log('Checking subtasks render condition:', {
       taskId: task.id,
       taskTitle: task.title,
@@ -98,22 +97,24 @@ export const DraggableTask = memo(({
       return false;
     }
 
-    // サブタスクの検証
-    const validSubtasks = subtasks.filter(subtask => {
+    // サブタスクの検証（各サブタスクを個別に検証）
+    const hasValidSubtasks = subtasks.some(subtask => {
       // 親子関係の検証
       const hasValidParent = subtask.parentId === task.id;
       
-      // レベルの検証（より緩やかな条件に変更）
+      // レベルの検証
       const subtaskLevel = subtask.level || 1;
-      const hasValidLevel = subtaskLevel > currentLevel && subtaskLevel <= 3;
+      const hasValidLevel = subtaskLevel === currentLevel + 1;
 
       console.log('Validating subtask:', {
         subtaskId: subtask.id,
         subtaskTitle: subtask.title,
         subtaskLevel,
-        parentTaskLevel: currentLevel,
+        currentLevel,
         hasValidParent,
-        hasValidLevel
+        hasValidLevel,
+        parentId: subtask.parentId,
+        expectedParentId: task.id
       });
 
       return hasValidParent && hasValidLevel;
@@ -121,11 +122,11 @@ export const DraggableTask = memo(({
 
     console.log('Validation complete:', {
       taskId: task.id,
-      validSubtasksCount: validSubtasks.length,
-      allSubtasksCount: subtasks.length
+      hasValidSubtasks,
+      subtasksCount: subtasks.length
     });
 
-    return validSubtasks.length > 0;
+    return hasValidSubtasks;
   }, [task, subtasks, isCollapsed, parentTask]);
 
   return (
