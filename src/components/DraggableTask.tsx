@@ -69,42 +69,32 @@ export const DraggableTask = memo(({
   const isCollapsed = isTaskCollapsed(task.id);
 
   const canRenderSubtasks = useCallback(() => {
-    // 基本的な表示条件チェック
+    // コンソールログを追加して現在の状態を確認
+    console.log('Checking subtasks render condition:', {
+      taskId: task.id,
+      taskTitle: task.title,
+      isCollapsed,
+      subtasksCount: subtasks.length,
+      taskLevel: task.level,
+      parentTaskLevel: parentTask?.level
+    });
+
     if (isCollapsed) {
-      console.log('Task is collapsed:', {
-        taskId: task.id,
-        taskTitle: task.title
-      });
+      console.log('Task is collapsed, not rendering subtasks');
       return false;
     }
 
     if (!subtasks || subtasks.length === 0) {
-      console.log('No subtasks available:', {
-        taskId: task.id,
-        taskTitle: task.title
-      });
+      console.log('No subtasks available');
       return false;
     }
 
     // 現在のタスクのレベルを取得（デフォルトは1）
     const currentLevel = task.level || 1;
-    console.log('Current task level check:', {
-      taskId: task.id,
-      taskTitle: task.title,
-      currentLevel,
-      parentInfo: parentTask ? {
-        id: parentTask.id,
-        title: parentTask.title,
-        level: parentTask.level
-      } : null
-    });
 
     // レベル3以上のタスクにはサブタスクを表示しない
     if (currentLevel >= 3) {
-      console.log('Maximum level reached:', {
-        taskId: task.id,
-        currentLevel
-      });
+      console.log('Task level is too deep:', currentLevel);
       return false;
     }
 
@@ -113,36 +103,29 @@ export const DraggableTask = memo(({
       // 親子関係の検証
       const hasValidParent = subtask.parentId === task.id;
       
-      // レベルの検証
-      const expectedLevel = currentLevel + 1;
+      // レベルの検証（より緩やかな条件に変更）
       const subtaskLevel = subtask.level || 1;
-      const hasValidLevel = subtaskLevel === expectedLevel && subtaskLevel <= 3;
+      const hasValidLevel = subtaskLevel > currentLevel && subtaskLevel <= 3;
 
-      console.log('Subtask validation:', {
+      console.log('Validating subtask:', {
         subtaskId: subtask.id,
         subtaskTitle: subtask.title,
+        subtaskLevel,
+        parentTaskLevel: currentLevel,
         hasValidParent,
-        hasValidLevel,
-        currentLevel: subtaskLevel,
-        expectedLevel,
-        parentTaskId: task.id,
-        subtaskParentId: subtask.parentId
+        hasValidLevel
       });
 
       return hasValidParent && hasValidLevel;
     });
 
-    const isValid = validSubtasks.length > 0;
-    console.log('Final validation result:', {
+    console.log('Validation complete:', {
       taskId: task.id,
-      taskTitle: task.title,
       validSubtasksCount: validSubtasks.length,
-      totalSubtasksCount: subtasks.length,
-      isValid,
-      currentLevel
+      allSubtasksCount: subtasks.length
     });
 
-    return isValid;
+    return validSubtasks.length > 0;
   }, [task, subtasks, isCollapsed, parentTask]);
 
   return (
