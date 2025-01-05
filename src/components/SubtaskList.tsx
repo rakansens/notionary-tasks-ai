@@ -15,6 +15,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { useSubtaskValidation } from "@/hooks/task/useSubtaskValidation";
 
 interface SubtaskListProps {
   parentTask: Task;
@@ -49,6 +50,7 @@ export const SubtaskList = ({
   onReorderSubtasks,
   isCollapsed,
 }: SubtaskListProps) => {
+  const { validateSubtasks } = useSubtaskValidation();
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -83,85 +85,13 @@ export const SubtaskList = ({
     }
   };
 
-  const validateSubtasks = (tasks: Task[]): Task[] => {
-    const parentLevel = parentTask.level || 1;
-    return tasks.filter(subtask => {
-      const subtaskLevel = subtask.level || 1;
-      const isValidLevel = subtaskLevel === parentLevel + 1;
-      const hasValidParent = subtask.parentId === parentTask.id;
+  const validationResult = validateSubtasks(parentTask, subtasks, isCollapsed);
+  console.log('Subtask validation result:', validationResult.debugInfo);
 
-      console.log('Validating subtask:', {
-        subtaskId: subtask.id,
-        subtaskTitle: subtask.title,
-        subtaskLevel,
-        expectedLevel: parentLevel + 1,
-        parentTaskId: parentTask.id,
-        parentTaskTitle: parentTask.title,
-        actualParentId: subtask.parentId,
-        isValidLevel,
-        hasValidParent,
-        order: subtask.order
-      });
-
-      return isValidLevel && hasValidParent;
-    });
-  };
-
-  const shouldRenderSubtasks = () => {
-    if (!subtasks || subtasks.length === 0) {
-      console.log('No subtasks found for parent:', {
-        parentId: parentTask.id,
-        parentTitle: parentTask.title,
-        parentLevel: parentTask.level
-      });
-      return false;
-    }
-    
-    if (isCollapsed) {
-      console.log('Parent task is collapsed:', parentTask.id);
-      return false;
-    }
-
-    const validTasks = validateSubtasks(subtasks);
-    
-    if (validTasks.length === 0) {
-      console.log('No valid subtasks found after filtering for parent:', {
-        parentId: parentTask.id,
-        parentTitle: parentTask.title,
-        parentLevel: parentTask.level,
-        subtasksCount: subtasks.length,
-        validSubtasksCount: validTasks.length
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  if (!shouldRenderSubtasks()) return null;
-
-  const validSubtasks = validateSubtasks(subtasks)
-    .sort((a, b) => {
-      const orderA = a.order || 0;
-      const orderB = b.order || 0;
-      console.log('Sorting subtasks:', {
-        taskA: { id: a.id, title: a.title, order: orderA },
-        taskB: { id: b.id, title: b.title, order: orderB }
-      });
-      return orderA - orderB;
-    });
-
-  console.log('Final valid subtasks for rendering:', {
-    parentTaskId: parentTask.id,
-    parentTaskTitle: parentTask.title,
-    validSubtasksCount: validSubtasks.length,
-    validSubtasks: validSubtasks.map(t => ({
-      id: t.id,
-      title: t.title,
-      level: t.level,
-      order: t.order
-    }))
-  });
+  if (!validationResult.isValid) {
+    console.log('Skipping subtask rendering:', validationResult.debugInfo.invalidReason);
+    return null;
+  }
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
@@ -171,10 +101,10 @@ export const SubtaskList = ({
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={validSubtasks.map(task => task.id.toString())}
+          items={validationResult.validTasks.map(task => task.id.toString())}
           strategy={verticalListSortingStrategy}
         >
-          {validSubtasks.map(subtask => (
+          {validationResult.validTasks.map(subtask => (
             <DraggableTask
               key={subtask.id}
               task={subtask}
