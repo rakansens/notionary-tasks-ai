@@ -5,15 +5,10 @@ interface ValidationResult {
   validTasks: Task[];
   debugInfo: {
     invalidReason?: string;
-    parentTaskInfo?: {
-      id: number;
-      level: number;
-    };
-    validationChecks?: {
-      hasSubtasks: boolean;
-      isNotCollapsed: boolean;
-      hasValidLevel: boolean;
-    };
+    taskId?: number;
+    taskLevel?: number;
+    parentId?: number | null;
+    subtasksCount?: number;
   };
 }
 
@@ -23,103 +18,49 @@ export const useSubtaskValidation = () => {
     subtasks: Task[],
     isCollapsed?: boolean
   ): ValidationResult => {
-    // 基本的な表示条件チェック
-    if (isCollapsed) {
-      return {
-        isValid: false,
-        validTasks: [],
-        debugInfo: {
-          invalidReason: "Task is collapsed",
-          parentTaskInfo: {
-            id: parentTask.id,
-            level: parentTask.level
-          }
-        }
-      };
-    }
-
+    // サブタスクが存在しない場合
     if (!subtasks || subtasks.length === 0) {
       return {
         isValid: false,
         validTasks: [],
         debugInfo: {
           invalidReason: "No subtasks available",
-          parentTaskInfo: {
-            id: parentTask.id,
-            level: parentTask.level
-          }
+          taskId: parentTask.id,
+          taskLevel: parentTask.level,
+          subtasksCount: 0
         }
       };
     }
 
-    // 親タスクのレベルチェック
-    const parentLevel = parentTask.level || 1;
-    if (parentLevel >= 3) {
+    // 折りたたまれている場合
+    if (isCollapsed) {
       return {
         isValid: false,
         validTasks: [],
         debugInfo: {
-          invalidReason: "Parent task level is at maximum",
-          parentTaskInfo: {
-            id: parentTask.id,
-            level: parentLevel
-          }
+          invalidReason: "Task is collapsed",
+          taskId: parentTask.id,
+          taskLevel: parentTask.level,
+          subtasksCount: subtasks.length
         }
       };
     }
 
-    // サブタスクの検証
+    // レベルの検証
     const validTasks = subtasks.filter(subtask => {
-      // 親子関係の検証
-      const hasValidParent = subtask.parentId === parentTask.id;
-      if (!hasValidParent) {
-        console.log('Invalid parent relationship:', {
-          subtaskId: subtask.id,
-          subtaskParentId: subtask.parentId,
-          expectedParentId: parentTask.id
-        });
-        return false;
-      }
-
-      // レベルの検証
-      const expectedLevel = parentLevel + 1;
-      const subtaskLevel = subtask.level || 1;
-      const hasValidLevel = subtaskLevel === expectedLevel && subtaskLevel <= 3;
-
-      console.log('Subtask validation:', {
-        subtaskId: subtask.id,
-        subtaskTitle: subtask.title,
-        hasValidParent,
-        hasValidLevel,
-        currentLevel: subtaskLevel,
-        expectedLevel,
-        parentLevel
-      });
-
-      return hasValidParent && hasValidLevel;
+      const expectedLevel = (parentTask.level || 1) + 1;
+      return subtask.level === expectedLevel;
     });
 
-    const isValid = validTasks.length > 0;
-    console.log('Final validation result:', {
-      parentTaskId: parentTask.id,
-      parentLevel,
-      validTasksCount: validTasks.length,
-      isValid
-    });
-
+    // 検証結果を返す
     return {
-      isValid,
-      validTasks,
+      isValid: validTasks.length > 0,
+      validTasks: validTasks,
       debugInfo: {
-        parentTaskInfo: {
-          id: parentTask.id,
-          level: parentLevel
-        },
-        validationChecks: {
-          hasSubtasks: subtasks.length > 0,
-          isNotCollapsed: !isCollapsed,
-          hasValidLevel: parentLevel < 3
-        }
+        taskId: parentTask.id,
+        taskLevel: parentTask.level,
+        subtasksCount: subtasks.length,
+        invalidReason: validTasks.length === 0 ? "No valid subtasks found" : undefined
       }
     };
   };

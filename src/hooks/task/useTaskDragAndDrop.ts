@@ -30,12 +30,24 @@ export const useTaskDragAndDrop = (task: Task, parentTask?: Task) => {
 
   const handleDragStart = (event: DragStartEvent) => {
     setIsDragging(true);
-    console.log("Drag started:", event);
+    console.log("Drag started:", {
+      taskId: task.id,
+      taskTitle: task.title,
+      taskLevel: task.level,
+      parentId: task.parentId,
+      event
+    });
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     setIsDragging(false);
-    console.log("Drag ended:", event);
+    console.log("Drag ended:", {
+      taskId: task.id,
+      taskTitle: task.title,
+      taskLevel: task.level,
+      parentId: task.parentId,
+      event
+    });
   };
 
   return {

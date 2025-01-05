@@ -37,7 +37,7 @@ export const DraggableTask = memo(({
   onReorderSubtasks,
 }: DraggableTaskProps) => {
   const { isTaskCollapsed, toggleTaskCollapse } = useTaskCollapse();
-  const { dragHandleProps, setNodeRef, style, isDragging, handleDragStart, handleDragEnd } = useTaskDragAndDrop(task, parentTask);
+  const { dragHandleProps, setNodeRef, style, isDragging } = useTaskDragAndDrop(task, parentTask);
   const subtasks = task.subtasks || [];
   const isCollapsed = isTaskCollapsed(task.id);
   const { canRenderSubtasks } = useSubtaskRenderer(task, subtasks, isCollapsed, parentTask);
