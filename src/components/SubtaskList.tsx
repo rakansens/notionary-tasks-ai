@@ -16,6 +16,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useSubtaskValidation } from "@/hooks/task/useSubtaskValidation";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface SubtaskListProps {
   parentTask: Task;
@@ -51,6 +53,7 @@ export const SubtaskList = ({
   isCollapsed,
 }: SubtaskListProps) => {
   const { validateSubtasks } = useSubtaskValidation();
+  const { toast } = useToast();
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -58,7 +61,7 @@ export const SubtaskList = ({
     })
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (!over || !subtasks) return;
@@ -80,7 +83,46 @@ export const SubtaskList = ({
           targetTask: subtasks[newIndex],
           currentOrder: subtasks.map(t => ({ id: t.id, order: t.order }))
         });
-        onReorderSubtasks(oldIndex, newIndex, parentTask.id);
+
+        try {
+          // データベースの更新
+          const reorderedTasks = [...subtasks];
+          const [movedTask] = reorderedTasks.splice(oldIndex, 1);
+          reorderedTasks.splice(newIndex, 0, movedTask);
+
+          // 新しい順序でタスクを更新
+          const updates = reorderedTasks.map((task, index) => ({
+            id: task.id,
+            order_position: index,
+          }));
+
+          for (const update of updates) {
+            const { error } = await supabase
+              .from('tasks')
+              .update({ order_position: update.order_position })
+              .eq('id', update.id);
+
+            if (error) {
+              throw error;
+            }
+          }
+
+          // UIの更新
+          onReorderSubtasks(oldIndex, newIndex, parentTask.id);
+
+          console.log('Order updated in database:', {
+            updates,
+            parentTaskId: parentTask.id
+          });
+
+        } catch (error) {
+          console.error('Error updating task order:', error);
+          toast({
+            title: "エラー",
+            description: "タスクの順序の更新に失敗しました",
+            variant: "destructive",
+          });
+        }
       }
     }
   };
