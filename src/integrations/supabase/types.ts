@@ -213,7 +213,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           group_id?: number | null
-          id?: never
+          id?: number
           level?: number
           order_position?: number
           parent_id?: number | null
@@ -225,7 +225,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           group_id?: number | null
-          id?: never
+          id?: number
           level?: number
           order_position?: number
           parent_id?: number | null
@@ -244,20 +244,6 @@ export type Database = {
             foreignKeyName: "tasks_parent_id_fkey"
             columns: ["parent_id"]
             isOneToOne: false
-            referencedRelation: "group_tasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "subtasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
             referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
@@ -265,94 +251,7 @@ export type Database = {
       }
     }
     Views: {
-      group_tasks: {
-        Row: {
-          completed: boolean | null
-          created_at: string | null
-          group_id: number | null
-          group_name: string | null
-          id: number | null
-          level: number | null
-          order_position: number | null
-          parent_id: number | null
-          title: string | null
-          updated_at: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tasks_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "group_tasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "subtasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      subtasks: {
-        Row: {
-          completed: boolean | null
-          created_at: string | null
-          group_id: number | null
-          id: number | null
-          level: number | null
-          order_position: number | null
-          parent_id: number | null
-          parent_title: string | null
-          title: string | null
-          updated_at: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tasks_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "group_tasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "subtasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       update_task_orders: {
