@@ -75,7 +75,8 @@ export const SubtaskList = ({
           startIndex: oldIndex,
           endIndex: newIndex,
           movedTask: subtasks[oldIndex],
-          targetTask: subtasks[newIndex]
+          targetTask: subtasks[newIndex],
+          currentOrder: subtasks.map(t => ({ id: t.id, order: t.order }))
         });
         onReorderSubtasks(oldIndex, newIndex, parentTask.id);
       }
@@ -86,7 +87,8 @@ export const SubtaskList = ({
     if (!subtasks || subtasks.length === 0) {
       console.log('No subtasks found for parent:', {
         parentId: parentTask.id,
-        parentTitle: parentTask.title
+        parentTitle: parentTask.title,
+        parentLevel: parentTask.level
       });
       return false;
     }
@@ -114,7 +116,12 @@ export const SubtaskList = ({
         actualParentId: subtask.parentId,
         isValidLevel,
         hasValidParent,
-        order: subtask.order
+        order: subtask.order,
+        currentState: {
+          isCollapsed,
+          hasSubtasks: subtasks.length > 0,
+          validSubtasksCount: validSubtasks?.length
+        }
       });
 
       return isValidLevel && hasValidParent;
@@ -124,7 +131,10 @@ export const SubtaskList = ({
     if (validSubtasks.length === 0) {
       console.log('No valid subtasks found after filtering for parent:', {
         parentId: parentTask.id,
-        parentTitle: parentTask.title
+        parentTitle: parentTask.title,
+        parentLevel: parentTask.level,
+        subtasksCount: subtasks.length,
+        validSubtasksCount: validSubtasks.length
       });
       return false;
     }
@@ -139,9 +149,42 @@ export const SubtaskList = ({
     .filter(subtask => {
       const isValidLevel = (subtask.level || 1) === (parentTask.level || 1) + 1;
       const hasValidParent = subtask.parentId === parentTask.id;
-      return isValidLevel && hasValidParent;
+      const isValid = isValidLevel && hasValidParent;
+
+      console.log('Filtering subtask for rendering:', {
+        subtaskId: subtask.id,
+        subtaskTitle: subtask.title,
+        subtaskLevel: subtask.level,
+        parentLevel: parentTask.level,
+        isValidLevel,
+        hasValidParent,
+        isValid,
+        order: subtask.order
+      });
+
+      return isValid;
     })
-    .sort((a, b) => (a.order || 0) - (b.order || 0));
+    .sort((a, b) => {
+      const orderA = a.order || 0;
+      const orderB = b.order || 0;
+      console.log('Sorting subtasks:', {
+        taskA: { id: a.id, title: a.title, order: orderA },
+        taskB: { id: b.id, title: b.title, order: orderB }
+      });
+      return orderA - orderB;
+    });
+
+  console.log('Final valid subtasks for rendering:', {
+    parentTaskId: parentTask.id,
+    parentTaskTitle: parentTask.title,
+    validSubtasksCount: validSubtasks.length,
+    validSubtasks: validSubtasks.map(t => ({
+      id: t.id,
+      title: t.title,
+      level: t.level,
+      order: t.order
+    }))
+  });
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>

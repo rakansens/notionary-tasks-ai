@@ -72,6 +72,15 @@ export const DraggableTask = memo(({
     const currentLevel = task.level || 1;
     const hasSubtasks = subtasks && subtasks.length > 0;
 
+    console.log('Checking if can render subtasks:', {
+      taskId: task.id,
+      taskTitle: task.title,
+      currentLevel,
+      hasSubtasks,
+      subtasksCount: subtasks.length,
+      isCollapsed
+    });
+
     // 基本的な条件チェック
     if (isCollapsed || !hasSubtasks) {
       console.log('Basic check failed:', { isCollapsed, hasSubtasks });
@@ -91,7 +100,7 @@ export const DraggableTask = memo(({
       const hasValidParent = subtask.parentId === task.id;
       const isValidLevel = subtaskLevel === expectedLevel;
 
-      console.log('Validating subtask:', {
+      console.log('Validating subtask in canRenderSubtasks:', {
         subtaskId: subtask.id,
         subtaskTitle: subtask.title,
         subtaskLevel,
@@ -100,7 +109,8 @@ export const DraggableTask = memo(({
         parentTaskTitle: task.title,
         actualParentId: subtask.parentId,
         isValidLevel,
-        hasValidParent
+        hasValidParent,
+        order: subtask.order
       });
 
       return isValidLevel && hasValidParent;
@@ -131,11 +141,13 @@ export const DraggableTask = memo(({
       hasSubtasks,
       subtasksCount: subtasks.length,
       isCollapsed,
+      hasValidSubtasks,
       subtasks: subtasks.map(st => ({
         id: st.id,
         title: st.title,
         level: st.level,
-        parentId: st.parentId
+        parentId: st.parentId,
+        order: st.order
       }))
     });
 
