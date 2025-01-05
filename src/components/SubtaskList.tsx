@@ -88,7 +88,7 @@ export const SubtaskList = ({
           reorderedTasks.splice(newIndex, 0, movedTask);
 
           const taskUpdates = {
-            updates: reorderedTasks.map((task, index) => ({
+            task_updates: reorderedTasks.map((task, index) => ({
               task_id: task.id,
               new_order: index,
               parent_id: parentTask.id,
