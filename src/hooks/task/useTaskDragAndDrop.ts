@@ -20,31 +20,25 @@ export const useTaskDragAndDrop = (task: Task, parentTask?: Task) => {
     },
   });
 
-  console.log('TaskDragAndDrop state:', {
-    taskId: task.id,
-    taskTitle: task.title,
-    isDragging,
-    transform,
-    transition,
-    parentTaskId: parentTask?.id,
-    level: task.level
-  });
-
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: transform ? CSS.Transform.toString(transform) : undefined,
+    transition: transition || undefined,
     opacity: isDragging ? 0.5 : 1,
     position: "relative" as const,
-    zIndex: isDragging ? 999 : "auto",
+    zIndex: isDragging ? 999 : 1,
     backgroundColor: isDragging ? "white" : "transparent",
     touchAction: "none",
   };
 
-  console.log('TaskDragAndDrop style:', {
+  console.log('TaskDragAndDrop state:', {
     taskId: task.id,
-    style,
+    taskTitle: task.title,
     isDragging,
-    transform: CSS.Transform.toString(transform)
+    transform: transform ? CSS.Transform.toString(transform) : null,
+    transition,
+    parentTaskId: parentTask?.id,
+    level: task.level,
+    subtasks: task.subtasks?.length || 0
   });
 
   return {
