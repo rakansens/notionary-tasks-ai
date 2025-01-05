@@ -40,6 +40,14 @@ export const useTaskManager = (): TaskManagerOperations & {
     }
   };
 
+  const updateTaskOrder = (tasks: Task[]) => {
+    setters.setTasks(tasks);
+  };
+
+  const addGroup = async (name: string) => {
+    await groupOperations.addGroup(name);
+  };
+
   return {
     ...state,
     ...setters,
@@ -58,5 +66,7 @@ export const useTaskManager = (): TaskManagerOperations & {
         return newCollapsed;
       });
     },
+    updateTaskOrder,
+    addGroup,
   };
 };

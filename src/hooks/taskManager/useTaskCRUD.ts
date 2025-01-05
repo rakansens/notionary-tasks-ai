@@ -25,7 +25,8 @@ export const useTaskCRUD = (tasks: Task[], setTasks: (tasks: Task[]) => void) =>
 
       if (error) throw error;
 
-      setTasks(prevTasks => [...prevTasks, savedTask]);
+      const newTasks = [...tasks, savedTask];
+      setTasks(newTasks);
       return savedTask;
     } catch (error) {
       console.error('Error adding task:', error);
@@ -49,11 +50,10 @@ export const useTaskCRUD = (tasks: Task[], setTasks: (tasks: Task[]) => void) =>
 
       if (error) throw error;
 
-      setTasks(prevTasks =>
-        prevTasks.map(t =>
-          t.id === id ? { ...t, completed: !t.completed } : t
-        )
+      const newTasks = tasks.map(t =>
+        t.id === id ? { ...t, completed: !t.completed } : t
       );
+      setTasks(newTasks);
     } catch (error) {
       console.error('Error toggling task:', error);
       toast({
@@ -73,11 +73,10 @@ export const useTaskCRUD = (tasks: Task[], setTasks: (tasks: Task[]) => void) =>
 
       if (error) throw error;
 
-      setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task.id === id ? { ...task, title } : task
-        )
+      const newTasks = tasks.map(task =>
+        task.id === id ? { ...task, title } : task
       );
+      setTasks(newTasks);
     } catch (error) {
       console.error('Error updating task title:', error);
       toast({
@@ -97,7 +96,8 @@ export const useTaskCRUD = (tasks: Task[], setTasks: (tasks: Task[]) => void) =>
 
       if (error) throw error;
 
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+      const newTasks = tasks.filter(task => task.id !== id);
+      setTasks(newTasks);
     } catch (error) {
       console.error('Error deleting task:', error);
       toast({
