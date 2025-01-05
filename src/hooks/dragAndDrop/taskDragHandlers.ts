@@ -72,7 +72,7 @@ export const handleTaskDragEnd = (
     } else {
       return !task.groupId && !task.parentId;
     }
-  }).sort((a, b) => a.order - b.order);
+  }).sort((a, b) => (a.order || 0) - (b.order || 0));
 
   if (isMovingOutOfGroup || isMovingToGroup) {
     taskToMove.order = tasksInTargetArea.length > 0
