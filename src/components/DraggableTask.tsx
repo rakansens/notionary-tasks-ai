@@ -42,11 +42,20 @@ export const DraggableTask = memo(({
   const isCollapsed = isTaskCollapsed(task.id);
   const { canRenderSubtasks } = useSubtaskRenderer(task, subtasks, isCollapsed, parentTask);
 
+  console.log('DraggableTask render:', {
+    taskId: task.id,
+    taskTitle: task.title,
+    isDragging,
+    isCollapsed,
+    subtasksCount: subtasks.length,
+    style
+  });
+
   return (
     <div 
       ref={setNodeRef} 
       style={style}
-      className={`${isDragging ? "shadow-lg rounded-md" : ""}`}
+      className={`transition-all duration-200 ${isDragging ? "shadow-lg rounded-md bg-white" : ""}`}
     >
       <TaskContent
         task={task}

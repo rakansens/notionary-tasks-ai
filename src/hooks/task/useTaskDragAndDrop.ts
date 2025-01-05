@@ -8,7 +8,6 @@ export const useTaskDragAndDrop = (task: Task, parentTask?: Task) => {
     listeners,
     setNodeRef,
     transform,
-    transition,
     isDragging,
   } = useSortable({ 
     id: task.id.toString(),
@@ -20,15 +19,29 @@ export const useTaskDragAndDrop = (task: Task, parentTask?: Task) => {
     },
   });
 
+  console.log('TaskDragAndDrop state:', {
+    taskId: task.id,
+    taskTitle: task.title,
+    isDragging,
+    transform,
+    parentTaskId: parentTask?.id,
+    level: task.level
+  });
+
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
     opacity: isDragging ? 0.5 : 1,
     position: "relative" as const,
     zIndex: isDragging ? 999 : "auto",
     backgroundColor: isDragging ? "white" : "transparent",
     touchAction: "none",
   };
+
+  console.log('TaskDragAndDrop style:', {
+    taskId: task.id,
+    style,
+    isDragging
+  });
 
   return {
     dragHandleProps: { ...attributes, ...listeners },
