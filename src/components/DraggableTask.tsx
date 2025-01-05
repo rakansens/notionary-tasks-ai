@@ -75,7 +75,13 @@ export const DraggableTask = memo(({
       isCollapsed,
       subtasksCount: subtasks.length,
       taskLevel: task.level,
-      parentTaskLevel: parentTask?.level
+      parentTaskLevel: parentTask?.level,
+      subtasks: subtasks.map(st => ({
+        id: st.id,
+        title: st.title,
+        level: st.level,
+        parentId: st.parentId
+      }))
     });
 
     if (isCollapsed) {
@@ -98,32 +104,19 @@ export const DraggableTask = memo(({
     }
 
     // サブタスクの検証（各サブタスクを個別に検証）
-    const hasValidSubtasks = subtasks.some(subtask => {
-      // 親子関係の検証
-      const hasValidParent = subtask.parentId === task.id;
-      
-      // レベルの検証
-      const subtaskLevel = subtask.level || 1;
-      const hasValidLevel = subtaskLevel === currentLevel + 1;
-
-      console.log('Validating subtask:', {
-        subtaskId: subtask.id,
-        subtaskTitle: subtask.title,
-        subtaskLevel,
-        currentLevel,
-        hasValidParent,
-        hasValidLevel,
-        parentId: subtask.parentId,
-        expectedParentId: task.id
-      });
-
-      return hasValidParent && hasValidLevel;
-    });
-
+    const hasValidSubtasks = subtasks.length > 0;
+    
     console.log('Validation complete:', {
       taskId: task.id,
       hasValidSubtasks,
-      subtasksCount: subtasks.length
+      subtasksCount: subtasks.length,
+      validationDetails: subtasks.map(st => ({
+        id: st.id,
+        title: st.title,
+        level: st.level,
+        parentId: st.parentId,
+        isValid: st.parentId === task.id
+      }))
     });
 
     return hasValidSubtasks;
