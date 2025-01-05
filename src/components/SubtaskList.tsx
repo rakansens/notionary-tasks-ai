@@ -94,10 +94,10 @@ export const SubtaskList = ({
             level: task.level || (parentTask.level + 1)
           }));
 
-          console.log('Task updates before API call:', JSON.stringify(taskUpdates));
+          console.log('Task updates before API call:', taskUpdates);
 
           const { error } = await supabase.rpc('update_task_orders', {
-            task_updates: JSON.stringify(taskUpdates)
+            task_updates: taskUpdates
           });
 
           if (error) {
