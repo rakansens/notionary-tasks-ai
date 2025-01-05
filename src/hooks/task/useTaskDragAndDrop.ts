@@ -1,61 +1,39 @@
-import { useState } from "react";
-import { DragStartEvent, DragEndEvent, useDraggable } from "@dnd-kit/core";
-import { Task } from "@/types/models";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Task } from "@/types/models";
 
 export const useTaskDragAndDrop = (task: Task, parentTask?: Task) => {
-  const [isDragging, setIsDragging] = useState(false);
-  
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
-  } = useDraggable({
+    transition,
+    isDragging,
+  } = useSortable({ 
     id: task.id.toString(),
     data: {
+      type: 'task',
       task,
-      parentTask,
+      parentId: parentTask?.id,
+      level: task.level,
     },
   });
 
-  const style = transform ? {
+  const style = {
     transform: CSS.Transform.toString(transform),
-  } : undefined;
-
-  const dragHandleProps = {
-    ...attributes,
-    ...listeners,
-  };
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setIsDragging(true);
-    console.log("Drag started:", {
-      taskId: task.id,
-      taskTitle: task.title,
-      taskLevel: task.level,
-      parentId: task.parentId,
-      event
-    });
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    setIsDragging(false);
-    console.log("Drag ended:", {
-      taskId: task.id,
-      taskTitle: task.title,
-      taskLevel: task.level,
-      parentId: task.parentId,
-      event
-    });
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    position: "relative" as const,
+    zIndex: isDragging ? 999 : "auto",
+    backgroundColor: isDragging ? "white" : "transparent",
+    touchAction: "none",
   };
 
   return {
-    dragHandleProps,
+    dragHandleProps: { ...attributes, ...listeners },
     setNodeRef,
     style,
     isDragging,
-    handleDragStart,
-    handleDragEnd,
   };
 };

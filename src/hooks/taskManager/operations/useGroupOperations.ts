@@ -1,48 +1,13 @@
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Group } from '@/types/models';
+import { GroupResponse } from '@/types/api';
 
 export const useGroupOperations = (
   groups: Group[], 
   setGroups: (groups: Group[] | ((prev: Group[]) => Group[])) => void
 ) => {
   const { toast } = useToast();
-
-  const addGroup = async (name: string) => {
-    try {
-      const maxOrder = Math.max(...groups.map(g => g.order), 0);
-      const { data, error } = await supabase
-        .from('groups')
-        .insert([
-          { 
-            name,
-            order_position: maxOrder + 1
-          }
-        ])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const newGroup: Group = {
-        id: data.id,
-        name: data.name,
-        order: data.order_position,
-        description: data.description
-      };
-
-      setGroups(prevGroups => [...prevGroups, newGroup]);
-      
-      window.dispatchEvent(new CustomEvent('groupAdded'));
-    } catch (error) {
-      console.error('Error adding group:', error);
-      toast({
-        title: "エラー",
-        description: "グループの追加に失敗しました",
-        variant: "destructive",
-      });
-    }
-  };
 
   const updateGroupName = async (id: number, name: string) => {
     try {
@@ -112,7 +77,6 @@ export const useGroupOperations = (
   };
 
   return {
-    addGroup,
     updateGroupName,
     deleteGroup,
     updateGroupOrder,
