@@ -11,11 +11,6 @@ export interface TaskNode {
   subtasks?: TaskNode[];
 }
 
-export interface TaskValidationResult {
-  isValid: boolean;
-  error?: string;
-}
-
 export interface TaskDragItem {
   id: number;
   type: 'TASK';
@@ -30,4 +25,16 @@ export interface TaskDropResult {
     parentId: number | null;
     index: number;
   } | null;
+}
+
+export interface TaskValidationResult {
+  isValid: boolean;
+  error?: string;
+}
+
+export interface DragAndDropResult {
+  dragHandleProps: Record<string, any>;
+  setNodeRef: (element: HTMLElement | null) => void;
+  style: Record<string, any>;
+  isDragging: boolean;
 }
