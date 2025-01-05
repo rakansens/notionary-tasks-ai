@@ -27,8 +27,18 @@ export const useTaskCreation = (
       console.warn('Parent task not found:', parentId);
       return 1;
     }
+
+    // 親タスクのレベルに基づいて子タスクのレベルを計算
+    const newLevel = parentTask.level + 1;
+    console.log('Calculating new task level:', {
+      parentId,
+      parentLevel: parentTask.level,
+      newLevel,
+      maxAllowedLevel: 3
+    });
     
-    return parentTask.level + 1;
+    // 最大レベルを3に制限
+    return Math.min(newLevel, 3);
   };
 
   const addTask = async (groupId?: number, parentId?: number, title?: string) => {
@@ -38,7 +48,12 @@ export const useTaskCreation = (
 
       // 先にレベルをチェック
       const newLevel = calculateTaskLevel(parentId, tasks);
-      console.log('Calculated new task level:', newLevel, 'for parent:', parentId);
+      console.log('Task creation check:', {
+        title: trimmedTask,
+        parentId,
+        newLevel,
+        maxLevel: 3
+      });
 
       if (newLevel > 3) {
         toast({
@@ -75,7 +90,8 @@ export const useTaskCreation = (
         level: newLevel,
         parentId,
         groupId,
-        order: newOrder
+        order: newOrder,
+        siblingTasksCount: siblingTasks.length
       });
 
       const { data: savedTask, error } = await supabase
@@ -116,7 +132,7 @@ export const useTaskCreation = (
             if (task.id === parentId) {
               return {
                 ...task,
-                subtasks: [...(task.subtasks || []), taskWithId]
+                subtasks: [...(task.subtasks || []), taskWithId].sort((a, b) => a.order - b.order)
               };
             }
             if (task.subtasks && task.subtasks.length > 0) {
@@ -132,7 +148,7 @@ export const useTaskCreation = (
         if (parentId) {
           return updateSubtasks(prevTasks);
         }
-        return [...prevTasks, taskWithId];
+        return [...prevTasks, taskWithId].sort((a, b) => a.order - b.order);
       });
 
       return taskWithId;
