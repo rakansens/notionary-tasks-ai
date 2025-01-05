@@ -5,6 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useTaskCollapse } from "@/hooks/taskManager/useTaskCollapse";
 import { memo, useCallback } from "react";
+import { validateSubtasks } from "@/utils/taskUtils";
 
 interface DraggableTaskProps {
   task: Task;
@@ -69,6 +70,8 @@ export const DraggableTask = memo(({
   const isCollapsed = isTaskCollapsed(task.id);
 
   const canRenderSubtasks = useCallback(() => {
+    const validation = validateSubtasks(task, isCollapsed);
+    
     console.log('Checking subtasks render condition:', {
       taskId: task.id,
       taskTitle: task.title,
@@ -76,6 +79,7 @@ export const DraggableTask = memo(({
       subtasksCount: subtasks.length,
       taskLevel: task.level,
       parentTaskLevel: parentTask?.level,
+      validation,
       subtasks: subtasks.map(st => ({
         id: st.id,
         title: st.title,
@@ -84,26 +88,11 @@ export const DraggableTask = memo(({
       }))
     });
 
-    if (isCollapsed) {
-      console.log('Task is collapsed, not rendering subtasks');
+    if (!validation.isValid) {
+      console.log(validation.reason);
       return false;
     }
 
-    if (!subtasks || subtasks.length === 0) {
-      console.log('No subtasks available');
-      return false;
-    }
-
-    // 現在のタスクのレベルを取得（デフォルトは1）
-    const currentLevel = task.level || 1;
-
-    // レベル3以上のタスクにはサブタスクを表示しない
-    if (currentLevel >= 3) {
-      console.log('Task level is too deep:', currentLevel);
-      return false;
-    }
-
-    // サブタスクの検証（各サブタスクを個別に検証）
     const validSubtasks = subtasks.filter(subtask => 
       subtask.parentId === task.id && 
       subtask.level === (task.level || 1) + 1
