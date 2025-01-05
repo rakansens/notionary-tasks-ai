@@ -12,6 +12,10 @@ interface ValidationResult {
     subtasksCount: number;
     validSubtasksCount: number;
     invalidReason?: string;
+    orderInfo?: {
+      beforeSort: number[];
+      afterSort: number[];
+    };
   };
 }
 
@@ -21,6 +25,7 @@ export const useSubtaskValidation = () => {
     subtasks: Task[] | undefined,
     isCollapsed?: boolean
   ): ValidationResult => {
+    // 基本的なチェック
     if (!subtasks || subtasks.length === 0) {
       return {
         isValid: false,
@@ -56,30 +61,44 @@ export const useSubtaskValidation = () => {
     }
 
     const parentLevel = parentTask.level || 1;
+    const expectedSubtaskLevel = parentLevel + 1;
+
+    // サブタスクの検証と順序の保持
+    const ordersBefore = subtasks.map(t => t.order || 0);
     const validTasks = subtasks.filter(subtask => {
       const subtaskLevel = subtask.level || 1;
-      const isValidLevel = subtaskLevel === parentLevel + 1;
+      const isValidLevel = subtaskLevel === expectedSubtaskLevel;
       const hasValidParent = subtask.parentId === parentTask.id;
 
-      console.log('Validating subtask:', {
+      console.log('Validating subtask in detail:', {
         subtaskId: subtask.id,
         subtaskTitle: subtask.title,
         subtaskLevel,
-        expectedLevel: parentLevel + 1,
+        expectedLevel: expectedSubtaskLevel,
         parentTaskId: parentTask.id,
         parentTaskTitle: parentTask.title,
         actualParentId: subtask.parentId,
         isValidLevel,
         hasValidParent,
-        order: subtask.order
+        order: subtask.order,
+        parentLevel
       });
 
       return isValidLevel && hasValidParent;
     });
 
+    // 順序の維持と更新
+    const sortedTasks = [...validTasks].sort((a, b) => {
+      const orderA = a.order || 0;
+      const orderB = b.order || 0;
+      return orderA - orderB;
+    });
+
+    const ordersAfter = sortedTasks.map(t => t.order || 0);
+
     return {
       isValid: validTasks.length > 0,
-      validTasks: validTasks.sort((a, b) => (a.order || 0) - (b.order || 0)),
+      validTasks: sortedTasks,
       debugInfo: {
         parentTask: {
           id: parentTask.id,
@@ -87,7 +106,11 @@ export const useSubtaskValidation = () => {
           level: parentLevel
         },
         subtasksCount: subtasks.length,
-        validSubtasksCount: validTasks.length
+        validSubtasksCount: validTasks.length,
+        orderInfo: {
+          beforeSort: ordersBefore,
+          afterSort: ordersAfter
+        }
       }
     };
   };

@@ -72,41 +72,42 @@ export const DraggableTask = memo(({
     const currentLevel = task.level || 1;
     const hasSubtasks = subtasks && subtasks.length > 0;
 
-    console.log('Checking if can render subtasks:', {
+    console.log('Checking subtask rendering conditions:', {
       taskId: task.id,
       taskTitle: task.title,
       currentLevel,
       hasSubtasks,
       subtasksCount: subtasks.length,
-      isCollapsed
+      isCollapsed,
+      parentInfo: parentTask ? {
+        id: parentTask.id,
+        title: parentTask.title,
+        level: parentTask.level
+      } : null
     });
 
-    // 基本的な条件チェック
     if (isCollapsed || !hasSubtasks) {
-      console.log('Basic check failed:', { isCollapsed, hasSubtasks });
+      console.log('Basic rendering check failed:', { isCollapsed, hasSubtasks });
       return false;
     }
 
-    // レベル制限チェック（3階層まで）
     if (currentLevel >= 3) {
       console.log('Maximum level reached:', currentLevel);
       return false;
     }
 
-    // サブタスクの整合性チェック
     const hasValidSubtasks = subtasks.every(subtask => {
       const subtaskLevel = subtask.level || 1;
       const expectedLevel = currentLevel + 1;
       const hasValidParent = subtask.parentId === task.id;
       const isValidLevel = subtaskLevel === expectedLevel;
 
-      console.log('Validating subtask in canRenderSubtasks:', {
+      console.log('Validating subtask structure:', {
         subtaskId: subtask.id,
         subtaskTitle: subtask.title,
         subtaskLevel,
         expectedLevel,
         parentTaskId: task.id,
-        parentTaskTitle: task.title,
         actualParentId: subtask.parentId,
         isValidLevel,
         hasValidParent,
@@ -114,41 +115,6 @@ export const DraggableTask = memo(({
       });
 
       return isValidLevel && hasValidParent;
-    });
-
-    // 親タスクの存在チェックと整合性の確認
-    if (parentTask) {
-      const parentLevel = parentTask.level || 1;
-      if (currentLevel <= parentLevel) {
-        console.warn('Invalid parent-child level hierarchy:', {
-          taskId: task.id,
-          taskLevel: currentLevel,
-          parentId: parentTask.id,
-          parentLevel
-        });
-        return false;
-      }
-    }
-
-    // 詳細なデバッグ情報
-    console.log('Task hierarchy detailed check:', {
-      taskId: task.id,
-      taskTitle: task.title,
-      taskLevel: currentLevel,
-      parentTaskId: parentTask?.id,
-      parentTaskTitle: parentTask?.title,
-      parentTaskLevel: parentTask?.level,
-      hasSubtasks,
-      subtasksCount: subtasks.length,
-      isCollapsed,
-      hasValidSubtasks,
-      subtasks: subtasks.map(st => ({
-        id: st.id,
-        title: st.title,
-        level: st.level,
-        parentId: st.parentId,
-        order: st.order
-      }))
     });
 
     return hasValidSubtasks;
