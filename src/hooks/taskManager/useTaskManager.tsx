@@ -28,9 +28,7 @@ export const useTaskManager = () => {
   };
 
   const addGroup = async (name: string) => {
-    if (groupOperations.addGroup) {
-      await groupOperations.addGroup(name);
-    }
+    await groupOperations.addGroup(name);
   };
 
   return {
