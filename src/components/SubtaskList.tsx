@@ -36,12 +36,13 @@ interface SubtaskListProps {
   isCollapsed?: boolean;
 }
 
-interface TaskOrderUpdate {
+type TaskOrderUpdate = {
+  [key: string]: string | number;
   task_id: number;
   new_order: number;
   parent_id: number;
   level: number;
-}
+};
 
 export const SubtaskList = ({
   parentTask,
@@ -104,7 +105,7 @@ export const SubtaskList = ({
           }));
 
           const { data, error } = await supabase.rpc('update_task_orders', {
-            task_updates: taskUpdates
+            task_updates: taskUpdates as any[]
           });
 
           if (error) {
