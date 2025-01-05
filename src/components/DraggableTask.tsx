@@ -70,11 +70,18 @@ export const DraggableTask = memo(({
 
   const canRenderSubtasks = useCallback(() => {
     // 基本的な表示条件チェック
-    if (isCollapsed || !subtasks || subtasks.length === 0) {
-      console.log('Basic validation failed:', {
+    if (isCollapsed) {
+      console.log('Task is collapsed:', {
         taskId: task.id,
-        isCollapsed,
-        hasSubtasks: subtasks?.length > 0
+        taskTitle: task.title
+      });
+      return false;
+    }
+
+    if (!subtasks || subtasks.length === 0) {
+      console.log('No subtasks available:', {
+        taskId: task.id,
+        taskTitle: task.title
       });
       return false;
     }
@@ -94,47 +101,45 @@ export const DraggableTask = memo(({
 
     // レベル3以上のタスクにはサブタスクを表示しない
     if (currentLevel >= 3) {
-      console.log('Maximum level reached:', currentLevel);
+      console.log('Maximum level reached:', {
+        taskId: task.id,
+        currentLevel
+      });
       return false;
     }
 
     // サブタスクの検証
     const validSubtasks = subtasks.filter(subtask => {
-      // 親子関係の検証を最初に行う
+      // 親子関係の検証
       const hasValidParent = subtask.parentId === task.id;
-      if (!hasValidParent) {
-        console.log('Invalid parent relationship:', {
-          subtaskId: subtask.id,
-          subtaskParentId: subtask.parentId,
-          expectedParentId: task.id
-        });
-        return false;
-      }
-
+      
       // レベルの検証
       const expectedLevel = currentLevel + 1;
       const subtaskLevel = subtask.level || 1;
-      const isValidLevel = subtaskLevel === expectedLevel && subtaskLevel <= 3;
+      const hasValidLevel = subtaskLevel === expectedLevel && subtaskLevel <= 3;
 
       console.log('Subtask validation:', {
         subtaskId: subtask.id,
         subtaskTitle: subtask.title,
         hasValidParent,
-        isValidLevel,
-        subtaskLevel,
-        expectedLevel
+        hasValidLevel,
+        currentLevel: subtaskLevel,
+        expectedLevel,
+        parentTaskId: task.id,
+        subtaskParentId: subtask.parentId
       });
 
-      return hasValidParent && isValidLevel;
+      return hasValidParent && hasValidLevel;
     });
 
     const isValid = validSubtasks.length > 0;
     console.log('Final validation result:', {
       taskId: task.id,
+      taskTitle: task.title,
       validSubtasksCount: validSubtasks.length,
+      totalSubtasksCount: subtasks.length,
       isValid,
-      currentLevel,
-      parentLevel: parentTask?.level
+      currentLevel
     });
 
     return isValid;
