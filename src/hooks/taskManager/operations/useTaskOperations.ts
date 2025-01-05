@@ -4,13 +4,12 @@ import { useTaskModification } from './useTaskModification';
 import { useTaskDeletion } from './useTaskDeletion';
 import { useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 export const useTaskOperations = (
   tasks: Task[], 
   setTasks: (tasks: Task[] | ((prev: Task[]) => Task[])) => void
 ) => {
-  const { toast } = useToast();
   const taskCreation = useTaskCreation(tasks, setTasks);
   const taskModification = useTaskModification(tasks, setTasks);
   const taskDeletion = useTaskDeletion(tasks, setTasks);
@@ -21,12 +20,10 @@ export const useTaskOperations = (
         const taskMap = new Map<number, Task>();
         const rootTasks: Task[] = [];
 
-        // 全てのタスクをマップに追加
         tasks.forEach(task => {
           taskMap.set(task.id, { ...task, subtasks: [] });
         });
 
-        // 親子関係を構築
         tasks.forEach(task => {
           const taskWithSubtasks = taskMap.get(task.id);
           if (!taskWithSubtasks) return;
@@ -42,7 +39,6 @@ export const useTaskOperations = (
           }
         });
 
-        // サブタスクを順序でソート
         const sortSubtasks = (tasks: Task[]) => {
           tasks.sort((a, b) => (a.order || 0) - (b.order || 0));
           tasks.forEach(task => {
@@ -56,7 +52,6 @@ export const useTaskOperations = (
         return rootTasks;
       };
 
-      // タスクの更新をデータベースに反映
       for (const task of newTasks) {
         const parentTask = task.parentId ? newTasks.find(t => t.id === task.parentId) : null;
         const newLevel = parentTask ? Math.min(parentTask.level + 1, 3) : 1;
@@ -82,14 +77,13 @@ export const useTaskOperations = (
         }
       }
 
-      // 階層構造を再構築してステートを更新
       setTasks(buildTaskHierarchy(newTasks));
 
     } catch (error) {
       console.error('Error updating tasks structure:', error);
       throw error;
     }
-  }, [setTasks, toast]);
+  }, [setTasks]);
 
   return {
     ...taskCreation,
