@@ -119,14 +119,29 @@ export const DraggableTask = memo(({
       });
 
       // サブタスクのレベルチェックを修正
-      return subtaskLevel === expectedLevel && hasValidParent && subtaskLevel <= 3;
+      const isValidLevel = subtaskLevel === expectedLevel;
+      const isValidSubtask = isValidLevel && hasValidParent && subtaskLevel <= 3;
+
+      console.log('Subtask validation details:', {
+        subtaskId: subtask.id,
+        isValidLevel,
+        hasValidParent,
+        isValidSubtask,
+        currentLevel,
+        subtaskLevel,
+        expectedLevel
+      });
+
+      return isValidSubtask;
     });
 
     const isValid = validSubtasks.length > 0;
-    console.log('Subtask validation result:', {
+    console.log('Final validation result:', {
       taskId: task.id,
       validSubtasksCount: validSubtasks.length,
-      isValid
+      isValid,
+      currentLevel,
+      parentLevel: parentTask?.level
     });
 
     return isValid;
