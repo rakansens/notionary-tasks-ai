@@ -1,12 +1,9 @@
-import { useEffect } from 'react';
 import { Task, Group } from "@/types/models";
 import { TaskManagerOperations } from "@/types/api";
 import { useTaskStateManager } from './taskStateManager';
 import { useTaskEvents } from './useTaskEvents';
-import { useToast } from "@/components/ui/use-toast";
-import { fetchInitialData } from './supabaseOperations';
-import { mapSupabaseTaskToTask, mapSupabaseGroupToGroup } from './mappers';
-import { useTaskOperations } from './operations/useTaskOperations';
+import { useTaskCRUD } from './useTaskCRUD';
+import { useTaskSync } from './useTaskSync';
 import { useGroupOperations } from './operations/useGroupOperations';
 
 export const useTaskManager = (): TaskManagerOperations & {
@@ -28,33 +25,14 @@ export const useTaskManager = (): TaskManagerOperations & {
   setAddingSubtaskId: (id: number | null) => void;
 } => {
   const { state, setters } = useTaskStateManager();
-  const { toast } = useToast();
-  const taskOperations = useTaskOperations(state.tasks, setters.setTasks);
+  const taskCRUD = useTaskCRUD(state.tasks, setters.setTasks);
   const groupOperations = useGroupOperations(state.groups, setters.setGroups);
-
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const { tasks, groups } = await fetchInitialData();
-        setters.setTasks(tasks.map(mapSupabaseTaskToTask));
-        setters.setGroups(groups.map(mapSupabaseGroupToGroup));
-      } catch (error) {
-        console.error('Error loading initial data:', error);
-        toast({
-          title: "エラー",
-          description: "データの読み込みに失敗しました",
-          variant: "destructive",
-        });
-      }
-    };
-
-    loadInitialData();
-  }, []);
+  const taskSync = useTaskSync(setters.setTasks, setters.setGroups);
 
   const confirmDelete = () => {
     if (state.deleteTarget) {
       if (state.deleteTarget.type === 'task') {
-        taskOperations.deleteTask(state.deleteTarget.id);
+        taskCRUD.deleteTask(state.deleteTarget.id);
       } else if (state.deleteTarget.type === 'group') {
         groupOperations.deleteGroup(state.deleteTarget.id);
       }
@@ -62,39 +40,13 @@ export const useTaskManager = (): TaskManagerOperations & {
     }
   };
 
-  const cancelDelete = () => {
-    setters.setDeleteTarget(null);
-  };
-
   return {
     ...state,
     ...setters,
-    addTask: async (groupId?: number, parentId?: number, title?: string) => {
-      const trimmedTitle = title?.trim() || state.newTask.trim();
-      if (!trimmedTitle) return;
-
-      try {
-        const newTask = await taskOperations.addTask(groupId, parentId, trimmedTitle);
-        if (newTask) {
-          setters.setNewTask('');
-          // 新しいタスクを追加した後、タスクリストを再取得
-          const { tasks } = await fetchInitialData();
-          setters.setTasks(tasks.map(mapSupabaseTaskToTask));
-        }
-      } catch (error) {
-        console.error('Error adding task:', error);
-        toast({
-          title: "エラー",
-          description: "タスクの追加に失敗しました",
-          variant: "destructive",
-        });
-      }
-    },
-    toggleTask: taskOperations.toggleTask,
-    updateTaskTitle: taskOperations.updateTaskTitle,
-    deleteTask: taskOperations.deleteTask,
+    ...taskCRUD,
+    ...groupOperations,
     confirmDelete,
-    cancelDelete,
+    cancelDelete: () => setters.setDeleteTarget(null),
     toggleGroupCollapse: (groupId: number) => {
       setters.setCollapsedGroups(prev => {
         const newCollapsed = new Set(prev);
@@ -106,19 +58,5 @@ export const useTaskManager = (): TaskManagerOperations & {
         return newCollapsed;
       });
     },
-    deleteGroup: (id: number) => {
-      const groupToDelete = state.groups.find(g => g.id === id);
-      if (groupToDelete) {
-        setters.setDeleteTarget({ type: "group", id });
-      }
-    },
-    updateTaskOrder: (tasks: Task[]) => {
-      setters.setTasks(tasks);
-    },
-    updateGroupOrder: groupOperations.updateGroupOrder,
-    addGroup: (name: string) => {
-      window.dispatchEvent(new CustomEvent('addGroup', { detail: { name } }));
-    },
-    updateGroupName: groupOperations.updateGroupName,
   };
 };
