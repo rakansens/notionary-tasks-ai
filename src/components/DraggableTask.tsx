@@ -104,22 +104,25 @@ export const DraggableTask = memo(({
     }
 
     // サブタスクの検証（各サブタスクを個別に検証）
-    const hasValidSubtasks = subtasks.length > 0;
+    const validSubtasks = subtasks.filter(subtask => 
+      subtask.parentId === task.id && 
+      subtask.level === (task.level || 1) + 1
+    );
     
     console.log('Validation complete:', {
       taskId: task.id,
-      hasValidSubtasks,
+      validSubtasksCount: validSubtasks.length,
       subtasksCount: subtasks.length,
       validationDetails: subtasks.map(st => ({
         id: st.id,
         title: st.title,
         level: st.level,
         parentId: st.parentId,
-        isValid: st.parentId === task.id
+        isValid: st.parentId === task.id && st.level === (task.level || 1) + 1
       }))
     });
 
-    return hasValidSubtasks;
+    return validSubtasks.length > 0;
   }, [task, subtasks, isCollapsed, parentTask]);
 
   return (

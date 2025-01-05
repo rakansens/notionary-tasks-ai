@@ -16,10 +16,7 @@ export const useTaskStateManager = () => {
   const calculateTaskLevel = (parentTask: Task | undefined, taskMap: Map<number, Task>): number => {
     if (!parentTask) return 1;
     
-    // 親タスクのレベルを取得（存在しない場合は1を返す）
     const parentLevel = parentTask.level || 1;
-    
-    // 新しいレベルは親のレベル + 1（最大3まで）
     const newLevel = Math.min(parentLevel + 1, 3);
     
     console.log('Calculating task level:', {
@@ -42,7 +39,9 @@ export const useTaskStateManager = () => {
       const taskCopy = {
         ...task,
         subtasks: [],
-        level: task.level || 1  // レベルが未設定の場合は1をデフォルトとする
+        level: task.level || 1,
+        groupId: task.groupId === undefined ? null : task.groupId,
+        parentId: task.parentId === undefined ? null : task.parentId
       };
       taskMap.set(task.id, taskCopy);
     });

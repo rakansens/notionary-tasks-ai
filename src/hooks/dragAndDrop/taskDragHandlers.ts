@@ -6,8 +6,26 @@ const preserveSubtasks = (tasks: Task[], updatedTasks: Task[]): Task[] => {
   
   return updatedTasks.map(task => {
     const originalTask = taskMap.get(task.id);
-    if (originalTask?.subtasks) {
-      return { ...task, subtasks: originalTask.subtasks };
+    if (originalTask?.subtasks && originalTask.subtasks.length > 0) {
+      console.log('Preserving subtasks for task:', {
+        taskId: task.id,
+        taskTitle: task.title,
+        subtasksCount: originalTask.subtasks.length,
+        subtasks: originalTask.subtasks.map(st => ({
+          id: st.id,
+          title: st.title,
+          level: st.level,
+          parentId: st.parentId
+        }))
+      });
+      return {
+        ...task,
+        subtasks: originalTask.subtasks.map(subtask => ({
+          ...subtask,
+          level: task.level + 1,
+          parentId: task.id
+        }))
+      };
     }
     return task;
   });
@@ -28,10 +46,18 @@ export const handleTaskDragEnd = (
   
   if (!activeTask) return;
 
+  console.log('Starting task drag end:', {
+    activeTaskId,
+    overTaskId,
+    overGroupId,
+    activeTask,
+    overTask
+  });
+
   const isMovingOutOfGroup = activeTask.groupId && (!overTask?.groupId && !overGroupId);
   const isMovingToGroup = overGroupId !== undefined;
 
-  const newGroupId = isMovingToGroup ? overGroupId : (overTask?.groupId || undefined);
+  const newGroupId = isMovingToGroup ? overGroupId : (overTask?.groupId || null);
 
   const updatedTasks = [...tasks];
   const taskToMove = { ...activeTask }; 
@@ -87,8 +113,19 @@ export const handleTaskDragEnd = (
 
   filteredTasks.push(taskToMove);
 
+  console.log('Before preserving subtasks:', {
+    filteredTasksCount: filteredTasks.length,
+    taskToMove,
+    originalTasks: tasks
+  });
+
   // サブタスクの構造を維持しながらタスクの順序を更新
   const finalTasks = preserveSubtasks(tasks, filteredTasks);
   
+  console.log('After preserving subtasks:', {
+    finalTasksCount: finalTasks.length,
+    finalTasks
+  });
+
   updateTaskOrder(finalTasks);
 };
