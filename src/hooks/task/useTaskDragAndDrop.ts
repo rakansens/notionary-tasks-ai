@@ -11,7 +11,6 @@ export const useTaskDragAndDrop = (task: Task, parentTask?: Task) => {
     listeners,
     setNodeRef,
     transform,
-    transition,
   } = useDraggable({
     id: task.id.toString(),
     data: {
@@ -20,10 +19,9 @@ export const useTaskDragAndDrop = (task: Task, parentTask?: Task) => {
     },
   });
 
-  const style = {
+  const style = transform ? {
     transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  } : undefined;
 
   const dragHandleProps = {
     ...attributes,
