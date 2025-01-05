@@ -59,18 +59,38 @@ export const TaskItem = ({
     addTask
   );
 
+  const calculateNewTaskLevel = (currentTask: Task): number => {
+    // 親タスクが存在しない場合は1を返す
+    if (!currentTask) return 1;
+
+    // 現在のタスクのレベルを取得（デフォルトは1）
+    const currentLevel = currentTask.level || 1;
+    
+    // 新しいサブタスクのレベルは親タスクのレベル + 1
+    const newLevel = currentLevel + 1;
+
+    console.log('Calculating new task level:', {
+      parentTaskId: currentTask.id,
+      parentTaskLevel: currentLevel,
+      newTaskLevel: newLevel,
+      maxAllowedLevel: 3
+    });
+
+    return newLevel;
+  };
+
   const handleAddSubtask = () => {
-    // 現在のタスクレベルを取得（デフォルトは1）
-    const currentLevel = task.level || 1;
-    console.log('Adding subtask check:', {
+    const newTaskLevel = calculateNewTaskLevel(task);
+    console.log('Adding subtask:', {
       taskId: task.id,
-      currentLevel,
+      currentLevel: task.level,
+      newTaskLevel,
       parentTaskId: parentTask?.id,
       parentTaskLevel: parentTask?.level
     });
 
     // レベル3以上のタスクにはサブタスクを追加できない
-    if (currentLevel >= 3) {
+    if (newTaskLevel > 3) {
       toast({
         title: "エラー",
         description: "3階層以上のサブタスクは作成できません",
@@ -80,9 +100,9 @@ export const TaskItem = ({
     }
 
     // サブタスク追加を許可
-    console.log('Adding subtask to:', {
+    console.log('Proceeding with subtask addition:', {
       taskId: task.id,
-      newLevel: currentLevel + 1,
+      newLevel: newTaskLevel,
       parentTaskId: parentTask?.id,
     });
 
