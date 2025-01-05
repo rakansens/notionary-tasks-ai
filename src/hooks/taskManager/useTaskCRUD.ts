@@ -1,47 +1,46 @@
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { Task } from '@/types/models';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export const useTaskCRUD = (
-  tasks: Task[], 
-  setTasks: (tasks: Task[]) => void
+  tasks: Task[],
+  setTasks: (tasks: Task[] | ((prev: Task[]) => Task[])) => void
 ) => {
   const { toast } = useToast();
 
-  const addTask = async (groupId?: number, parentId?: number, title?: string) => {
+  const addTask = async (groupId?: number, parentId?: number) => {
     try {
-      const trimmedTitle = title?.trim();
-      if (!trimmedTitle) return;
-
-      const { data: savedTask, error } = await supabase
+      const maxOrder = Math.max(...tasks.map(t => t.order), 0);
+      const { data, error } = await supabase
         .from('tasks')
-        .insert({
-          title: trimmedTitle,
-          completed: false,
-          order_position: 0,
-          group_id: groupId,
-          parent_id: parentId,
-          level: parentId ? 2 : 1
-        })
+        .insert([
+          { 
+            title: "新しいタスク",
+            completed: false,
+            order_position: maxOrder + 1,
+            group_id: groupId,
+            parent_id: parentId,
+            level: parentId ? 2 : 1
+          }
+        ])
         .select()
         .single();
 
       if (error) throw error;
 
       const newTask: Task = {
-        id: savedTask.id,
-        title: savedTask.title,
-        completed: savedTask.completed,
-        order: savedTask.order_position,
-        groupId: savedTask.group_id,
-        parentId: savedTask.parent_id,
-        level: savedTask.level,
-        addedAt: new Date(savedTask.created_at),
-        description: savedTask.description
+        id: data.id,
+        title: data.title,
+        completed: data.completed,
+        order: data.order_position,
+        groupId: data.group_id,
+        parentId: data.parent_id,
+        level: data.level,
+        addedAt: new Date(data.created_at),
+        subtasks: []
       };
 
-      setTasks([...tasks, newTask]);
-      return newTask;
+      setTasks(prevTasks => [...prevTasks, newTask]);
     } catch (error) {
       console.error('Error adding task:', error);
       toast({
@@ -52,7 +51,7 @@ export const useTaskCRUD = (
     }
   };
 
-  const toggleTask = async (id: number) => {
+  const toggleTask = async (id: number, parentId?: number) => {
     try {
       const task = tasks.find(t => t.id === id);
       if (!task) return;
@@ -64,10 +63,11 @@ export const useTaskCRUD = (
 
       if (error) throw error;
 
-      const newTasks = tasks.map(t => 
-        t.id === id ? { ...t, completed: !t.completed } : t
+      setTasks(prevTasks => 
+        prevTasks.map(t => 
+          t.id === id ? { ...t, completed: !t.completed } : t
+        )
       );
-      setTasks(newTasks);
     } catch (error) {
       console.error('Error toggling task:', error);
       toast({
@@ -78,7 +78,7 @@ export const useTaskCRUD = (
     }
   };
 
-  const updateTaskTitle = async (id: number, title: string) => {
+  const updateTaskTitle = async (id: number, title: string, parentId?: number) => {
     try {
       const { error } = await supabase
         .from('tasks')
@@ -87,10 +87,11 @@ export const useTaskCRUD = (
 
       if (error) throw error;
 
-      const newTasks = tasks.map(task =>
-        task.id === id ? { ...task, title } : task
+      setTasks(prevTasks =>
+        prevTasks.map(t =>
+          t.id === id ? { ...t, title } : t
+        )
       );
-      setTasks(newTasks);
     } catch (error) {
       console.error('Error updating task title:', error);
       toast({
@@ -101,7 +102,7 @@ export const useTaskCRUD = (
     }
   };
 
-  const deleteTask = async (id: number) => {
+  const deleteTask = async (id: number, parentId?: number) => {
     try {
       const { error } = await supabase
         .from('tasks')
@@ -110,8 +111,9 @@ export const useTaskCRUD = (
 
       if (error) throw error;
 
-      const newTasks = tasks.filter(task => task.id !== id);
-      setTasks(newTasks);
+      setTasks(prevTasks =>
+        prevTasks.filter(t => t.id !== id)
+      );
     } catch (error) {
       console.error('Error deleting task:', error);
       toast({
