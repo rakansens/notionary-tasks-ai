@@ -9,6 +9,12 @@ interface ValidationResult {
     taskLevel: number;
     parentId?: number;
     subtasksCount: number;
+    validationDetails?: {
+      hasValidParent: boolean;
+      hasValidLevel: boolean;
+      expectedLevel: number;
+      actualLevel: number;
+    };
   };
 }
 
@@ -18,22 +24,17 @@ export const useSubtaskValidation = () => {
     subtasks: Task[],
     isCollapsed?: boolean
   ): ValidationResult => {
-    console.log('Checking subtasks render condition:', {
+    console.log('Starting subtask validation for task:', {
       taskId: task.id,
       taskTitle: task.title,
-      isCollapsed,
-      subtasksCount: subtasks.length,
       taskLevel: task.level,
-      parentTaskLevel: task.parentId,
-      validation: {
-        isValid: subtasks.length > 0,
-        reason: subtasks.length === 0 ? "No subtasks available" : undefined
-      },
-      subtasks: subtasks
+      parentId: task.parentId,
+      subtasksCount: subtasks?.length || 0,
+      isCollapsed
     });
 
     if (!subtasks || subtasks.length === 0) {
-      console.log('No subtasks available');
+      console.log('No subtasks available for task:', task.id);
       return {
         isValid: false,
         validTasks: [],
@@ -48,6 +49,7 @@ export const useSubtaskValidation = () => {
     }
 
     if (isCollapsed) {
+      console.log('Task is collapsed:', task.id);
       return {
         isValid: false,
         validTasks: [],
@@ -61,28 +63,45 @@ export const useSubtaskValidation = () => {
       };
     }
 
+    const taskLevel = task.level || 1;
     const validTasks = subtasks.filter(subtask => {
-      const isValidLevel = subtask.level <= 3;
-      if (!isValidLevel) {
-        console.log('Invalid subtask level:', {
-          taskId: subtask.id,
-          level: subtask.level,
-          parentId: subtask.parentId
-        });
-      }
-      return isValidLevel;
+      const hasValidParent = subtask.parentId === task.id;
+      const expectedLevel = taskLevel + 1;
+      const actualLevel = subtask.level || 1;
+      const hasValidLevel = actualLevel === expectedLevel && actualLevel <= 3;
+
+      console.log('Validating subtask:', {
+        subtaskId: subtask.id,
+        subtaskTitle: subtask.title,
+        parentTaskId: task.id,
+        hasValidParent,
+        hasValidLevel,
+        expectedLevel,
+        actualLevel
+      });
+
+      return hasValidParent && hasValidLevel;
     });
 
-    return {
+    const validationResult = {
       isValid: validTasks.length > 0,
       validTasks,
       debugInfo: {
         taskId: task.id,
         taskLevel: task.level,
         parentId: task.parentId,
-        subtasksCount: subtasks.length
+        subtasksCount: subtasks.length,
+        validationDetails: {
+          hasValidParent: validTasks.every(t => t.parentId === task.id),
+          hasValidLevel: validTasks.every(t => t.level <= 3),
+          expectedLevel: taskLevel + 1,
+          actualLevel: validTasks[0]?.level || 0
+        }
       }
     };
+
+    console.log('Validation result:', validationResult);
+    return validationResult;
   };
 
   return { validateSubtasks };
