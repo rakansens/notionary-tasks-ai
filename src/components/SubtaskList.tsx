@@ -85,11 +85,29 @@ export const SubtaskList = ({
     }
   };
 
+  // サブタスクの検証を実行
   const validationResult = validateSubtasks(parentTask, subtasks, isCollapsed);
-  console.log('Subtask validation result:', validationResult.debugInfo);
+  console.log('Subtask validation result:', {
+    parentTaskId: parentTask.id,
+    parentTaskLevel: parentTask.level,
+    subtasksCount: subtasks.length,
+    validSubtasksCount: validationResult.validTasks.length,
+    isCollapsed,
+    validationDebugInfo: validationResult.debugInfo
+  });
 
+  // 検証に失敗した場合は何も表示しない
   if (!validationResult.isValid) {
-    console.log('Skipping subtask rendering:', validationResult.debugInfo.invalidReason);
+    console.log('Skipping subtask rendering:', {
+      parentTaskId: parentTask.id,
+      reason: validationResult.debugInfo.invalidReason,
+      parentLevel: parentTask.level,
+      subtasksInfo: subtasks.map(t => ({
+        id: t.id,
+        level: t.level,
+        parentId: t.parentId
+      }))
+    });
     return null;
   }
 

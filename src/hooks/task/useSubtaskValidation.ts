@@ -4,17 +4,15 @@ interface ValidationResult {
   isValid: boolean;
   validTasks: Task[];
   debugInfo: {
-    parentTask: {
+    invalidReason?: string;
+    parentTaskInfo?: {
       id: number;
-      title: string;
       level: number;
     };
-    subtasksCount: number;
-    validSubtasksCount: number;
-    invalidReason?: string;
-    orderInfo?: {
-      beforeSort: number[];
-      afterSort: number[];
+    validationChecks?: {
+      hasSubtasks: boolean;
+      isNotCollapsed: boolean;
+      hasValidLevel: boolean;
     };
   };
 }
@@ -22,100 +20,109 @@ interface ValidationResult {
 export const useSubtaskValidation = () => {
   const validateSubtasks = (
     parentTask: Task,
-    subtasks: Task[] | undefined,
+    subtasks: Task[],
     isCollapsed?: boolean
   ): ValidationResult => {
-    // 基本的なチェック
-    if (!subtasks || subtasks.length === 0) {
-      return {
-        isValid: false,
-        validTasks: [],
-        debugInfo: {
-          parentTask: {
-            id: parentTask.id,
-            title: parentTask.title,
-            level: parentTask.level || 1
-          },
-          subtasksCount: 0,
-          validSubtasksCount: 0,
-          invalidReason: "No subtasks found"
-        }
-      };
-    }
-
+    // 基本的な表示条件チェック
     if (isCollapsed) {
       return {
         isValid: false,
         validTasks: [],
         debugInfo: {
-          parentTask: {
+          invalidReason: "Task is collapsed",
+          parentTaskInfo: {
             id: parentTask.id,
-            title: parentTask.title,
-            level: parentTask.level || 1
-          },
-          subtasksCount: subtasks.length,
-          validSubtasksCount: 0,
-          invalidReason: "Parent task is collapsed"
+            level: parentTask.level
+          }
         }
       };
     }
 
+    if (!subtasks || subtasks.length === 0) {
+      return {
+        isValid: false,
+        validTasks: [],
+        debugInfo: {
+          invalidReason: "No subtasks available",
+          parentTaskInfo: {
+            id: parentTask.id,
+            level: parentTask.level
+          }
+        }
+      };
+    }
+
+    // 親タスクのレベルチェック
     const parentLevel = parentTask.level || 1;
-    const expectedSubtaskLevel = parentLevel + 1;
+    if (parentLevel >= 3) {
+      return {
+        isValid: false,
+        validTasks: [],
+        debugInfo: {
+          invalidReason: "Parent task level is at maximum",
+          parentTaskInfo: {
+            id: parentTask.id,
+            level: parentLevel
+          }
+        }
+      };
+    }
 
-    // サブタスクの検証と順序の保持
-    const ordersBefore = subtasks.map(t => t.order || 0);
+    // サブタスクの検証
     const validTasks = subtasks.filter(subtask => {
-      const subtaskLevel = subtask.level || 1;
-      const isValidLevel = subtaskLevel === expectedSubtaskLevel;
+      // 親子関係の検証
       const hasValidParent = subtask.parentId === parentTask.id;
+      if (!hasValidParent) {
+        console.log('Invalid parent relationship:', {
+          subtaskId: subtask.id,
+          subtaskParentId: subtask.parentId,
+          expectedParentId: parentTask.id
+        });
+        return false;
+      }
 
-      console.log('Validating subtask in detail:', {
+      // レベルの検証
+      const expectedLevel = parentLevel + 1;
+      const subtaskLevel = subtask.level || 1;
+      const hasValidLevel = subtaskLevel === expectedLevel && subtaskLevel <= 3;
+
+      console.log('Subtask validation:', {
         subtaskId: subtask.id,
         subtaskTitle: subtask.title,
-        subtaskLevel,
-        expectedLevel: expectedSubtaskLevel,
-        parentTaskId: parentTask.id,
-        parentTaskTitle: parentTask.title,
-        actualParentId: subtask.parentId,
-        isValidLevel,
         hasValidParent,
-        order: subtask.order,
+        hasValidLevel,
+        currentLevel: subtaskLevel,
+        expectedLevel,
         parentLevel
       });
 
-      return isValidLevel && hasValidParent;
+      return hasValidParent && hasValidLevel;
     });
 
-    // 順序の維持と更新
-    const sortedTasks = [...validTasks].sort((a, b) => {
-      const orderA = a.order || 0;
-      const orderB = b.order || 0;
-      return orderA - orderB;
+    const isValid = validTasks.length > 0;
+    console.log('Final validation result:', {
+      parentTaskId: parentTask.id,
+      parentLevel,
+      validTasksCount: validTasks.length,
+      isValid
     });
-
-    const ordersAfter = sortedTasks.map(t => t.order || 0);
 
     return {
-      isValid: validTasks.length > 0,
-      validTasks: sortedTasks,
+      isValid,
+      validTasks,
       debugInfo: {
-        parentTask: {
+        parentTaskInfo: {
           id: parentTask.id,
-          title: parentTask.title,
           level: parentLevel
         },
-        subtasksCount: subtasks.length,
-        validSubtasksCount: validTasks.length,
-        orderInfo: {
-          beforeSort: ordersBefore,
-          afterSort: ordersAfter
+        validationChecks: {
+          hasSubtasks: subtasks.length > 0,
+          isNotCollapsed: !isCollapsed,
+          hasValidLevel: parentLevel < 3
         }
       }
     };
   };
 
-  return {
-    validateSubtasks
-  };
+  return { validateSubtasks };
 };
