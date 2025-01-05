@@ -10,7 +10,11 @@ import {
   useSensors,
   closestCenter,
 } from "@dnd-kit/core";
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { 
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { TaskList } from "./TaskList";
 import { DragOverlayContent } from "./DragOverlayContent";

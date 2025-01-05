@@ -1,8 +1,11 @@
-import { Task } from "@/types/models";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Task } from '@/types/models';
 
-export const useTaskCRUD = (tasks: Task[], setTasks: (tasks: Task[]) => void) => {
+export const useTaskCRUD = (
+  tasks: Task[], 
+  setTasks: (tasks: Task[]) => void
+) => {
   const { toast } = useToast();
 
   const addTask = async (groupId?: number, parentId?: number, title?: string) => {
@@ -25,9 +28,20 @@ export const useTaskCRUD = (tasks: Task[], setTasks: (tasks: Task[]) => void) =>
 
       if (error) throw error;
 
-      const newTasks = [...tasks, savedTask];
-      setTasks(newTasks);
-      return savedTask;
+      const newTask: Task = {
+        id: savedTask.id,
+        title: savedTask.title,
+        completed: savedTask.completed,
+        order: savedTask.order_position,
+        groupId: savedTask.group_id,
+        parentId: savedTask.parent_id,
+        level: savedTask.level,
+        addedAt: new Date(savedTask.created_at),
+        description: savedTask.description
+      };
+
+      setTasks([...tasks, newTask]);
+      return newTask;
     } catch (error) {
       console.error('Error adding task:', error);
       toast({
@@ -50,7 +64,7 @@ export const useTaskCRUD = (tasks: Task[], setTasks: (tasks: Task[]) => void) =>
 
       if (error) throw error;
 
-      const newTasks = tasks.map(t =>
+      const newTasks = tasks.map(t => 
         t.id === id ? { ...t, completed: !t.completed } : t
       );
       setTasks(newTasks);

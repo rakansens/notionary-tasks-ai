@@ -6,24 +6,7 @@ import { useTaskCRUD } from './useTaskCRUD';
 import { useTaskSync } from './useTaskSync';
 import { useGroupOperations } from './operations/useGroupOperations';
 
-export const useTaskManager = (): TaskManagerOperations & {
-  tasks: Task[];
-  groups: Group[];
-  newTask: string;
-  newGroup: string;
-  isAddingGroup: boolean;
-  editingTaskId: number | null;
-  editingGroupId: number | null;
-  addingSubtaskId: number | null;
-  deleteTarget: { type: string; id: number } | null;
-  collapsedGroups: Set<number>;
-  setNewTask: (value: string) => void;
-  setNewGroup: (value: string) => void;
-  setIsAddingGroup: (value: boolean) => void;
-  setEditingTaskId: (id: number | null) => void;
-  setEditingGroupId: (id: number | null) => void;
-  setAddingSubtaskId: (id: number | null) => void;
-} => {
+export const useTaskManager = () => {
   const { state, setters } = useTaskStateManager();
   const taskCRUD = useTaskCRUD(state.tasks, setters.setTasks);
   const groupOperations = useGroupOperations(state.groups, setters.setGroups);
@@ -45,7 +28,9 @@ export const useTaskManager = (): TaskManagerOperations & {
   };
 
   const addGroup = async (name: string) => {
-    await groupOperations.addGroup(name);
+    if (groupOperations.addGroup) {
+      await groupOperations.addGroup(name);
+    }
   };
 
   return {
