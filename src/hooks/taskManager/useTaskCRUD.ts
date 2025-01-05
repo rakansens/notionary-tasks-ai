@@ -8,14 +8,16 @@ export const useTaskCRUD = (
 ) => {
   const { toast } = useToast();
 
-  const addTask = async (groupId?: number, parentId?: number) => {
+  const addTask = async (groupId?: number, parentId?: number, title?: string) => {
     try {
+      const trimmedTitle = title?.trim() || "新しいタスク";
       const maxOrder = Math.max(...tasks.map(t => t.order), 0);
+      
       const { data, error } = await supabase
         .from('tasks')
         .insert([
           { 
-            title: "新しいタスク",
+            title: trimmedTitle,
             completed: false,
             order_position: maxOrder + 1,
             group_id: groupId,
@@ -41,11 +43,12 @@ export const useTaskCRUD = (
       };
 
       setTasks(prevTasks => [...prevTasks, newTask]);
+      return newTask;
     } catch (error) {
       console.error('Error adding task:', error);
       toast({
-        title: "エラー",
-        description: "タスクの追加に失敗しました",
+        title: "エラーが発生しました",
+        description: "タスクの追加に失敗しました。",
         variant: "destructive",
       });
     }
@@ -71,8 +74,8 @@ export const useTaskCRUD = (
     } catch (error) {
       console.error('Error toggling task:', error);
       toast({
-        title: "エラー",
-        description: "タスクの状態の更新に失敗しました",
+        title: "エラーが発生しました",
+        description: "タスクの状態の更新に失敗しました。",
         variant: "destructive",
       });
     }
@@ -95,8 +98,8 @@ export const useTaskCRUD = (
     } catch (error) {
       console.error('Error updating task title:', error);
       toast({
-        title: "エラー",
-        description: "タスクのタイトル更新に失敗しました",
+        title: "エラーが発生しました",
+        description: "タスクのタイトル更新に失敗しました。",
         variant: "destructive",
       });
     }
@@ -117,8 +120,8 @@ export const useTaskCRUD = (
     } catch (error) {
       console.error('Error deleting task:', error);
       toast({
-        title: "エラー",
-        description: "タスクの削除に失敗しました",
+        title: "エラーが発生しました",
+        description: "タスクの削除に失敗しました。",
         variant: "destructive",
       });
     }
