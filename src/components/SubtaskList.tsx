@@ -41,7 +41,6 @@ type TaskUpdate = {
   new_order: number;
   parent_id: number;
   level: number;
-  [key: string]: number;
 };
 
 export const SubtaskList = ({
@@ -111,7 +110,7 @@ export const SubtaskList = ({
           });
 
           const { data, error } = await supabase.rpc('update_task_orders', {
-            task_updates: taskUpdates as any[]
+            task_updates: taskUpdates
           });
 
           if (error) {
