@@ -85,34 +85,35 @@ export const SubtaskList = ({
         });
 
         try {
-          // データベースの更新
           const reorderedTasks = [...subtasks];
           const [movedTask] = reorderedTasks.splice(oldIndex, 1);
           reorderedTasks.splice(newIndex, 0, movedTask);
 
-          // 新しい順序でタスクを更新
-          const updates = reorderedTasks.map((task, index) => ({
-            id: task.id,
-            order_position: index,
-          }));
+          // トランザクションを使用して一括更新
+          const { data, error } = await supabase.rpc('update_task_orders', {
+            task_updates: reorderedTasks.map((task, index) => ({
+              task_id: task.id,
+              new_order: index,
+              parent_id: parentTask.id,
+              level: task.level || 1
+            }))
+          });
 
-          for (const update of updates) {
-            const { error } = await supabase
-              .from('tasks')
-              .update({ order_position: update.order_position })
-              .eq('id', update.id);
-
-            if (error) {
-              throw error;
-            }
+          if (error) {
+            throw error;
           }
 
           // UIの更新
           onReorderSubtasks(oldIndex, newIndex, parentTask.id);
 
           console.log('Order updated in database:', {
-            updates,
-            parentTaskId: parentTask.id
+            updates: reorderedTasks.map((task, index) => ({
+              taskId: task.id,
+              newOrder: index,
+              parentId: parentTask.id,
+              level: task.level
+            })),
+            result: data
           });
 
         } catch (error) {
