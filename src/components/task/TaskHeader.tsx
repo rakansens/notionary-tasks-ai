@@ -5,6 +5,7 @@ import { useState } from "react";
 import { DeleteConfirmDialog } from "../DeleteConfirmDialog";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export const TaskHeader = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
