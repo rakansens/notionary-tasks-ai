@@ -91,7 +91,7 @@ export const SubtaskList = ({
           const updatedTasks = reorderedTasks.map((task, index) => ({
             ...task,
             order: index,
-            level: task.level || (parentTask.level + 1)
+            level: Math.min(task.level || (parentTask.level + 1), 3)
           }));
 
           // タスク更新用のデータを準備
@@ -100,7 +100,7 @@ export const SubtaskList = ({
               task_id: task.id,
               new_order: task.order,
               parent_id: parentTask.id,
-              level: Math.min(task.level || (parentTask.level + 1), 3) // 最大レベルを3に制限
+              level: Math.min(task.level || (parentTask.level + 1), 3)
             }))
           };
 
