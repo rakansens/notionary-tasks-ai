@@ -93,6 +93,12 @@ export const SubtaskList = ({
     return null;
   }
 
+  const sortedTasks = [...validationResult.validTasks].sort((a, b) => {
+    const orderA = a.order || 0;
+    const orderB = b.order || 0;
+    return orderA - orderB;
+  });
+
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
       <DndContext
@@ -101,10 +107,10 @@ export const SubtaskList = ({
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={validationResult.validTasks.map(task => task.id.toString())}
+          items={sortedTasks.map(task => task.id.toString())}
           strategy={verticalListSortingStrategy}
         >
-          {validationResult.validTasks.map(subtask => (
+          {sortedTasks.map(subtask => (
             <DraggableTask
               key={subtask.id}
               task={subtask}

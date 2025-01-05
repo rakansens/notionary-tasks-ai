@@ -25,6 +25,18 @@ export const useSubtaskValidation = () => {
     subtasks: Task[] | undefined,
     isCollapsed?: boolean
   ): ValidationResult => {
+    const parentLevel = parentTask.level || 1;
+    const expectedSubtaskLevel = parentLevel + 1;
+
+    console.log('Validating subtasks for parent:', {
+      parentId: parentTask.id,
+      parentTitle: parentTask.title,
+      parentLevel,
+      expectedSubtaskLevel,
+      subtasksCount: subtasks?.length || 0,
+      isCollapsed
+    });
+
     // 基本的なチェック
     if (!subtasks || subtasks.length === 0) {
       return {
@@ -34,7 +46,7 @@ export const useSubtaskValidation = () => {
           parentTask: {
             id: parentTask.id,
             title: parentTask.title,
-            level: parentTask.level || 1
+            level: parentLevel
           },
           subtasksCount: 0,
           validSubtasksCount: 0,
@@ -51,7 +63,7 @@ export const useSubtaskValidation = () => {
           parentTask: {
             id: parentTask.id,
             title: parentTask.title,
-            level: parentTask.level || 1
+            level: parentLevel
           },
           subtasksCount: subtasks.length,
           validSubtasksCount: 0,
@@ -60,31 +72,23 @@ export const useSubtaskValidation = () => {
       };
     }
 
-    const parentLevel = parentTask.level || 1;
-    const expectedSubtaskLevel = parentLevel + 1;
-
-    // サブタスクの検証と順序の保持
-    const ordersBefore = subtasks.map(t => t.order || 0);
+    // サブタスクの検証
     const validTasks = subtasks.filter(subtask => {
-      const subtaskLevel = subtask.level || 1;
-      const isValidLevel = subtaskLevel === expectedSubtaskLevel;
+      const subtaskLevel = subtask.level || expectedSubtaskLevel;
       const hasValidParent = subtask.parentId === parentTask.id;
+      const isValidLevel = subtaskLevel === expectedSubtaskLevel;
 
-      console.log('Validating subtask in detail:', {
+      console.log('Validating subtask:', {
         subtaskId: subtask.id,
         subtaskTitle: subtask.title,
         subtaskLevel,
         expectedLevel: expectedSubtaskLevel,
-        parentTaskId: parentTask.id,
-        parentTaskTitle: parentTask.title,
-        actualParentId: subtask.parentId,
-        isValidLevel,
         hasValidParent,
-        order: subtask.order,
-        parentLevel
+        isValidLevel,
+        order: subtask.order
       });
 
-      return isValidLevel && hasValidParent;
+      return hasValidParent && isValidLevel;
     });
 
     // 順序の維持と更新
@@ -94,11 +98,18 @@ export const useSubtaskValidation = () => {
       return orderA - orderB;
     });
 
-    const ordersAfter = sortedTasks.map(t => t.order || 0);
+    // 順序の正規化
+    const normalizedTasks = sortedTasks.map((task, index) => ({
+      ...task,
+      order: index
+    }));
+
+    const ordersBefore = validTasks.map(t => t.order || 0);
+    const ordersAfter = normalizedTasks.map(t => t.order);
 
     return {
       isValid: validTasks.length > 0,
-      validTasks: sortedTasks,
+      validTasks: normalizedTasks,
       debugInfo: {
         parentTask: {
           id: parentTask.id,
