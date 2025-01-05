@@ -71,8 +71,9 @@ export const DraggableTask = memo(({
   const canRenderSubtasks = useCallback(() => {
     const currentLevel = task.level || 1;
     const hasSubtasks = subtasks && subtasks.length > 0;
+    const maxLevel = 3;
 
-    if (isCollapsed || !hasSubtasks || currentLevel >= 3) {
+    if (isCollapsed || !hasSubtasks || currentLevel >= maxLevel) {
       return false;
     }
 

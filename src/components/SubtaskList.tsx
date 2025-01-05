@@ -62,7 +62,11 @@ export const SubtaskList = ({
   const { validateSubtasks } = useSubtaskValidation();
   const { toast } = useToast();
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -78,14 +82,6 @@ export const SubtaskList = ({
       const newIndex = subtasks.findIndex(task => task.id.toString() === over.id);
       
       if (oldIndex !== -1 && newIndex !== -1 && onReorderSubtasks) {
-        console.log('Reordering subtasks:', {
-          parentTask,
-          startIndex: oldIndex,
-          endIndex: newIndex,
-          movedTask: subtasks[oldIndex],
-          targetTask: subtasks[newIndex]
-        });
-
         try {
           const reorderedTasks = [...subtasks];
           const [movedTask] = reorderedTasks.splice(oldIndex, 1);
@@ -98,18 +94,7 @@ export const SubtaskList = ({
             level: task.level || (parentTask.level + 1)
           }));
 
-          console.log('Updating task orders:', {
-            updates: taskUpdates,
-            parentTask,
-            reorderedTasks: reorderedTasks.map(t => ({
-              id: t.id,
-              title: t.title,
-              order: t.order,
-              level: t.level
-            }))
-          });
-
-          const { data, error } = await supabase.rpc('update_task_orders', {
+          const { error } = await supabase.rpc('update_task_orders', {
             task_updates: taskUpdates
           });
 
@@ -118,7 +103,6 @@ export const SubtaskList = ({
             throw error;
           }
 
-          console.log('Database update result:', data);
           onReorderSubtasks(oldIndex, newIndex, parentTask.id);
 
         } catch (error) {
@@ -136,7 +120,6 @@ export const SubtaskList = ({
   const validationResult = validateSubtasks(parentTask, subtasks, isCollapsed);
   
   if (!validationResult.isValid) {
-    console.log('Skipping subtask rendering:', validationResult.debugInfo.invalidReason);
     return null;
   }
 
