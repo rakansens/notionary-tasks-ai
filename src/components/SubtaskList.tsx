@@ -114,7 +114,7 @@ export const SubtaskList = ({
         actualParentId: subtask.parentId,
         isValidLevel,
         hasValidParent,
-        orderPosition: subtask.order_position
+        order: subtask.order
       });
 
       return isValidLevel && hasValidParent;
@@ -134,14 +134,14 @@ export const SubtaskList = ({
 
   if (!shouldRenderSubtasks()) return null;
 
-  // 有効なサブタスクのみをフィルタリングし、order_positionでソート
+  // 有効なサブタスクのみをフィルタリングし、orderでソート
   const validSubtasks = subtasks
     .filter(subtask => {
       const isValidLevel = (subtask.level || 1) === (parentTask.level || 1) + 1;
       const hasValidParent = subtask.parentId === parentTask.id;
       return isValidLevel && hasValidParent;
     })
-    .sort((a, b) => (a.order_position || 0) - (b.order_position || 0));
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
 
   return (
     <SubtaskContainer onClick={(e) => e.stopPropagation()}>
