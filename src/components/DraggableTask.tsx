@@ -118,7 +118,8 @@ export const DraggableTask = memo(({
         order: subtask.order
       });
 
-      return subtaskLevel <= 3 && hasValidParent;
+      // サブタスクのレベルチェックを修正
+      return subtaskLevel === expectedLevel && hasValidParent;
     });
 
     return validSubtasks.length > 0;
