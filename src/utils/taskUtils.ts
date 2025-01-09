@@ -18,7 +18,8 @@ export const calculateTaskLevel = (task: Task, parentTask: Task | null): number 
 
 export const validateSubtasks = (
   task: Task,
-  isCollapsed: boolean
+  isCollapsed: boolean,
+  subtasks?: Task[]
 ): { isValid: boolean; reason?: string } => {
   if (!task) {
     return { isValid: false, reason: "Invalid task" };
@@ -28,7 +29,8 @@ export const validateSubtasks = (
     return { isValid: false, reason: "Task is collapsed" };
   }
 
-  if (!task.subtasks || task.subtasks.length === 0) {
+  const tasksToValidate = subtasks || task.subtasks || [];
+  if (tasksToValidate.length === 0) {
     return { isValid: false, reason: "No subtasks available" };
   }
 
@@ -37,7 +39,7 @@ export const validateSubtasks = (
     return { isValid: false, reason: "Maximum level reached" };
   }
 
-  const hasValidSubtasks = task.subtasks.some(subtask => {
+  const hasValidSubtasks = tasksToValidate.some(subtask => {
     const subtaskLevel = subtask.level || 1;
     return subtask.parentId === task.id && subtaskLevel === currentLevel + 1;
   });

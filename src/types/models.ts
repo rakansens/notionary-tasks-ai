@@ -2,8 +2,8 @@ export interface Task {
   id: number;
   title: string;
   completed: boolean;
-  groupId?: number;
-  parentId?: number;
+  groupId?: number | null;
+  parentId?: number | null;
   subtasks?: Task[];
   order: number;
   addedAt: Date;
@@ -21,4 +21,13 @@ export interface Group {
 export interface DeleteTarget {
   type: "task" | "group";
   id: number;
+}
+
+export interface TaskUpdate {
+  id: number;
+  order?: number;
+  groupId?: number | null;
+  parentId?: number | null;
+  level?: number;
+  subtasks?: Task[];
 }

@@ -11,6 +11,16 @@ export interface OrderUpdate {
   order: number;
   groupId?: number;
   parentId?: number;
+  level?: number;
+  subtasks?: Task[];
+}
+
+export function isTask(item: DraggableItem): item is Task {
+  return 'level' in item && 'parentId' in item;
+}
+
+export function isGroup(item: DraggableItem): item is Group {
+  return !('level' in item) && !('parentId' in item);
 }
 
 export interface DragAndDropOptions {

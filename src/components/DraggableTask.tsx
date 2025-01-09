@@ -1,5 +1,5 @@
 import { Task } from "@/types/models";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { useTaskCollapse } from "@/hooks/taskManager/useTaskCollapse";
 import { useTaskDragAndDrop } from "@/hooks/task/useTaskDragAndDrop";
 import { useSubtaskRenderer } from "@/hooks/task/useSubtaskRenderer";
@@ -21,6 +21,23 @@ interface DraggableTaskProps {
   onReorderSubtasks?: (startIndex: number, endIndex: number, parentId: number) => void;
 }
 
+const arePropsEqual = (prevProps: DraggableTaskProps, nextProps: DraggableTaskProps) => {
+  return (
+    prevProps.task.id === nextProps.task.id &&
+    prevProps.task.title === nextProps.task.title &&
+    prevProps.task.completed === nextProps.task.completed &&
+    prevProps.task.level === nextProps.task.level &&
+    prevProps.task.order === nextProps.task.order &&
+    prevProps.task.parentId === nextProps.task.parentId &&
+    prevProps.editingTaskId === nextProps.editingTaskId &&
+    prevProps.addingSubtaskId === nextProps.addingSubtaskId &&
+    prevProps.newTask === nextProps.newTask &&
+    JSON.stringify(prevProps.task.subtasks) === JSON.stringify(nextProps.task.subtasks) &&
+    (prevProps.parentTask?.id === nextProps.parentTask?.id &&
+    prevProps.parentTask?.level === nextProps.parentTask?.level)
+  );
+};
+
 export const DraggableTask = memo(({
   task,
   parentTask,
@@ -41,19 +58,30 @@ export const DraggableTask = memo(({
   const subtasks = task.subtasks || [];
   const isCollapsed = isTaskCollapsed(task.id);
   const { canRenderSubtasks } = useSubtaskRenderer(task, subtasks, isCollapsed, parentTask);
-
-  console.log('DraggableTask render:', {
-    taskId: task.id,
-    taskTitle: task.title,
-    isDragging,
+  const shouldRenderSubtasks = useMemo(() => canRenderSubtasks(), [
+    task.id,
+    task.subtasks,
     isCollapsed,
-    subtasksCount: subtasks.length,
-    style
-  });
+    parentTask,
+    canRenderSubtasks
+  ]);
+
+  // ドラッグ中またはサブタスクの表示状態が変化した時のみログを出力
+  if (isDragging || style.transform) {
+    console.log('DraggableTask render:', {
+      taskId: task.id,
+      taskTitle: task.title,
+      isDragging,
+      isCollapsed,
+      subtasksCount: subtasks.length,
+      canRenderSubtasks: shouldRenderSubtasks,
+      style
+    });
+  }
 
   return (
-    <div 
-      ref={setNodeRef} 
+    <div
+      ref={setNodeRef}
       style={style}
       className={`transition-all duration-200 ${isDragging ? "shadow-lg rounded-md bg-white" : ""}`}
     >
@@ -74,7 +102,7 @@ export const DraggableTask = memo(({
         dragHandleProps={dragHandleProps}
         isCollapsed={isCollapsed}
         onToggleCollapse={() => toggleTaskCollapse(task.id)}
-        canRenderSubtasks={canRenderSubtasks()}
+        canRenderSubtasks={shouldRenderSubtasks}
       />
     </div>
   );

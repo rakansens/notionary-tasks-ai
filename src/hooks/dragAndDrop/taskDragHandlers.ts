@@ -1,131 +1,81 @@
-import { Task } from "@/types/models";
-import { normalizeTaskData, calculateTaskLevel } from "@/utils/taskUtils";
-import type { UpdateTaskOrderFn } from "./types";
+import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import { Task } from "../../types/models";
+import { calculateNewOrder } from "./utils";
 
-const preserveSubtasks = (tasks: Task[], updatedTasks: Task[]): Task[] => {
-  const taskMap = new Map(tasks.map(task => [task.id, task]));
-  
-  return updatedTasks.map(task => {
-    const originalTask = taskMap.get(task.id);
-    if (!originalTask?.subtasks?.length) return task;
-
-    console.log('Preserving subtasks for task:', {
-      taskId: task.id,
-      taskTitle: task.title,
-      subtasksCount: originalTask.subtasks.length,
-      subtasks: originalTask.subtasks.map(st => ({
-        id: st.id,
-        title: st.title,
-        level: st.level,
-        parentId: st.parentId
-      }))
-    });
-
-    const updatedSubtasks = originalTask.subtasks.map(subtask => ({
-      ...subtask,
-      level: calculateTaskLevel(subtask, task),
-      parentId: task.id
-    }));
-
-    return {
-      ...task,
-      subtasks: updatedSubtasks
-    };
-  });
+export const handleTaskDragStart = (
+  event: DragStartEvent,
+  setActiveId: (id: string | null) => void
+) => {
+  setActiveId(String(event.active.id));
 };
 
 export const handleTaskDragEnd = (
-  activeId: string,
-  overId: string,
+  event: DragEndEvent,
   tasks: Task[],
-  updateTaskOrder: UpdateTaskOrderFn
+  updateOrder: (items: Task[]) => void,
+  setActiveId: (id: string | null) => void
 ) => {
-  const activeTaskId = Number(activeId);
-  const overTaskId = overId.startsWith('group-') ? undefined : Number(overId);
-  const overGroupId = overId.startsWith('group-') ? Number(overId.replace('group-', '')) : undefined;
-
-  const activeTask = tasks.find(task => task.id === activeTaskId);
-  const overTask = overTaskId ? tasks.find(task => task.id === overTaskId) : undefined;
+  const { active, over } = event;
   
-  if (!activeTask) return;
-
-  console.log('Starting task drag end:', {
-    activeTaskId,
-    overTaskId,
-    overGroupId,
-    activeTask,
-    overTask
-  });
-
-  const isMovingOutOfGroup = activeTask.groupId && (!overTask?.groupId && !overGroupId);
-  const isMovingToGroup = overGroupId !== undefined;
-
-  const newGroupId = isMovingToGroup ? overGroupId : (overTask?.groupId || null);
-
-  const updatedTasks = [...tasks];
-  const taskToMove = normalizeTaskData({ ...activeTask }); 
-
-  const filteredTasks = updatedTasks.filter(t => t.id !== activeTaskId);
-  taskToMove.groupId = newGroupId;
-
-  const tasksInTargetArea = filteredTasks.filter(task => {
-    if (newGroupId) {
-      return task.groupId === newGroupId && !task.parentId;
-    }
-    return !task.groupId && !task.parentId;
-  }).sort((a, b) => (a.order || 0) - (b.order || 0));
-
-  if (isMovingOutOfGroup || isMovingToGroup) {
-    taskToMove.order = tasksInTargetArea.length > 0
-      ? Math.max(...tasksInTargetArea.map(t => t.order || 0)) + 1
-      : 0;
-  } else if (overTask) {
-    const currentIndex = tasksInTargetArea.findIndex(t => t.id === activeTaskId);
-    const targetIndex = tasksInTargetArea.findIndex(t => t.id === overTask.id);
-
-    if (currentIndex === -1) {
-      taskToMove.order = overTask.order || 0;
-      tasksInTargetArea.forEach(task => {
-        if ((task.order || 0) >= (overTask.order || 0)) {
-          task.order = (task.order || 0) + 1;
-        }
-      });
-    } else {
-      const direction = currentIndex < targetIndex ? 1 : -1;
-      taskToMove.order = overTask.order || 0;
-
-      tasksInTargetArea.forEach(task => {
-        if (direction > 0) {
-          if ((task.order || 0) > (activeTask.order || 0) && (task.order || 0) <= (overTask.order || 0)) {
-            task.order = (task.order || 0) - 1;
-          }
-        } else {
-          if ((task.order || 0) >= (overTask.order || 0) && (task.order || 0) < (activeTask.order || 0)) {
-            task.order = (task.order || 0) + 1;
-          }
-        }
-      });
-    }
-  } else {
-    taskToMove.order = tasksInTargetArea.length > 0
-      ? Math.max(...tasksInTargetArea.map(t => t.order || 0)) + 1
-      : 0;
+  if (!over) {
+    setActiveId(null);
+    return;
   }
 
-  filteredTasks.push(taskToMove);
-
-  console.log('Before preserving subtasks:', {
-    filteredTasksCount: filteredTasks.length,
-    taskToMove,
-    originalTasks: tasks
-  });
-
-  const finalTasks = preserveSubtasks(tasks, filteredTasks);
+  const activeId = active.id.toString();
+  const overId = over.id.toString();
   
-  console.log('After preserving subtasks:', {
-    finalTasksCount: finalTasks.length,
-    finalTasks
+  if (activeId === overId) {
+    setActiveId(null);
+    return;
+  }
+
+  const activeTask = tasks.find(task => task.id.toString() === activeId);
+  const overTask = tasks.find(task => task.id.toString() === overId);
+
+  if (!activeTask || !overTask) {
+    setActiveId(null);
+    return;
+  }
+
+  const updates = calculateNewOrder(activeTask, overTask, tasks);
+  const updatedTasks = tasks.map(task => {
+    const update = updates.find(u => u.id === task.id);
+    if (update) {
+      return {
+        ...task,
+        order: update.order,
+        parentId: update.parentId,
+        level: update.level,
+        subtasks: update.subtasks || task.subtasks,
+      };
+    }
+    return task;
   });
 
-  updateTaskOrder(finalTasks);
+  updateOrder(updatedTasks);
+  setActiveId(null);
+};
+
+export const handleTaskDragCancel = (
+  setActiveId: (id: string | null) => void
+) => {
+  setActiveId(null);
+};
+
+export const handleTaskDragOver = (
+  event: DragEndEvent,
+  tasks: Task[],
+  setDropTarget: (task: Task | null) => void
+) => {
+  const { over } = event;
+  if (!over) {
+    setDropTarget(null);
+    return;
+  }
+
+  const overTask = tasks.find(task => task.id.toString() === over.id.toString());
+  if (overTask) {
+    setDropTarget(overTask);
+  }
 };

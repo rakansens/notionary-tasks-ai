@@ -54,6 +54,8 @@ export const useDragAndDrop = (
           order: update.order,
           ...(update.groupId !== undefined && { groupId: update.groupId }),
           ...(update.parentId !== undefined && { parentId: update.parentId }),
+          ...(update.level !== undefined && { level: update.level }),
+          ...(update.subtasks !== undefined && { subtasks: update.subtasks }),
         };
       }
       return item;

@@ -1,50 +1,56 @@
-import { Task, Group } from "@/types/models";
-import type { UpdateTaskOrderFn, UpdateGroupOrderFn } from "./types";
+import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import { Group } from "../../types/models";
+
+export const handleGroupDragStart = (
+  event: DragStartEvent,
+  setActiveId: (id: string | null) => void
+) => {
+  setActiveId(String(event.active.id));
+};
 
 export const handleGroupDragEnd = (
-  activeId: string,
-  overId: string,
+  event: DragEndEvent,
   groups: Group[],
-  tasks: Task[],
-  updateTaskOrder: UpdateTaskOrderFn,
-  updateGroupOrder: UpdateGroupOrderFn
+  updateOrder: (items: Group[]) => void,
+  setActiveId: (id: string | null) => void
 ) => {
-  const activeGroupId = Number(activeId.replace('group-', ''));
-  const overGroupId = Number(overId.replace('group-', ''));
+  const { active, over } = event;
+  
+  if (!over) {
+    setActiveId(null);
+    return;
+  }
 
-  const activeGroup = groups.find(g => g.id === activeGroupId);
-  const overGroup = groups.find(g => g.id === overGroupId);
+  const activeId = active.id.toString();
+  const overId = over.id.toString();
+  
+  if (activeId === overId) {
+    setActiveId(null);
+    return;
+  }
 
-  if (!activeGroup || !overGroup) return;
+  const oldIndex = groups.findIndex(group => group.id.toString() === activeId);
+  const newIndex = groups.findIndex(group => group.id.toString() === overId);
 
-  // グループの順序を更新
-  const updatedGroups = [...groups].sort((a, b) => a.order - b.order);
-  const activeIndex = updatedGroups.findIndex(g => g.id === activeGroupId);
-  const overIndex = updatedGroups.findIndex(g => g.id === overGroupId);
+  if (oldIndex !== -1 && newIndex !== -1) {
+    const updatedGroups = [...groups];
+    const [movedGroup] = updatedGroups.splice(oldIndex, 1);
+    updatedGroups.splice(newIndex, 0, movedGroup);
 
-  if (activeIndex !== -1 && overIndex !== -1) {
-    // グループの位置を更新
-    const [movedGroup] = updatedGroups.splice(activeIndex, 1);
-    updatedGroups.splice(overIndex, 0, movedGroup);
-
-    // グループの順序を更新
+    // 順序を更新
     const reorderedGroups = updatedGroups.map((group, index) => ({
       ...group,
       order: index,
     }));
 
-    // グループ内のタスクの順序も維持
-    const updatedTasks = tasks.map(task => {
-      if (task.groupId === activeGroupId) {
-        return {
-          ...task,
-          groupId: activeGroupId,
-        };
-      }
-      return task;
-    });
-
-    updateTaskOrder(updatedTasks);
-    updateGroupOrder(reorderedGroups);
+    updateOrder(reorderedGroups);
   }
+
+  setActiveId(null);
+};
+
+export const handleGroupDragCancel = (
+  setActiveId: (id: string | null) => void
+) => {
+  setActiveId(null);
 };

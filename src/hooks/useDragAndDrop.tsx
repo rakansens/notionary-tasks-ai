@@ -1,57 +1,48 @@
 import { useState } from "react";
-import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
-import type { Task, Group } from "@/types/models";
-import type { DragAndDropState } from "./dragAndDrop/types";
-import { handleGroupDragEnd } from "./dragAndDrop/groupDragHandlers";
-import { handleTaskDragEnd } from "./dragAndDrop/taskDragHandlers";
+import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import { Task, Group } from "../types/models";
+import { handleGroupDragStart, handleGroupDragEnd, handleGroupDragCancel } from "../hooks/dragAndDrop/groupDragHandlers";
+import { handleTaskDragStart, handleTaskDragEnd, handleTaskDragCancel, handleTaskDragOver } from "../hooks/dragAndDrop/taskDragHandlers";
 
-export const useDragAndDrop = (
-  tasks: Task[],
-  groups: Group[],
-  updateTaskOrder: (tasks: Task[]) => void,
-  updateGroupOrder?: (groups: Group[]) => void
-) => {
-  const [state, setState] = useState<DragAndDropState>({
-    activeId: null,
-  });
+interface UseDragAndDropProps {
+  items: Task[] | Group[];
+  updateOrder: (items: Task[] | Group[]) => void;
+  type: "task" | "group";
+}
+
+export const useDragAndDrop = ({ items, updateOrder, type }: UseDragAndDropProps) => {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<Task | null>(null);
 
   const handleDragStart = (event: DragStartEvent) => {
-    setState({ activeId: String(event.active.id) });
+    if (type === "task") {
+      handleTaskDragStart(event, setActiveId);
+    } else {
+      handleGroupDragStart(event, setActiveId);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (!over) {
-      setState({ activeId: null });
-      return;
-    }
-
-    const activeId = active.id.toString();
-    const overId = over.id.toString();
-    
-    if (activeId === overId) {
-      setState({ activeId: null });
-      return;
-    }
-
-    // グループのドラッグ&ドロップ
-    if (activeId.startsWith('group-') && overId.startsWith('group-') && updateGroupOrder) {
-      handleGroupDragEnd(activeId, overId, groups, tasks, updateTaskOrder, updateGroupOrder);
+    if (type === "task") {
+      handleTaskDragEnd(event, items as Task[], updateOrder as (items: Task[]) => void, setActiveId);
+      handleTaskDragOver(event, items as Task[], setDropTarget);
     } else {
-      // タスクのドラッグ&ドロップ
-      handleTaskDragEnd(activeId, overId, tasks, updateTaskOrder);
+      handleGroupDragEnd(event, items as Group[], updateOrder as (items: Group[]) => void, setActiveId);
     }
-
-    setState({ activeId: null });
   };
 
   const handleDragCancel = () => {
-    setState({ activeId: null });
+    if (type === "task") {
+      handleTaskDragCancel(setActiveId);
+      setDropTarget(null);
+    } else {
+      handleGroupDragCancel(setActiveId);
+    }
   };
 
   return {
-    dragAndDropState: state,
+    activeId,
+    dropTarget,
     handleDragStart,
     handleDragEnd,
     handleDragCancel,

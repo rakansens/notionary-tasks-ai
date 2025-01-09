@@ -1,6 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Task } from "@/types/models";
+import { Task } from "../../types/models";
+import { useMemo, useEffect } from "react";
 
 export const useTaskDragAndDrop = (task: Task, parentTask?: Task) => {
   const {
@@ -20,7 +21,7 @@ export const useTaskDragAndDrop = (task: Task, parentTask?: Task) => {
     },
   });
 
-  const style = {
+  const style = useMemo(() => ({
     transform: transform ? CSS.Transform.toString(transform) : undefined,
     transition: transition || undefined,
     opacity: isDragging ? 0.5 : 1,
@@ -28,21 +29,31 @@ export const useTaskDragAndDrop = (task: Task, parentTask?: Task) => {
     zIndex: isDragging ? 999 : 1,
     backgroundColor: isDragging ? "white" : "transparent",
     touchAction: "none",
-  };
+  }), [transform, transition, isDragging]);
 
-  console.log('TaskDragAndDrop state:', {
-    taskId: task.id,
-    taskTitle: task.title,
-    isDragging,
-    transform: transform ? CSS.Transform.toString(transform) : null,
-    transition,
-    parentTaskId: parentTask?.id,
-    level: task.level,
-    subtasks: task.subtasks?.length || 0
-  });
+  const dragHandleProps = useMemo(() => ({
+    ...attributes,
+    ...listeners
+  }), [attributes, listeners]);
+
+  useEffect(() => {
+    // ドラッグ中またはトランジション中のみログを出力
+    if (isDragging || (transform && transform.x !== 0 && transform.y !== 0) || transition) {
+      console.log('TaskDragAndDrop state:', {
+        taskId: task.id,
+        taskTitle: task.title,
+        isDragging,
+        transform: transform ? CSS.Transform.toString(transform) : null,
+        transition,
+        parentTaskId: parentTask?.id,
+        level: task.level,
+        subtasks: task.subtasks?.length || 0
+      });
+    }
+  }, [isDragging, transform, transition, task.id, task.title, task.level, task.subtasks, parentTask?.id]);
 
   return {
-    dragHandleProps: { ...attributes, ...listeners },
+    dragHandleProps,
     setNodeRef,
     style,
     isDragging,
